@@ -1,5 +1,7 @@
 ---
 title: "MSGene"
+author: Sarah Urbut, MD PhD
+date: August 3 2023
 output:
   ioslides_presentation:
     widescreen: true
@@ -29,6 +31,12 @@ library(tidyr)
 library(plotly)
 ```
 
+## The Cardiologist Who Mistook her Stethoscope for a Probability Distirbution 
+
+```{r, out.width= "800px", echo=FALSE}
+knitr::include_graphics("stethoscope.png")
+```
+
 ## Life transitions
 
 People are complicated. Look at this transition through lifestages for an individual based on diagnostic codes, lab data, and biomarkers. 
@@ -39,9 +47,9 @@ knitr::include_graphics("docs/assets/pheno_output.png")
 
 ## Lifetime risk
 
-Previously, authors have soguth to capture static lifetime risk
+Previously, authors have sought to capture static lifetime risk
 
-```{r, out.width= "500px", echo=FALSE}
+```{r, out.width= "700px", echo=FALSE}
 
 knitr::include_graphics("~/Dropbox/lifecvd.png")
 ```
@@ -55,14 +63,19 @@ knitr::include_graphics("~/dynamichr/Figs/combined456.png")
 ```
 
 
-## So what should we do?
+## So what should we do? {.smaller}
 
-* Time dependency 
-** Likelihoods: double the trouble?
-
-```{r pressure,eval=T,echo=F}
+* Time dependency: 'pseudo patients'
+* Likelihoods: double the trouble?
+* Competing risks
+```{r pressure,eval=T,echo=F,size=0.8}
 m=readRDS("~/Dropbox/pheno_dir/output/mos_longitudinal_sbp_ldl_cad.rds")
-head(m[c(20:30),])
+m$Cad_0_censor_age=round(m$Cad_0_censor_age,2)
+m$cad.prs=round(m$cad.prs,2)
+m$ldl=round(m$ldl,0)
+m$sbp=round(m$sbp,0)
+m$bmi=round(m$bmi,1)
+(m[c(1:9),c("identifier","tstart","sex","cad.prs","Cad_0_Any","Cad_0_censor_age","ldl","sbp","stat","bmi")])
 ```
 
 ## Time dependent challenges
@@ -86,7 +99,7 @@ age_of_event=rep(c("0-40","40-45","45-50","50-55","55-60","60-65","65-70","70-75
 df=data.frame(est=exp(c),ui=ui,li=li,var=variable,age_of_event=age_of_event)
 
 #d2=df[-which(df$var=="sex.time"),]
-ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom_errorbar(aes(ymin=ui, ymax=li), width=.1)+stat_smooth(method="loess")+geom_point()+labs(y="exp(B(x(t))",title = "TDS Term",col="Variable")+theme_classic(base_size = 15))
+ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom_errorbar(aes(ymin=ui, ymax=li), width=.1)+stat_smooth(method="loess")+labs(y="exp(B(x(t))",title = "TDS Term",col="Variable")+theme_classic(base_size = 15)+guides(fill="none"))
 ```
 
 ## Attempt 2
@@ -183,13 +196,13 @@ knitr::include_graphics("~/multistate/table1.png")
 
 ## Advantages of multistate
 
-```{r,fig.height=4,fig.width=4}
+```{r}
 library(plotly)
 ggplotly(readRDS("output/numbertransplot.rds"))
 ```
-* `time dependent` state vs `time invariant` predictors
+* `time dependent` state vs `time fixed` predictors
 * inhomogenous != memoryless
-* condition on new state with *flexible* fits between states
+* condition on current state with *flexible* fits between 
 
 ## Distribution of states
 
@@ -300,7 +313,7 @@ $$\begin{equation}
 
 ## In practice: PRS Quanta vs Individual PRS: Dataframe
 
-```{r echo=T,fig.width=4,fig.height=4}
+```{r echo=T,fig.width=3,fig.height=3}
 prs_quants=qnorm(c(0.2,0.5,0.8))
 ages = c(40:80)
 s2=stateriskfunc_smoking_smoothedcoef(ages = c(40:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
@@ -498,15 +511,15 @@ ggplotly(readRDS("fosrmse.rds"))
 
 ## Next Steps
 
-```{r, out.width= "500px", echo=FALSE}
+```{r, out.width= "600px", echo=FALSE}
 knitr::include_graphics("lpp.png")
 ```
 
 
 ## Thank you!
-* NL Lab! and ...
-* Giovanni Parmigiani
-* Sasha Gusev
+* ALL the members of the NL Lab! and ...
+* Giovanni Parmigiani, PhD
+* Sasha Gusev, PhD
 
 ```{r, out.width= "500px", echo=FALSE}
 knitr::include_graphics("bayespic.png")
