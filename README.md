@@ -1,2 +1,5 @@
-# multistate2
-Multistate modeling of CAD
+# multistate
+
+A [workflowr][] project.
+
+[workflowr]: https://github.com/workflowr/workflowr

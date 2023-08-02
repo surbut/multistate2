@@ -1,0 +1,79 @@
+---
+title: "lipidstatin"
+author: "Your Name"
+date: "2023-04-15"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+
+Let's look at the problems with taking measurements vs genetics.
+
+```{r,echo=FALSE,eval=TRUE}
+library(dplyr)
+library(ggplot2)
+library(reshape)
+library(tidyverse)
+
+ldl_gp=readRDS("~/Dropbox (Personal)/pheno_dir/output/ldl_gp.rds")
+dfh=readRDS("~/Dropbox (Personal)/pheno_dir/output/merged_pheno_censor_final.rds")
+
+ldl_lip=ldl_gp[ldl_gp$eid%in%dfh$identifier[dfh$HyperLip_0_Any==2],]
+ldl_cad=ldl_gp[ldl_gp$eid%in%dfh$identifier[dfh$Cad_0_Any==2],]
+
+
+count_all <- ldl_gp %>%
+group_by(eid) %>%
+summarise(num_rows = n())
+
+count_lipid <- ldl_lip %>%
+group_by(eid) %>%
+summarise(num_rows = n())
+
+count_cad <- ldl_cad %>%
+group_by(eid) %>%
+summarise(num_rows = n())
+
+r=data.frame(rbind(count_all,count_cad,count_lipid))
+r$var=c(rep("all",nrow(count_all)),rep("cad",nrow(count_cad)),rep("lipid",nrow(count_lipid)))
+
+par(mfrow=c(1,2))
+
+# hist(count_all$num_rows,freq = F,main="Number of LDL Measurements",xlab="",nclass=100)
+# lines(density(count_cad$num_rows),col="red")
+# lines(density(count_lipid$num_rows),col="blue")
+# legend("right",col=c("blue","red","black"),pch=19,legend=(c("HyperLip","Cad","All")),title = "Population")
+# 
+# 
+# hist(ldl_age$value1,freq = F,main="Value LDL Measurements",xlab="",ylim=c(0,0.015))
+# lines(density(ldl_cad$value1),col="red")
+# lines(density(ldl_lip$value1),col="blue")
+# legend("topright",col=c("blue","red","black"),pch=19,legend=(c("HyperLip","Cad","All")),title = "Population")
+
+ggplot() +
+  geom_density(data = count_all, aes(x = num_rows, fill = "ALL"), show.legend = TRUE)+
+  geom_density(data = count_cad, aes(x = num_rows, fill = "CAD"), show.legend = TRUE) +
+  geom_density(data = count_lipid, aes(x = num_rows, fill = "LIP"), show.legend = TRUE) +
+  labs(title = "Counts of LDL Measurements", x = "", y = "Density") +
+  xlim(0, 25) +
+  theme_classic() +
+  scale_color_manual(values = c("red", "blue","grey"), 
+                     labels = c("CAD", "LIP","all"), 
+                     name = "Groups")
+
+  
+ggplot() +
+  geom_density(data = ldl_gp, aes(x = value1, fill = "ALL"), show.legend = TRUE)+
+  geom_density(data = ldl_cad, aes(x = value1, fill = "CAD"), show.legend = TRUE) +
+  geom_density(data = ldl_lip, aes(x = value1, fill = "LIP"), show.legend = TRUE) +
+  labs(title = "Value LDL Measurements", x = "", y = "Density") +
+  ylim(0, 0.015) +
+  theme_classic() +
+  scale_color_manual(values = c("red", "blue","grey"), 
+                     labels = c("CAD", "LIP","all"), 
+                     name = "Groups")
+```
+

@@ -1,0 +1,19 @@
+---
+title: "Home"
+site: workflowr::wflow_site
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
+---
+
+Welcome to my research website. Here we discuss using multistate models, phenotypic and genotypic dta to model transitions between states.
+
+[Here](modeglm.html) We discuss our multimode states
+
+[Here](plots.html) We show gene specific survival curves
+
+[Here](lipid_effect.html) We show lipid and medications and phenotype profiles over time
+
+[Here](ageyearmin.html) We show the results in MGB

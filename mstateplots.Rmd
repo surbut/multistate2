@@ -1,0 +1,524 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-06-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = ages,prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+ht=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 50)
+hl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 80)
+
+#####
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+htt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 50)
+htl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 80)
+#####
+
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "HyperLip",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+lt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 50)
+ll=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 80)
+###
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Dm",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+dt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 50)
+dl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 80)
+#####
+
+ten=cbind(ht,htt,lt,dt)
+life=cbind(hl,htl,ll,dl)
+
+r=rbind(ten,life)
+colnames(r)=c("Health","Hypertension","HyperLipidemia","Diabetes")
+r=round(r*100,2)
+print(xtable(as.data.frame(r)))
+```
+
+
+```{r cars}
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = ages,prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+ht=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 70)
+hl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 80)
+
+#####
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+htt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 70)
+htl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 80)
+#####
+
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "HyperLip",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+lt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 70)
+ll=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 80)
+###
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Dm",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+dt=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 70)
+dl=projection_with_plot(a,ages = ages,quantiles = prs_quants,agestart = 60,agestop = 80)
+#####
+
+ten=cbind(ht,htt,lt,dt)
+life=cbind(hl,htl,ll,dl)
+
+r=rbind(ten,life)
+colnames(r)=c("Health","Hypertension","HyperLipidemia","Diabetes")
+r=round(r*100,2)
+print(xtable(as.data.frame(r)))
+```
+
+#####
+```{r}
+
+
+
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),3))
+dimnames(tenlifarray)=list(agesint,levels(mpce$newintint),c("Ten","Lifetime","PCE"))
+levels(mpce$int) <- c(1,2,3,4,5,6)
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+  tenlifarray[g,,1]=100*projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+  l=list(levels(mpce$int))
+  tenlifarray[g,,3]=sapply(l[[1]],function(x){compute_pce_predictedrisk(age,mpce,x)})
+  tenlifarray[g,,2]=100*projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+}
+
+m=melt(tenlifarray[,c(2,4,6),])
+m$PRS=factor(m$Var2,levels = c(2,4,6),labels = c(0.2,0.5,0.8))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime","PCE"),labels = c("Ten Year","Lifetime","Pooled Cohort"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(Score,PRS)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+m=melt(tenlifarray[,c(2,4,6),])
+m$PRS=factor(m$Var2,levels = c(2,4,6),labels = c(0.2,0.5,0.8))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime","PCE"),labels = c("Ten Year","Lifetime","PCE"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(PRS,Score)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+
+
+t=melt(tenlifarray[,,1])
+l=melt(tenlifarray[,,2])
+p=melt(tenlifarray[,,3])
+f=merge(t,l,by=c("Var1","Var2"))
+f2=merge(f,p,by=c("Var1","Var2"))
+g=merge(t,l,by=c("Var1","Var2"))
+
+g=g[g$Var2%in%c(2,4,6),]
+g$Var2=factor(g$Var2,labels=c(0.2,0.5,0.8))
+
+ggplot(g,aes(x=value.x,y=value.y,col=as.factor(Var1),group=as.factor(Var1)))+geom_point(aes(color=as.factor(Var2)))+geom_line(aes(col=as.factor(Var1)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var2)))+geom_point(aes(color=as.factor(Var1)))+geom_line(aes(col=as.factor(Var2)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+```
+
+
+```{r for fewer quants}
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+
+#prs_quants=qnorm(c(0.2,0.5,0.8))
+agesint=seq(40,70,by=5)
+
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),3))
+dimnames(tenlifarray)=list(agesint,levels(mpce$newint),c("Ten","Lifetime","PCE"))
+
+
+ages=c(20:80)
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+  tenlifarray[g,,1]=projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+  l=list(levels(mpce$newint))
+  tenlifarray[g,,3]=sapply(l[[1]],function(x){compute_pce_predictedrisk_newint(age,mpce,x)})
+  tenlifarray[g,,2]=projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+}
+
+m=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),])
+m$PRS=factor(m$Var2,levels = c(2,4,6,8,10,12,14,16,18,20),labels = seq(0.10,1,by=0.1))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime"),labels = c("Ten Year","Lifetime"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(Score,PRS)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+m=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),])
+m$PRS=factor(m$Var2,levels = c(2,4,6,8,10,12,14,16,18,20),labels = seq(0.10,1,by=0.1))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime"),labels = c("Ten Year","Lifetime"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(PRS,Score)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+
+
+t=melt(tenlifarray[,,1])
+l=melt(tenlifarray[,,2])
+merge(t,l,by=c("Var1","Var2"))
+
+g=merge(t,l,by=c("Var1","Var2"))
+g=g[g$Var2%in%c(2,4,6,8,10,12,14,16,18,20),]
+g$Var2=factor(g$Var2,labels=c(seq(0.1,1,by=0.1)))
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var1)))+geom_point(aes(color=as.factor(Var2)))+geom_line(aes(col=as.factor(Var1)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+g=merge(t,l,by=c("Var1","Var2"))
+g=g[g$Var2%in%c(2,4,6,8,10,12,14,16,18,20),]
+g$Var2=factor(g$Var2,labels=c(seq(0.1,1,by=0.1)))
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var2)))+geom_point(aes(color=as.factor(Var1)))+geom_line(aes(col=as.factor(Var2)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+```
+
+```{r}
+
+cool=array(NA,dim=c(length(agesint),(length(prs_quants)*2),5))
+dimnames(cool)=list(agesint,levels(mpce$newint),c("SickLess","SickGreater","Less","Greater","Events"))
+thresh=5
+
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  for(c in 1:length(levels(mpce$newint))){
+    print(c)
+    mpce=mpce[!is.na(mpce$ascvd_10y_accaha),]
+    cool[g,c,1]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$ascvd_10y_accaha<thresh&mpce$smoke==0)
+    cool[g,c,2]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$ascvd_10y_accaha>thresh&mpce$smoke==0)
+    cool[g,c,3]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$ascvd_10y_accaha<thresh&mpce$smoke==0)
+    cool[g,c,4]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$ascvd_10y_accaha>thresh&mpce$smoke==0)
+    cool[g,c,5]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$smoke==0)
+  }}
+    
+### 
+
+## To do : count mumber of people with lifetime multsitate >10% and PCE <5% (or 7.5%)
+
+
+
+```
+
+```{r livesaved}
+
+## Assuming a relative risk reduction of 0.2 per year, someone at the highest risk would have a 6% rediction from year 40 to 80, while someone at the highest age
+prs_quants=qnorm(c(0.2,0.5,0.8))
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+###or for more qaunts 
+
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+agesint=seq(40,70,by=5)
+
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+m=matriskfun(smoothedplot = a,ages = c(20:80),quantiles = prs_quants)
+
+
+# > 1-prod(m$yearlynotrisk[21:60,20])
+# [1] 0.3126114
+# > 1-prod(m$yearlyreducednotmad[21:60,20])
+# [1] 0.2588465
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),4))
+dimnames(tenlifarray)=list(agesint,levels(mpce$newint),c("Ten","Lifetime","TenBenefit","LifetimeBenefit"))
+
+#dimnames(tenlifarray)=list(agesint,levels(mpce$int),c("Ten","Lifetime","TenBenefit","LifetimeBenefit"))
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+
+  
+   tenlifarray[g,,1]=projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+
+  tenlifarray[g,,2]=projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+  
+    tenlifarray[g,,3]=projection_withmat(m$yearlyreducednotmad,agestart = age,ages= age+10)
+  #l=list(levels(mpce$int))
+  #tenlifarray[g,,5]=sapply(l[[1]],function(x){compute_pce_predictedrisk_newint(age,mpce,x)})
+  tenlifarray[g,,4]=projection_withmat(m$yearlyreducednotmad,agestart = age,agestop = 80)
+}
+saveRDS(tenlifarray,"~/multistate/output/tenliffarray.rds")
+
+tenlifarray=readRDS("~/multistate/output/tenliffarray.rds")
+netben=tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"]-tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"]
+ben=melt(netben)
+ben2=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"])
+ten=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Ten"])
+l=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"])
+
+
+# netben=tenlifarray[,c(2,4,6),"Lifetime"]-tenlifarray[,c(2,4,6),"LifetimeBenefit"]
+# ben=melt(netben)
+# ten=melt(tenlifarray[,c(2,4,6),"Ten"])
+# l=melt(tenlifarray[,c(2,4,6),"Lifetime"])
+
+mer=merge(ten,l,by=c("Var1","Var2"))
+mer=merge(mer,ben,by=c("Var1","Var2"))
+
+colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+mer$`PRS Category`=factor(mer$`PRS Category`,labels = seq(0.1,1,by=0.1))
+mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
+## dot point
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Lifetime`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+ggsave(plot = g1,filename = "MS ten vs MS Lf.tiff",dpi=300)
+
+g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.01,ymax=`Lifetime`+0.01,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+
+ggsave(plot = g1,filename = "MS ten vs MS Lf_saturn.png",dpi=300,height = 4,width = 6)
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+
+plot_individual_timeline(dfData.settings,ind_all_event_dt = rf,ind_identifier =1002707)
+#head(cad$df.casecontrol[identifier%in%"1002707",])
+
+
+
+ggsave(plot = g1,filename = "MS ten vs benf.png",dpi=300,height = 4,width = 6)
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic()+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Therapy Benefit")
+
+ggsave(plot = g1,filename = "MS ten vs benf_facet.tiff",dpi=300)
+g2=ggplot(mer,aes(`Lifetime`,y = `Net Ben`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic()+labs(x="MS Predicted Lifetime Risk",y="MS Lifetime Therapy Benefit")
+ggsave(plot = g2,filename = "MS lt vs benf.tiff",dpi=300)
+
+ggarrange(g1,g2,ncol = 2,common.legend = T)
+
+
+### now bar plots
+
+ben2=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"])
+l=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"])
+r=rbind(l,ben2)
+r$Var3=c(rep("Lifetime Risk",nrow(l)),rep("With Therapy",nrow(ben2)))
+
+colnames(r)=c("Age","PRS Category","value","Var3")
+#r$`PRS Category`=factor(r$`PRS Category`,labels = c("Low","Intermediate","High"))
+r$`PRS Category`=factor(r$`PRS Category`,labels = round(pnorm(prs_quants),1))
+
+ggplot(r, aes(x=`PRS Category`, y = value, fill = Var3)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~Age, nrow = 7) +
+  labs(title = "Risk and Net Benefit by Age Group and Risk Category") +
+  scale_fill_nejm()+theme_classic()+labs(y="Predicted Lifetime Risk, Multistate",fill="Intervention")
+
+  scale_fill_manual(values = c("#FF5555", "#55AAFF", "#55FF55"),
+                    labels = c("Ten-Year Risk", "Lifetime Risk", "Net Benefit")) +
+  theme_bw()
+
+ggplot(mermelt, aes(x =Cat, y = value, fill = variable)) +
+geom_bar(stat = "identity", position = "dodge") +
+facet_wrap(~Age, nrow = 7) +
+labs(title = "Risk and Net Benefit by Age Group and Risk Category") +
+scale_fill_manual(values = c("#FF5555", "#55AAFF", "#55FF55"),
+labels = c("Ten-Year Risk", "Lifetime Risk", "Net Benefit")) +
+theme_bw()
+
+
+```
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+source("code/fitarray.R")
+fixedsmoke=readRDS("output/fixedsmoke.rds")
+mpce=readRDS("output/mpcecomplete.rds")
+prs_quants=qnorm(c(0.2,0.5,0.8))
+s=stateriskfunc_smoking(c(40:80),prs_quants = prs_quants,start = "Dm",stop = "Cad",modelfit = fixedsmoke)
+p=plotfunc_prs_sex(s[,,,"none"],title = "Dm to CAD")
+dm=projection_with_plot(p,ages = ages,agestart = 40,agestop = 80,quantiles = prs_quants)
+
+
+s=stateriskfunc_smoking(c(40:80),prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixedsmoke)
+p=plotfunc_prs_sex(s[,,,"none"],title = "Hypertension to CAD")
+ht=projection_with_plot(p,ages = ages,agestart = 40,agestop = 80,quantiles = prs_quants)
+
+s=stateriskfunc_smoking(c(40:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+p=plotfunc_prs_sex(s[,,,"none"],title = "Health to CAD")
+health=projection_with_plot(p,ages = ages,agestart = 40,agestop = 80,quantiles = prs_quants)
+
+df=cbind(health,ht,dm)
+colnames(df)=c("health","ht","dm")
+d=melt(df)
+df$sex.prs=rownames(df)
+d=melt(df,id.vars="sex.prs")
+d$variable=factor(d$variable,levels=c("health","ht","dm"),labels = c("Health","Hypertension","Diabetes"))
+
+g=ggplot(d,aes(sex.prs,y=value,fill=variable))+geom_bar(stat="identity",pos="dodge")+labs(y="Lifetime Risk for a 40-year old",x="Sex and PRS",fill="Risk State")+theme_classic()+scale_fill_d3()+geom_errorbar(aes(ymin=value-0.02,ymax=value+0.02),width=.2,position=position_dodge(.9))
+ggsave(plot=g,filename = "~/multistate/progressivestaterisk.png",dpi=300)
+```
+
+```{r}
+library(reshape2)
+dat=data.table(readRDS("output/fortable1.rds"))
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+ages=c(20:80)
+fixedsmall = fitfunc(df_frame = dat,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+
+
+t=(apply(fixedsmall$events[,,"Health"],2,function(x){cumsum(x)}))
+colnames(t)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
+
+library(RColorBrewer)
+col_pce <- rev(brewer.pal(10, "Paired"))
+col_p = c(col_pce[c(1,2,4)],
+          col_pce[3],
+          col_pce[5],
+          col_pce[c(6, 10)],
+          "black",
+          col_pce[9],
+          "turquoise",
+          col_pce[7])
+scm=scale_fill_manual(
+    values = col_p,
+    drop = TRUE,
+    breaks = c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes"))
+
+
+#t=t(apply(t,1,function(x){x/sum(x[!is.na(x)])}))
+g=melt(t)
+g$Var2=as.factor(g$Var2)
+
+
+health=ggplot(g[g$Var2!="Health",],aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="",x="Age",fill="Final State")+theme_classic(base_size = 15)+scm
+g=g[g$Var2!="Health",]
+g$f=rep("Health",nrow(g))
+healthg=g
+ggsave(plot=health,filename = "output/healthtransitions.png",dpi=300)
+
+###############
+
+t=apply(fixedsmall$events[,,"Ht"],2,function(x){cumsum(x)})
+colnames(t)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
+
+g=melt(t)
+g$Var2=as.factor(g$Var2)
+ht=ggplot(g[g$Var2!="Hypertension",],aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions starting from Hypertension",x="Age",fill="Final State")+theme_classic()+scm
+
+
+g$f=rep("Hypertension",nrow(g))
+g=g[g$Var2!="Hypertension",]
+hyg=g
+######
+
+t=apply(fixedsmall$events[,,"HyperLip"],2,function(x){cumsum(x)})
+colnames(t)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
+g=melt(t)
+g$Var2=as.factor(g$Var2)
+hyperlip=ggplot(g[g$Var2!="Hyperlipidemia",],aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions starting from HyperLip",x="Age",fill="Final State")+theme_classic()+scm
+
+g=g[g$Var2!="Hyperlipidemia",]
+g$f=rep("Hyperlipidemia",nrow(g))
+hlg=g
+
+
+###
+
+t=apply(fixedsmall$events[,,"Dm"],2,function(x){cumsum(x)})
+colnames(t)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
+g=melt(t)
+g$Var2=as.factor(g$Var2)
+dm=ggplot(g[g$Var2!="Diabetes",],aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions starting from HyperLip",x="Age",fill="Final State")+theme_classic()+scm
+
+g=g[g$Var2!="Diabetes",]
+g$f=rep("Diabetes",nrow(g))
+dmg=g
+
+r=rbind(healthg,hyg,hlg,dmg)
+#r$f=as.factor(r$f,lev)
+#levels(r$f)[1]="Health"
+#levels(r$f)[2]="Hypertension"
+#levels(r$f)[3]="Hyperlipidemia"
+#levels(r$f)[4]="Diabetes"
+
+numbertransplot=ggplot(r,aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions",x="Age",fill="Final State")+theme_classic()+scm+facet_wrap(~factor(f,levels = c("Health","Hypertension","Hyperlipidemia","Diabetes")),nrow = 2,scales = "free")
+
+ggsave(plot=numbertransplot,filename = "plots/alltransitions.png",dpi=300)
+library(ggpubr)
+
+a=t(apply(fixedsmall$events,1,function(i){
+x=t(i);x[is.na(x)]=0;colSums(x)
+}))
+
+b=apply(a,2,function(x){cumsum(x)})
+colnames(b)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
+g=melt(b)
+
+
+
+
+
+g=ggplot(g[g$Var2!="Health",],aes(x=Var1,y=value,fill=as.factor(Var2)))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions Across States",x="Age",fill="Final State")+theme_classic()
+
+ggsave(plot=ggplot(g[g$Var2!="Health",],aes(x=Var1,y=value,fill=as.factor(Var2)))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions Across States",x="Age",fill="Final State")+theme_classic(),filename = "mstate/allstates.png")
+
+
+
+b=apply(a,2,function(x){cumsum(x)})
+
+ggarrange(health,ht,hyperlip,nrow = 1,ncol=3,legend = "bottom")
+,legend = "right")
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+library(lubridate)
+g2=readRDS("~/Dropbox//ukbb-ehr-data/data/gp_event.rds")
+g2=gpc[!duplicated(gpc$eid),]
+a=merge(g2,mpce,by.x="eid",by.y="identifier")
+d=as.numeric(difftime(a$event_dt,a$Birthdate)/365.25)
+a$agerec=d
+a$Durationfollowed=as.numeric(a$Death_Censor_Age)-as.numeric(a$agerec)
+
+a$agerec=as.numeric(a$agerec)
+a$Durationfollowed=as.numeric(a$Durationfollowed)
+h1=ggplot(a,aes(x=Durationfollowed))+geom_histogram(bins = 50)+labs(x="Duration Followed (years)",y="Count")+theme_classic()
+h2=ggplot(a[a$agerec>20,],aes(x=as.numeric(agerec)))+geom_histogram(bins = 50)+labs(x="First Age Recorded (years)",y="Count")+theme_classic()
+
+ga=ggarrange(h1,h2,ncol = 2)
+ggsave(ga,filename="plots/recruitmenthist.png",dpi=300)
+```
+
+
+
+
+rb=merge(reg,mpce[,c("identifier","Birthdate","Dm_0_censor_age","Ht_0_censor_age","Cad_0_censor_age","Death_Censor_Age")],by.x
+="eid",by.y="identifier")
+r2=rb[-which(year(rb$reg_date)<1940),]
+r2=r2[!is.na(r2$reg_date),]
+r2$agereg=difftime(r2$reg_date,r2$Birthdate,units = "days")/365.25
+r2$agedone=as.numeric(apply(r2[,c("Dm_0_censor_age","Ht_0_censor_age","Cad_0_censor_age","Death_Censor_Age")],1,function(x){max(x)}))
+agediff=as.numeric(r2$agedone-r2$agereg)
+min(na.omit(r2$reg_date))
+hist(na.omit(as.numeric(rb$agereg[rb$agereg>0])),nclass=100,main="First Record Age")
+
+
+

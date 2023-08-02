@@ -1,0 +1,39 @@
+---
+title: "Age_Plot Cohort"
+output: html_document
+date: '2023-02-26'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+
+```
+
+## R Markdown
+
+Here we consider the dsitribution of cases by AGE in uKB and MGB
+
+```{r,echo=F}
+
+mu=readRDS("~/Dropbox/agedistribution.rds")
+m=readRDS("~/Dropbox/agedistribution_mgb.rds")
+levels(mu$variable)=levels(m$variable)=c("Diabetes","Hyperlipidemia","CAD","HTN")
+ggplot(mu,aes(age,value,fill=variable))+geom_bar(stat="identity")+
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+theme_classic()+
+  labs(y="Count",x="Age of Diagnosis",fill="Risk Factor",title="Case Counts in UKB")+
+  scale_x_discrete(breaks=seq(20, 80, 10))
+
+```
+
+And for MGB
+
+```{r,echo=F}
+
+ggplot(m,aes(age,value,fill=variable))+
+geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme_classic()+labs(y="Count",x="Age of Diagnosis",fill="Risk Factor",title="Case Counts in MGB")+
+  scale_x_discrete(breaks=seq(20, 80, 10))
+```

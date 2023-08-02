@@ -1,0 +1,64 @@
+---
+title: "KM curves"
+output: html_document
+date: '2023-02-15'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Here we examine the curves by PRS level for CAD by PRS strata:
+
+```{r}
+library(survival)
+library(survminer)
+library(ggplot2)
+library(data.table)
+
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+
+fit <- survfit(Surv(Cad_0_censor_age, ifelse(df_final$Cad_0_Any==2,1,0)) ~cad.prs.lev, data=df_final, id=identifier)
+
+#Survival
+ggsurvplot(fit,
+           conf.int = TRUE,
+           ggtheme = theme_classic(base_size =20)) 
+
+gs=ggsurvplot(fit,
+           conf.int = TRUE,
+           ggtheme = theme_classic(base_size =20),fun = "cumhaz") 
+```
+
+## Plot mean PRS by age:
+
+```{r}
+
+library("dplyr")
+df_final$age.cat[df_final$Cad_0_Any==2]=round(df_final$Cad_0_censor_age[df_final$Cad_0_Any==2]/5,0)
+d=df_final[df_final$Cad_0_Any==2]%>%group_by(age=round(Cad_0_censor_age/5,0))%>%summarise(cad.mean=mean(cad.prs),sd.cad=sd(na.omit(cad.prs))/sqrt(length(cad.prs)),htn.mean=mean(htn.prs),sd.htn=sd(na.omit(htn.prs))/sqrt(length(cad.prs)),ldl.mean=mean(ldl.prs),sd.ldl=sd(na.omit(ldl.prs))/sqrt(length(cad.prs)),dm2.mean=mean(dm2.prs),sd.dm=sd(na.omit(dm2.prs))/sqrt(length(cad.prs)))
+df=data.frame(d[5:18,])
+
+names(df)=c("age","mean","sem","mean","sem","mean","sem","mean","sem")
+
+m=rbind(rbind(rbind(df[,c(1,2,3)],df[,c(1,4,5)]),df[,c(1,6,7)]),df[,c(1,8,9)])
+
+#m$variable=c(rep("CAD",61),rep("HTN",61),rep("LDL",61),rep("DM",61))
+
+m$variable=c(rep("CAD",14),rep("HTN",14),rep("LDL",14),rep("DM",14))
+m$age=rep(c(22,27,32,37,42,47,52,57,62,67,72,77,82,85),4)
+ggplot(m, aes(color=variable, y=mean, x=age))+xlab("Age of Event") +
+  ylab("Mean PRS")+
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2,size=0.5, position=position_dodge(1)) +
+  geom_point(position = position_dodge(1)) +
+  expand_limits(y=0) +
+  scale_y_continuous(expand=expand_scale(mult=c(0,0.02))) +
+  theme_classic()
+
+c=df_final[df_final$Cad_0_Any==2]%>%group_by(age=round(Cad_0_censor_age,0))%>%summarise(events=length(Cad_0_censor_age))
+
+ggplot(c[20:80,], aes(x=age, y=events))+geom_bar(position='dodge', stat='identity')+xlab("Age of Event")+ylab("Number of Events")+theme_classic(base_size =20)
+```
+

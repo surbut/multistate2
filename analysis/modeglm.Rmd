@@ -1,0 +1,2911 @@
+---
+title: "R Binomial"
+output: html_document
+date: '2023-02-09'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
+```
+
+## life transitions
+
+People are complicated. Look at this transition through lifestages for an individual based on diagnostic codes, lab data, and biomarkers. We look at this example overlaying biomarkers for Diabetes.
+
+![](assets/pheno_output.png){width=500px}
+
+## Multistate modeling
+
+We can think of these life transitions as progressing through a variety of states:
+
+![](assets/figms.jpg){width=500px}
+
+
+Here we plot transition OR by PRS quantile from each state to CAD for example.
+
+
+```{r labphenos, echo=FALSE}
+setwd("~/multistate/")
+library("data.table")
+source('code/fullarray.R')
+source('code/plotcode.R')
+source('code/fitarray.R')
+source('code/ses.R')
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(dplyr)
+
+custom.col = c("#E69F00","#56B4E9","#009E73", "#F0E442","#0072B2","#D55E00", "#CC79A7","#FFDB6D")
+custom.col = brewer.pal(n = 8, name = 'Dark2')
+
+```
+
+```{r,echo=FALSE,fig.height=10,fig.width=10}
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+gpc=readRDS("~/Dropbox/ukbb-ehr-data/data/gp_event.rds")
+g2=gpc[!duplicated(gpc$eid),]
+
+ages=c(20:80)
+## how to run
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+
+a=merge(g2,df_final,by.x="eid",by.y="identifier")
+
+a=data.frame(a)
+a$agerec=difftime(a$event_dt,a$Birthdate,units="day")/365.25
+a$Durationfollowed=as.numeric(a$Death_Censor_Age)-as.numeric(a$agerec)
+saveRDS(a,"output/fortable1.rds")
+
+df_final$cad.prs=scale(df_final$cad.prs)
+
+reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+
+
+#dat=mpce[mpce$identifier%in%reg$eid,]
+dat=df_final
+
+
+dat$f.31.0.0=ifelse(dat$f.31.0.0==1,"Male","Female")
+dat$Birthdate=year(dat$Birthdate)
+dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
+dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
+dat$Dm_0_Any=as.factor(ifelse(dat$Dm_0_Any==2,1,0))
+dat$Cad_0_Any=as.factor(ifelse(dat$Cad_0_Any==2,1,0))
+
+label(dat$f.31.0.0) <- "Sex"
+label(dat$phenos.enrollment) <- "Age"
+label(dat$antihtn) <- "BP Med"
+label(dat$smoke) <- "Smoking"
+label(dat$Ht_0_Any) <- "Hypertensive"
+label(dat$Dm_0_Any) <- "Diabetes"
+label(dat$Ht_0_Any) <- "Hypertension"
+
+label(dat$ascvd_10y_accaha) <- "BMI"
+label(dat$Birthdate) <- "Birth year"
+
+
+# One level of stratification
+table1(~ f.31.0.0 + f.21001.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any|cad.prs.lev, data=dat)
+
+
+
+
+sd(na.omit(rb$agereg[year(rb$reg_date)>1940])
++ )
+rb=merge(reg,mpce[,c("identifier","Birthdate")],by.x
+         ="eid",by.y="identifier")
+rb$reg_date=as.Date(rb$reg_date, "%d/%m/%Y")
+rb$agereg=difftime(rb$reg_date,rb$Birthdate,units = "days")/365.25
+
+
+
+#df_final=df_final[identifier%in%reg$eid,]
+
+# abinom = arrayfunc2(df_frame = df_final,
+#                ages = ages,
+#               nstates = nstates,mode = "binomial")
+
+
+abinom=readRDS("data/abinom.rds")
+
+plotlist=list()
+ind=c(1:4,7:10)
+cc=abinom$coef_cont
+ss=abinom$se_cont
+event=abinom$events
+
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x])
+  n=event[,"Cad",x]
+  m[n<10]="NA"
+  mf=data.frame(m)
+  mf$age=as.numeric(rownames(mf))
+  mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mf$col=rep(i,times=nrow(mf))
+  
+  smax=exp(cc[,"Cad",x]+1.96*ss[,"Cad",x])
+  n=event[,"Cad",x]
+  smax[n<10]="NA"
+  sf=data.frame(smax)
+  sf$age=as.numeric(rownames(sf))
+  sf$smax=as.numeric(smax)
+  sf=na.omit(sf)
+  sf$col=rep(i,times=nrow(sf))
+  
+   
+  smin=exp(cc[,"Cad",x]-1.96*ss[,"Cad",x])
+  n=event[,"Cad",x]
+  smin[n<10]="NA"
+  sb=data.frame(smin)
+  sb$age=as.numeric(rownames(sb))
+  sb$smin=as.numeric(smin)
+  sb=na.omit(sb)
+  sb$col=rep(i,times=nrow(sb))
+  
+  ## merge into a matrix of measurement and upper and lower bounds
+  a=merge(mf,sb,by = c("age","col"))
+  t=merge(a,sf,by = c("age","col"))
+  pname=paste0(dimnames(event)[[3]][x]," to CAD")
+  
+  p=ggplot(data = t,aes(x = age,y=m,color=col))+
+    #geom_point(color=custom.col[i],size=0)+
+    stat_smooth(color=custom.col[i],method = "loess",fill=custom.col[i])+
+    theme_classic(base_size = 15)+
+    geom_errorbar(aes(ymin=smin,ymax=smax),col=custom.col[i])+
+    ylim(c(0.5,2.5))+
+    labs(title=pname,y=paste0("CAD~PRS.sd ",dimnames(event)[[3]][x]))
+  #gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+   
+}
+
+grid.arrange(grobs=plotlist,ncol=3)
+
+#save("bigplot_rf_up_big.png",p)
+```
+
+## Simplification
+
+Now, we plot just from one two and three risk factor condensed to CAD. We remove all transitions with NAR < 10.
+
+```{r,echo=FALSE}
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+df_final=df_final[identifier%in%reg$eid,]
+# restrict to regsitered in primary care
+ages = c(40:80)
+plotlist=list()
+
+nstates=c("Health","oneRF","twoRF","threeRF","Cad","death")
+
+#abinom = arrayrf(df_frame = df_final,
+                   # ages = ages,
+                   # nstates = nstates,mode = "binomial")
+
+abinom=readRDS("data/abinom_rf.rds")
+
+cc=abinom$coef_cont
+event=abinom$events
+
+
+
+ind=c(1:4)
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x])
+  n=event[,"Cad",x]
+  m[n<10]="NA"
+  mf=data.frame(m)
+  mf$age=as.numeric(rownames(mf))
+  mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mf$col=rep(i,times=nrow(mf))
+  pname=paste0(dimnames(event)[[3]][x],"_toCad")
+  p=ggplot(data = mf,aes(x = age,y=m,color=col))+
+    #geom_point(color=custom.col[i],size=0)+
+    stat_smooth(color=custom.col[i],method = "loess")+theme_classic()+labs(title=pname
+,y=paste0("Prs.quant to CAD from ",dimnames(event)[[3]][x]))
+ # gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+  
+}
+
+grid.arrange(grobs=plotlist,ncol=2)
+
+#gg#save("bigplot_binom_up_rf.png",p)
+rm(abinom)
+```
+
+
+## Number at Risk 
+
+```{r}
+abinom=readRDS("data/abinom.rds")
+cad=abinom$AR[,"Cad",]
+c=melt(cad)
+
+ggplot(c,aes(Var1,value,fill=Var2))+geom_bar(stat="identity",position = position_stack(reverse = TRUE))+ylab("Number at Risk")+xlab("Age of disease") + labs(fill = "Risk Factor Start")+theme_classic()
+       
+```
+
+# Raw number of transitions
+
+```{r}
+cad=abinom$events[,"Cad",]
+c=melt(cad)
+c=c[-which(c$Var2=="Cad"),]
+
+ ggplot(c,aes(Var1,value,fill=Var2))+geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+   xlab("Age")+ylab("Number of transitions")+labs(fill = "Risk Factor Start")+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+ 
+```
+
+## Rates
+
+Now we plot the raw rates
+
+```{r,echo=F}
+cad=abinom$rates[,"Cad",]
+c=melt(cad)
+c=c[-which(c$Var2=="Cad"),]
+
+c$hope=c$value*0.80
+
+c1=ggplot(c,aes(Var1,value*1000,fill=Var2))+
+  geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+  xlab("Age")+ylab("Rates of transitions per 1000")+labs(fill="Risk Factor Start")+ylim(c(0,150))+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+
+ggplot(c,aes(Var1,value*0.80*1000,fill=Var2))+
+  geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+  xlab("Age")+ylab("Rates of transitions per 1000")+labs(fill="Risk Factor Start")+ylim(c(0,150))+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+```
+
+
+## Prediction
+
+But what about absolute risk??
+
+```{r,echo=F}
+rm(abinom)
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+ages=c(20:80)
+## how to run
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+df_final$cad.prs=scale(df_final$cad.prs)
+#reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+#df_final=df_final[identifier%in%reg$eid,]
+
+#a3=predictstate(df_frame = df_final,ages = ages,nstates = nstates,mode = "binomial")
+
+a3=readRDS("data/a3.rds")
+plotlist=list()
+ind=c(1:4,7:10)
+cc=a3$coef_cont
+ss=a3$se_cont
+cint=a3$coef_int
+sint=a3$se_int
+event=a3$events
+
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(mfr$variable)
+  p=ggplot(mfr,aes(age,value,col=variable))+geom_smooth(aes(fill=variable),span=1,se=F)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+  # #mf$col=rep(i,times=nrow(mf))
+  # 
+  # smax=exp(cc[,"Cad",x]+1.96*ss[,"Cad",x])
+  # n=event[,"Cad",x]
+  # smax[n<10]="NA"
+  # sf=data.frame(smax)
+  # sf$age=as.numeric(rownames(sf))
+  # sf$smax=as.numeric(smax)
+  # sf=na.omit(sf)
+  # sf$col=rep(i,times=nrow(sf))
+  # 
+  #  
+  # smin=exp(cc[,"Cad",x]-1.96*ss[,"Cad",x])
+  # n=event[,"Cad",x]
+  # smin[n<10]="NA"
+  # sb=data.frame(smin)
+  # sb$age=as.numeric(rownames(sb))
+  # sb$smin=as.numeric(smin)
+  # sb=na.omit(sb)
+  # sb$col=rep(i,times=nrow(sb))
+  # 
+  # ## merge into a matrix of measurement and upper and lower bounds
+  # a=merge(mf,sb,by = c("age","col"))
+  # t=merge(a,sf,by = c("age","col"))
+  # pname=paste0(dimnames(event)[[3]][x]," to CAD")
+  # 
+  # p=ggplot(data = t,aes(x = age,y=m,color=col))+
+  #   geom_point(color=custom.col[i],size=0)+
+  #   stat_smooth(color=custom.col[i],method = "loess",fill=custom.col[i])+
+  #   theme_classic(base_size = 15)+
+  #   #geom_errorbar(aes(ymin=smin,ymax=smax),col=custom.col[i])+
+  #   ylim(c(0.5,2.5))+
+  #   labs(title=pname,y=paste0("CAD~PRS.sd ",dimnames(event)[[3]][x]))
+  # #gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+   
+}
+
+grid.arrange(grobs=plotlist,ncol=3)
+```
+
+Now let's pick a given curve:
+
+```{r}
+
+
+x=1
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+   
+   
+# How about hypertensive:
+
+```{r}
+a3=readRDS("data/a3.rds")
+plotlist=list()
+
+cc=a3$coef_cont
+ss=a3$se_cont
+cint=a3$coef_int
+sint=a3$se_int
+event=a3$events
+
+  x=2
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+   
+   
+## How about multiple risk factors
+
+```{r}
+x=7
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR_",dimnames(event)[[3]][x],"to_CAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+
+
+
+
+## How about multiple risk factors
+
+```{r}
+
+#lapply(a3$model_list,function(x){x[["Cad"]][[z]]$coefficients[["cad.prs"]]})
+
+  x=7
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR_",dimnames(event)[[3]][x],"to_CAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+
+
+## Now we look at adding additional info
+ 
+
+```{r yearsinstateanddrugs}
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+pc=unique(reg$eid)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+dfh=data.table(dfh)
+ascvd=readRDS("~/multistate/output/dfascvd_newbp.rds")
+mpce=merge(dfh,ascvd[,c("sample_id","ascvd_10y_accaha","smoke","phenos.enrollment")],by.x = "identifier",by.y="sample_id")
+prs_quants=qnorm(c(seq(0.1,0.9,by=0.1)))
+mpce$newlev=cut(mpce$cad.prs,breaks = c(-5,prs_quants,5),labels = c(1:10))
+mpce$newint=interaction(mpce$f.31.0.0,mpce$newlev)
+levels(mpce$newint)=c(1:20)
+
+mpce=readRDS("~/multistate/output/mpcecomplete.rds")
+empiric.quants=data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),2]
+
+
+ages=c(20:80)
+fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+##
+
+ages=c(20:80)
+fixedsmoke = fitfunc(df_frame = df_final,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+
+#dfp=dfh[dfh$identifier%in%pc,]
+
+
+abinom = fitfunc(df_frame = dfp,
+ages = ages,
+nstates = nstates,mode = "binomial",covariates = "cad.prs+f.31.0.0")
+saveRDS(abinom,"~/multistate/output/genetics_sex.rds")
+
+
+abinom = fitfunc(df_frame = dfp,
+ages = ages,
+nstates = nstates,mode = "binomial",covariates = "cad.prs+yearsinstate+statin_now+antihtn_now+f.31.0.0")
+# saveRDS(abinom,"~/multistate/output/allcovariates.rds")
+
+abinom=readRDS("~/multistate/output/allcovariates.rds")
+
+year.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+prs.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+int.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+statin.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+anti.htn.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+sex.mat=matrix(NA,nrow=length(ages),ncol =length(nstates))
+
+for (i in 1:length(ages)) {
+  age = ages[i]
+  agename = as.character(age)
+  for (j in 1:length(nstates)) {
+    #print(agename)
+    start = nstates[[j]]
+    #print(start)
+    f = abinom$model_list[[agename]][['Cad']][[start]]
+    nar = abinom$events[i, "Cad", j]
+    #print(nar)
+if (length(f) < 2) {
+         year.mat[i, j] = NA
+          prs.mat[i, j] = NA
+          int.mat[i, j] = NA
+          anti.htn.mat[i, j] = NA
+          statin.mat[i, j] = NA
+          sex.mat[i, j] = NA
+          
+    } else{
+        if (nar < 10) {
+          year.mat[i, j] = NA
+          prs.mat[i, j] = NA
+          int.mat[i, j] = NA
+          anti.htn.mat[i, j] = NA
+          statin.mat[i, j] = NA
+          sex.mat[i, j] = NA
+        }
+        else{
+          if(j==1) {
+            year.mat[i, j] = NA
+          prs.mat[i, j] = f["cad.prs","Estimate"]
+          int.mat[i, j] = f["(Intercept)","Estimate"]
+          anti.htn.mat[i, j] = f["antihtn_now","Estimate"]
+          statin.mat[i, j] = f["statin_now","Estimate"]
+          sex.mat[i,j]=f["f.31.0.01","Estimate"]
+         }
+          else{
+          year.mat[i,j] = f["yearsinstate","Estimate"]
+          prs.mat[i, j] = f["cad.prs","Estimate"]
+          int.mat[i, j] = f["(Intercept)","Estimate"]
+          anti.htn.mat[i, j] = f["antihtn_now","Estimate"]
+          statin.mat[i, j] = f["statin_now","Estimate"]
+          sex.mat[i,j]=f["f.31.0.01","Estimate"]
+          }
+        }
+      }
+    }
+}
+
+
+
+year.mat=data.frame(year.mat)
+prs.mat=data.frame(prs.mat)
+int.mat=data.frame(int.mat)
+statin.mat=data.frame(statin.mat)
+anti.htn.mat=data.frame(anti.htn.mat)
+
+names(year.mat)=names(prs.mat)=names(int.mat)=names(statin.mat)=names(anti.htn.mat)=nstates
+rownames(year.mat)=rownames(prs.mat)=rownames(int.mat)=rownames(statin.mat)=rownames(anti.htn.mat)=ages
+
+
+```
+
+## Now look at effect of meds and time in state
+
+Absolute Risk (intercept)
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_diamonds(i,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+
+```
+
+
+
+## Statin Use
+
+```{r}
+
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,statin.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+## time in state
+
+```{r}
+
+count=1
+myplots <- vector("list",7)
+for(i in c(2:4,7:10)){
+myplots[[count]] <- plot_ors(i,year.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+
+## antihtn use
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,anti.htn.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+## Sex
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,sex.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+# Now let's just do it for genetics
+
+```{r}
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+pc=unique(reg$eid)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+dfh=data.table(dfh)
+dfp=dfh[dfh$identifier%in%pc,]
+ages=c(40:80)
+aprs = fitfunc(df_frame = dfp,nstates = nstates,ages = ages,mode = "binomial",covariates = "cad.prs")
+# saveRDS(aprs,file="~/multistate/output/aprs.rds")
+aprs=readRDS("output/aprs.rds")
+
+
+prs.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+int.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+
+for (i in 1:length(ages)) {
+  age = ages[i]
+  agename = as.character(age)
+  for (j in 1:length(nstates)) {
+    #print(agename)
+    start = nstates[[j]]
+    #print(start)
+    f = aprs$model_list[[agename]][['Cad']][[start]]
+    nar = aprs$events[i, "Cad", j]
+    #print(nar)
+if (length(f) < 2) {
+       prs.mat[i, j] = NA
+       int.mat[i, j] = NA
+       } else {
+         if (nar < 10) {
+           prs.mat[i, j] = NA
+           int.mat[i, j] = NA
+           }
+        else {
+        prs.mat[i, j] = f["cad.prs","Estimate"]
+        int.mat[i, j] = f["(Intercept)","Estimate"]
+        }
+      }
+  }
+}
+
+
+
+
+
+prs.mat=data.frame(prs.mat)
+int.mat=data.frame(int.mat)
+
+names(prs.mat)=names(int.mat)=nstates
+rownames(prs.mat)=rownames(int.mat)=ages
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,prs.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+# All PRS
+
+```{r,echo=T}
+
+ aprsall = fitfunc(df_frame = dfp,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+yearsinstate+statin_now+antihtn_now+f.31.0.0+dm2.prs+ldl.prs+htn.prs")
+
+absrisk=function(age,start,stop,cad.prs,yearsinstate,statin,bpmed,sex,dmprs,ldlprs,htnprs){
+  agename=as.character(age)
+  mod=aprsall$model_list[[agename]][[stop]][[start]]
+  if (start=="Health") {
+    new.frame=as.matrix(data.frame(1,cad.prs,statin,bpmed,sex,dmprs,ldlprs,htnprs))
+   } else {
+   new.frame=as.matrix(data.frame(1,cad.prs,yearsinstate,statin,bpmed,sex,dmprs,ldlprs,htnprs))
+   }
+  ## x%*%B to get log(p/1-p)
+  pover1minp=exp(new.frame%*%mod[,1])
+  return(pover1minp/(1+pover1minp))
+}
+```
+
+
+
+
+## doesn't make sense
+```{r}
+absrisk(age = 50,start = "Dm",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dmprs = 1,cad.prs = 3,ldlprs = 1,bpmed = 0,htnprs =1)
+
+absrisk(age = 50,start = "Health",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dmprs = 1,cad.prs = 3,ldlprs = 1,bpmed = 0,htnprs =1)
+
+absrisk(age = 50,start = "Ht",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dmprs = 1,cad.prs = 3,ldlprs = 1,bpmed = 0,htnprs =1)
+
+absrisk(age = 60,start = "Ht",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dmprs = 1,cad.prs = 3,ldlprs = 1,bpmed = 0,htnprs =1)
+
+absrisk(age = 40,start = "Ht",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dmprs = 1,cad.prs = 3,ldlprs = 1,bpmed = 0,htnprs =1)
+
+```
+
+
+
+## for prs and sex
+
+```{r}
+
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+pc=unique(reg$eid)
+dfh=data.table(dfh)
+dfp=dfh[dfh$identifier%in%pc,]
+ages=c(20:80)
+ascvddf=readRDS("~/Dropbox/ascvdDF.rds")
+mpce=merge(dfp,ascvddf,by.x="identifier",by.y="eid")
+saveRDS(mpce,"~/Dropbox/pheno_dir/output/mpce.rds")
+htrx=readRDS("~/Dropbox/pheno_dir/output/HtRxid.rds")
+htrx_small=intersect(dfp$identifier,htrx)
+a=setdiff(htrx_small,mpce$identifier[mpce$Ht_0_Any==2])
+
+
+## check out phenotyping 
+
+mpce$HyperLip_0_Any=factor(mpce$HyperLip_0_Any,levels = c(1,2),labels = c("control","case"))
+mpce$Ht_0_Any=factor(mpce$Ht_0_Any,levels = c(1,2),labels = c("control","case"))
+
+ggplot(mpce,aes(ldladj,color=HyperLip_0_Any))+geom_density()+labs(x="LDL_base")
+ggplot(mpce,aes(sbp,color=Ht_0_Any))+geom_density()+labs(x="SBP_base")
+
+### but all
+sbp=readRDS("~/Dropbox/pheno_dir/output/sbp_gp.rds")
+ldl=readRDS("~/Dropbox/ldl_gp.rds")
+
+hyperlips=mpce[mpce$HyperLip_0_Any=="case","identifier"]
+hts=mpce[mpce$Ht_0_Any=="case","identifier"]
+
+ldl$case=ifelse(ldl$eid%in%hyperlips,1,0)
+sbp$case=ifelse(sbp$eid%in%hts,1,0)
+
+
+ggplot(g2,aes(event_dt))+geom_histogram(bins=80)+labs(x="First Encounter Year")
+
+ggplot(ldl,aes(value1,color=as.factor(case)))+geom_density()+labs(x="LDL_All",color="Case/Control")
+
+ggplot(sbp,aes(value1,color=as.factor(case)))+geom_density()+labs(x="SBP_All",color="Case/Control")
+
+lc=ldl%>%group_by(eid)%>%summarise(n=length(event_dt))
+sc=sbp%>%group_by(eid)%>%summarise(n=length(event_dt))
+
+lc$case=ifelse(lc$eid%in%hyperlips,1,0)
+sc$case=ifelse(sc$eid%in%hts,1,0)
+
+ggplot(lc,aes(n,color=as.factor(case),fill=as.factor(case)))+geom_density(adjust=5)+labs(x="LDL Measuremenets",fill="Case/Control",color="")
+ggplot(sc,aes(n,color=as.factor(case),fill=as.factor(case)))+geom_density(adjust=5)+labs(x="SBP Measuremenets",fill="Case/Control",color="")
+
+
+hist(mpce$ldladj[mpce$HyperLip_0_Any==1],nclass = 100,freq = F,main="LDL,case/controls")
+lines(density(mpce$ldladj[mpce$HyperLip_0_Any==2],nclass=100),col="red")
+hist(mpce$sbp[mpce$Ht_0_Any==1],freq = F,nclass = 100,main="SBP,case/controls")
+lines(density(mpce$sbp[mpce$Ht_0_Any==2]),col="red")
+
+mp <- mpce[!(mpce$identifier %in% a)]
+
+
+# 
+#  sum(mpce$Ht_0_Any==2&mpce$antihtn==0)
+# [1] 14169
+# > sum(mpce$Ht_0_Any==0&mpce$antihtn==1)
+# [1] 0
+# > sum(mpce$Ht_0_Any==1&mpce$antihtn==1)
+# [1] 20445
+# 
+#  phenobet=setdiff(m$identifier[m$HyperLip_0_Any==2],hyperc$sample_id[hyperc$has_disease==1])
+# > labbet=setdiff(hyperc$sample_id[hyperc$has_disease==1],m$identifier[m$HyperLip_0_Any==2])
+# > length(phenobet)
+# [1] 10713
+# > length(labbet)
+# [1] 5010
+
+ 
+ages=c(20:80)
+mpce$cad.prs.lec=cut(mpce$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+mpce$int=interaction(mpce$f.31.0.0,mpce$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(mpce$int) <- c(1,2,3,4,5,6)
+
+# Set the seed for reproducibility
+set.seed(42)
+
+# Generate random indices for the train set
+train_indices <- sample(x = nrow(mpce), size = round(0.80 * nrow(mpce), 0))
+
+# Create the train set
+train <- mpce[train_indices, ]
+
+# Create the test set by excluding the train indices from all indices
+test_indices <- setdiff(1:nrow(mpce), train_indices)
+test <- mpce[test_indices, ]
+
+
+fixed=fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+
+fixed.train= fitfunc(df_frame = train,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+
+fixed.test=fitfunc(df_frame = test,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+
+mpce=merge(dfh,ascvd[,c("sample_id","ascvd_10y_accaha","smoke")],by.x = "identifier",by.y="sample_id")
+
+#saveRDS(fixed,"output/fixedsmokeantihtn.rds")
+fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+#saveRDS(fixedsmoke,"output/fixedsmoke.rds")
+
+absrisk_smoking_bp(age = 40,start = "Health",stop = "Cad",cad.prs = 1,smoke = 0,sex = 1,anti_htn = 0,modelfit = fixed)
+
+absrisk_smoking_bp(age = 40,start = "Health",stop = "Cad",cad.prs = 1,smoke = 1,sex = 1,anti_htn = 0,modelfit = fixed)
+
+absrisk_smoking_bp(age = 40,start = "Health",stop = "Cad",cad.prs = 1,smoke = 1,sex = 1,anti_htn = 1,modelfit = fixed)
+
+absrisk_smoking_bp(age = 40,start = "Ht",stop = "Cad",cad.prs = 1,smoke = 1,sex = 1,anti_htn = 1,modelfit = fixed)
+
+
+# 
+# a=plot(sapply(matrices_list,function(x){x["choladj",1]}),ylim=c(-1,1),ylab="LDL_adjusted",pch=19,col="blue")
+# b=plot(sapply(matrices_list,function(x){x["sbp",1]}),ylim=c(-1,1),ylab="SBP_adjusted",pch=19,col="green")
+# c=plot(sapply(matrices_list,function(x){x["choladj",1]}),ylim=c(-1,1),ylab="Chol_adjusted",pch=19,col="red")
+
+a=plot(sapply(matrices_list,function(x){x["antihtn_now",1]}),ylab="Drug_strat_timedep",pch=19,col="blue")
+b=plot(sapply(matrices_list,function(x){x["smoke",1]}),ylab="SMOKE",pch=19,col="green")
+c=plot(sapply(matrices_list,function(x){x["cad.prs",1]}),ylab="PRS",pch=19,col="red")
+d=plot(sapply(matrices_list,function(x){x["f.31.0.01",1]}),ylab="Sex",pch=19,col="green")
+
+par(mfrow=c(2,2))
+a
+b
+c
+d
+
+pm_master=function(age,start,stop,modelfit,cad.prs,sex,smoke,choladj,hdladj,bp_med){
+  agename=as.character(age)
+  mod=modelfit$model_list[[agename]][[stop]][[start]]
+  
+    new.frame=data.frame(1,cad.prs,as.numeric(sex),smoke,choladj,hdladj,smoke,bp_med)
+ 
+    #new.frame=as.matrix(data.frame(1,cad.prs,sex))
+
+  ## x%*%B to get log(p/1-p)
+  pover1minp=exp(as.matrix(new.frame)%*%mod[,1])
+  return(pover1minp/(1+pover1minp))
+}
+
+
+
+
+
+
+
+
+s=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixed)
+a=plotfunc_prs_sex(s[,,,2],title = "Health and Smoker")
+b=plotfunc_prs_sex(s[,,,1],title = "Health and Non-Smoker")
+
+age=40
+nx=41
+df_frame=mpce
+## healthy at age 40
+
+atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age, ]
+
+s=stateriskfunc_smoking(ages = ages,start = "Ht",stop = "Cad",prs_quants = prs_quants,modelfit = fixed)
+plotfunc_prs_sex(s[,,,2],title = "Ht and Smoker")
+plotfunc_prs_sex(s[,,,1],title = "Ht and Non-Smoker")
+
+s=stateriskfunc_smoking(ages = ages,start = "Dm",stop = "Cad",prs_quants = prs_quants,modelfit = fixed)
+a=plotfunc_prs_sex(s[,,,2],title = "Dm and Smoker")
+b=plotfunc_prs_sex(s[,,,1],title = "Dm and Non-Smoker")
+
+
+# 
+# 
+# 
+# nrow(dfh)
+# train=dfh[1:nrow(dfh)/2,]
+# ages=c(40:80)
+# fixed_train= fitfunc(df_frame = train,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+# 
+# test=dfh[((nrow(dfh)/2)+1):nrow(dfh),]
+# fixed_test=fitfunc(df_frame = test,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+# 
+# prs_quants=qnorm(c(0.2,0.5,0.8))
+# 
+# #prs_quants=qnorm(c(0.01,seq(0.1,0.9,by=0.1),0.99))
+# 
+health_train=stateriskfunc_smoking_bp(ages = ages,prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixed.train)
+health_test=stateriskfunc_smoking_bp(ages = ages,prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixed.test)
+
+##
+
+a=plotfunc_prs_sex(array = health_train[,,,1],title = "Health Non-Smoke")
+b=plotfunc_prs_sex(array = s[,,,2],title = "Health Non-Smoke")
+
+tenyear_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 50)
+
+## them compute empirical averages for those cateogries using at risk matrix
+
+
+
+lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+
+
+p=plotfunc_prs_sex_compare(health_train[,,,"none","none"],title = "Health Compare",test = health_test[,,,"none","none"])
+
+
+p2=plotfunc_prs_sex_compare(health_test[,,,"none","none"],title = "Health Compare",test = health_test[,,,"none","none"])
+
+ggp_data <- ggplot_build(p)$data[[1]] ## extract fit
+
+ggpdata2 =  ggplot_build(p2)$data[[1]] ## extract fit
+
+# health_test=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixed_test)
+# 
+# 
+# a=plotfunc_prs_sex_compare(train = health_train,title = "Health",test  = health_test)
+
+
+a=riskfunc(ggp_data,1,40,80)
+b=riskfunc(ggp_data,2,40,80)
+c=riskfunc(ggp_data,3,40,80)
+d=riskfunc(ggp_data,4,40,80)
+e=riskfunc(ggp_data,5,40,80)
+f=riskfunc(ggp_data,6,40,80)
+
+lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+
+
+
+
+
+## how to use
+## 1) create state risk transition
+s=stateriskfunc_smoking(ages = seq(40,80),prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixedsmoke)
+## 2) create smoothed plot for level interested 
+a=plotfunc_prs_sex(array = s[,,,1],title = "Ht Non-Smoke")
+## 3) pull out loess fit for a given age and category from plot
+extract_smoothed_risk(a,6,50)
+
+
+## how to use
+## 1) create state risk transition
+### compute per year means
+s=stateriskfunc_smoking(ages = seq(20,80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+## 2) create smoothed plot for level interested 
+## this will give group level smoothed averages over tmime
+
+a=plotfunc_prs_sex(array = s[,,,1],title = "Health Non-Smoke")
+b=plotfunc_prs_sex(array = s[,,,2],title = "Health Non-Smoke")
+## 3) pull out loess fit for a given age and category from plot
+extract_smoothed_risk(plot = a,category = 6,age = 80)
+
+
+
+### 
+#women=c(1,3,5)
+#men=2,4,6
+
+
+
+s=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixed)
+a=plotfunc_prs_sex(s[,,,2],title = "Health and Smoker")
+b=plotfunc_prs_sex(s[,,,1],title = "Health and Non-Smoker")
+tenyear=xyear_projection(smoothedplot = a,category = 1,agestart = 40,agestop = 50)
+lifetime=xyear_projection(smoothedplot = a,category = 1,agestart = 40,agestop = 80)
+
+tenyear_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 80)
+ggp_data <- ggplot_build(b)$data[[1]] ## extract fit
+
+
+## now 
+
+## for loookup with smoother
+riskfunc=function(loessframe,category,start,stop){
+loessframe=data.table(loessframe)
+dataframe=loessframe[group==category&x>start&x<stop,]
+  dataframe$survival=1-dataframe$y
+  1-prod(dataframe$survival)}
+
+
+## for full fit without smoother
+riskfunc_noloess=function(newframe,start,stop,modelfit,ages){
+  newrisk=matrix(NA,nrow=nrow(newframe),ncol=length(ages))
+for(i in 1:length(ages)){
+    newrisk[,i]=1-pm_master(age =ages[i],start =start,stop=stop,modelfit = modelfit,cad.prs = newframe$cad.prs,sex = newframe$f.31.0.0,smoke = newframe$smoke,choladj = newframe$choladj,hdladj = newframe$hdladj,bp_med = newframe$bp_med)
+}
+  psurviv=apply(newrisk,1,function(x){prod(x)})
+  return(1-psurviv)}
+  
+    
+
+dataframe=loessframe[group==category&x>start&x<stop,]
+  dataframe$survival=1-dataframe$y
+  1-prod(dataframe$survival)
+
+a=riskfunc(ggp_data,1,40,80)
+b=riskfunc(ggp_data,2,40,80)
+c=riskfunc(ggp_data,3,40,80)
+d=riskfunc(ggp_data,4,40,80)
+e=riskfunc(ggp_data,5,40,80)
+f=riskfunc(ggp_data,6,40,80)
+
+
+
+
+
+ 
+r=pm_master(age = 40,start = "Health",stop="Cad",modelfit = fixed,cad.prs = atrisk$cad.prs,sex = atrisk$f.31.0.0,smoke = atrisk$smoke,choladj = atrisk$choladj,hdladj = atrisk$hdladj,bp_med = atrisk$bp_med)
+
+
+aryoung=atrisk[round(phenos.enrollment,0)==40,] ##find folks who enrolled at 40
+
+# Create a lookup table with the factor levels and corresponding values
+lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+
+# Join the lookup table with the original data frame based on the factor variable
+df_updated <- aryoung %>% 
+  left_join(lookup_table, by = c("int" = "factor_level"))
+
+
+
+plot(df_updated$as2,df_updated$value*100)
+plot(df_updated$value*100,df_updated$as2)
+
+
+hypertension_train=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixed_train)
+hypertension_test=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Ht",stop = "Cad",modelfit = fixed_test)
+b=plotfunc_prs_sex_compare(train= hypertension_train,title = "Hypertension",test = hypertension_test)
+
+DM=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Dm",stop = "Cad",modelfit = fixed_train)
+DMtest=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Dm",stop = "Cad",modelfit = fixed_test)
+
+c=plotfunc_prs_sex_compare(title = "Diabetes",train = DM,test = DMtest)
+
+
+hyperlip=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "HyperLip",stop = "Cad")
+d=plotfunc_prs_sex(array = hyperlip,title = "HyperLipidemia")
+
+
+both=stateriskfunc(ages = c(40:80),prs_quants = prs_quants,start = "Ht&HyperLip",stop = "Cad")
+plotfunc_prs_sex(array = both,title = "Hypertension and HyperLipidemia")
+
+
+age=50
+nx=51
+atrisk = test[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &
+                        cad.prs<=qnorm(0.20) &
+                        f.31.0.0==1, ]
+  
+
+censored = dim(atrisk[which(Cad_0_censor_age <= nx &
+                                    Cad_0_Any == 2 &
+                                    nx < Death_Censor_Age), ])[1]
+censored/dim(atrisk)[1]
+
+
+par(mfrow=c(2,2))
+
+plot(strain[,"0.2","female"],stest[,"0.2","female"],xlab="Train",ylab="Test",pch=19,col="pink",xlim=c(0,0.004),ylim=c(0,0.004))
+plot(strain[,"0.2","male"],stest[,"0.2","male"],xlab="Train",ylab="Test",pch=19,col="blue",xlim=c(0,0.012),ylim=c(0,0.012))
+plot(strain[,"0.8","female"],stest[,"0.8","female"],xlab="Train",ylab="Test",pch=19,col="pink")
+plot(strain[,"0.8","male"],stest[,"0.8","male"],xlab="Train",ylab="Test",pch=19,col="blue",xlim=c(0,0.014))
+```
+
+## to do 
+
+```{r }
+
+## for hypertension
+
+hypertension=stateriskfunc(ages = ages,prs_quants = prs_quants,start = "Ht",stop = "Cad")
+
+
+
+
+
+#merge with LDL, HDL, 
+library(dplyr)
+
+# Define the READ2 and READ3 codes for HDL cholesterol
+hdl_codes <- c("44E..00", "44K..00", "44P..00", "44T..00", "44S..00", "44W..00", "44R..00", "42E1.", "42E3.", "XaERz", "Xaa6K", "44Uz.00", "XaKgq", "44X..00", "44V..00", "42E2.00", "44Z5.00", "44Z..00")
+
+# Filter the GP_event data based on the HDL cholesterol READ2 and READ3 codes
+hdl_data <- GP_events %>%
+  filter(read_2_code %in% hdl_codes | read_3_code %in% hdl_codes)
+
+# View the filtered HDL cholesterol data
+hdl_data
+
+
+library(dplyr)
+
+# Define the exhaustive list of READ2 and READ3 codes for total cholesterol
+total_chol_codes <- c("44F..00", "44H..00", "42E2.00", "XaERa", "44I..00", "42E2.", "XaO1y", "XaERz", "44I..00", "44F..00", "42E2.", "44H..00")
+
+# Filter the GP_event data based on the total cholesterol READ2 and READ3 codes
+total_chol_data <- GP_events %>%
+  filter(read_2_code %in% total_chol_codes | read_3_code %in% total_chol_codes)
+
+# View the filtered total cholesterol data
+total_chol_data
+````
+
+
+```{r}
+
+##Number of transtision, risk
+ fixedsmoke$events["40","Cad","Health"]
+[1] 66
+> fixedsmoke$AR["40","Cad","Health"]
+[1] 163667
+> fixedsmoke$AR["20","Cad","Health"]
+[1] 173087
+
+#We demonstrate visually that using longitudinal laboratory data is confounded by medication use in observational data, and that baseline lipid and blood pressure measurements add little to state information (figure 2), and often comes at ah inappropriate time. For example , a healthy male with low risk PRS who remains healthy throughout the period has a ten year risk of ~0.2% [CI 0.18-0.23] at age 40 but lifetime risk of 5.4%, while a healthy individual with a high risk PRS has a ten year of 2.4% and lifetime risk of 23.4 at the same age, again assuming they stay in this state throughout. 
+### 
+prs_quants=qnorm(c(0.2,0.5,0.8))
+mpce$cad.prs=scale(mpce$cad.prs)
+mpce$cad.prs.lec=cut(mpce$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","int","high"))
+mpce$int=interaction(mpce$f.31.0.0,mpce$cad.prs.lec)
+levels(mpce$int) <- c(1,2,3,4,5,6)
+
+
+fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+
+prs_quants=qnorm(c(0.000001,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.999999))
+s=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+
+s=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+prs_quants=qnorm(c(0.1,0.5,0.9))
+prs_quants=qnorm(c(0.2,0.5,0.8))
+
+b=plotfunc_prs_sex(s[,,,2],title = "Health and Smoker to CAD")
+a=plotfunc_prs_sex(s[,,,1],title = "Health and Non-Smoker to CAD")
+
+#get fit for all 
+prsprobs=pnorm(prs_quants)
+a=multipleprsfunc(s[,,,"none"],prsprobs = prsprobs)
+
+tenyear=xyear_projection(smoothedplot = a,category = 2,agestart = 40,agestop = 50)
+lifetime=xyear_projection(smoothedplot = a,category = 2,agestart = 40,agestop = 80)
+
+tenyear_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 80)
+
+
+
+## if they transitioned to smoking
+
+tenyear=xyear_projection(smoothedplot = b,category = 2,agestart = 40,agestop = 50)
+lifetime=xyear_projection(smoothedplot = b,category = 2,agestart = 40,agestop = 80)
+
+tenyear_high=xyear_projection(smoothedplot = b,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = b,category = 6,agestart = 40,agestop = 80)
+
+## check the match
+
+age=40
+atrisk = df_frame[age < Cad_0_censor_age &
+age < Ht_0_censor_age &
+age < HyperLip_0_censor_age &
+age < Dm_0_censor_age, ]
+atriskhigh=atrisk[atrisk$int==6&atrisk$smoke==0,]
+mean(atriskhigh$Cad_0_Any==2&atriskhigh$Cad_0_censor_age>40&atriskhigh$Cad_0_censor_age<50)
+
+# if they transitioned to Hypertnesion
+
+s=stateriskfunc_smoking(ages = ages,start = "Ht",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+b=plotfunc_prs_sex(s[,,,2],title = "Ht and Smoker to CAD")
+a=plotfunc_prs_sex(s[,,,1],title = "Ht and Non-Smoker to CAD")
+
+tenyear=xyear_projection(smoothedplot = a,category = 2,agestart = 40,agestop = 50)
+lifetime=xyear_projection(smoothedplot = a,category = 2,agestart = 40,agestop = 80)
+
+tenyear_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = a,category = 6,agestart = 40,agestop = 80)
+
+
+##how about death
+
+s=stateriskfunc_smoking_bp(ages = ages,start = "Health",stop = "Death",prs_quants = prs_quants,modelfit = fixed)
+p=plotfunc_prs_sex(s[,,,"none","none"],title = "Health to Death")
+
+s2=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Death",prs_quants = prs_quants,modelfit = fixedsmoke)
+p2=plotfunc_prs_sex(s2[,,,1],title = "Health to Death")
+
+
+
+
+tenyear_high_6070=xyear_projection(smoothedplot = p,category = 6,agestart = 60,agestop = 70)
+tenyear_high_7080=xyear_projection(smoothedplot = p,category = 6,agestart = 70,agestop = 80)
+
+tenyear_high_6070=xyear_projection(smoothedplot = p,category = 6,agestart = 60,agestop = 70)
+tenyear_high_7080=xyear_projection(smoothedplot = p,category = 6,agestart = 70,agestop = 80)
+
+tenyear_low_6070=xyear_projection(smoothedplot = p,category = 1,agestart = 60,agestop = 70)
+tenyear_low_7080=xyear_projection(smoothedplot = p,category = 1,agestart = 70,agestop = 80)
+##However, during that same lifetime period, the annual risk of transition out of the healthy state ranges from   
+
+
+b=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Health",stop = "Health",modelfit = fixedsmoke)
+p2=plotfunc_prs_sex(array = b[,,,1],title = "Health to Health")
+1-extract_smoothed_risk(p2,category = 2,age = 40)
+1-extract_smoothed_risk(p2,category = 2,age = 80)
+
+1-extract_smoothed_risk(p2,category = 6,age = 40)
+1-extract_smoothed_risk(p2,category = 6,age = 80)
+
+
+
+@@@ we compare to actual empricial estimates
+
+## confrim need for bigger plot
+
+#mpce$cad.prs.pnorm=pnorm(mpce$cad.prs)
+summary(mpce$cad.prs.pnorm[mpce$int==2])
+summary(mpce$cad.prs.pnorm[mpce$int==4])
+summary(mpce$cad.prs.pnorm[mpce$int==6])
+
+### whos that same for train and the whole 
+fixed.train = fitfunc(df_frame = train,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+s=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixed.train)
+attrain=plotfunc_prs_sex(array = s[,,,1],title = "Health to Health")
+tenyear_high=xyear_projection(smoothedplot = attrain,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = attrain,category = 6,agestart = 40,agestop = 80)
+
+
+fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+sfull=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+
+afull=plotfunc_prs_sex(array = sfull[,,,1],title = "Health to Health")
+tenyear_high=xyear_projection(smoothedplot = afull,category = 6,agestart = 40,agestop = 50)
+amultipleplot=multipleprsfunc(sfull2[,,,1],prsprobs = pnorm(prs_quants))
+tenyear_high_withmul=xyear_projection(smoothedplot = amultipleplot,category = 6,agestart = 40,agestop = 50)
+
+gsmall=ggplot_build(multipleprsfunc(s=sfull,prsprobs = c(0.2,0.5,0.8)))$data[[1]]
+
+tenyear_high=xyear_projection(smoothedplot = afull,category = 6,agestart = 40,agestop = 50)
+lifetime_high=xyear_projection(smoothedplot = afull,category = 6,agestart = 40,agestop = 80)
+
+prs_quants=qnorm(c(seq(0.05,0.95,by=0.1))
+sfull2=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+
+#group 1
+#group 2
+#group 3
+#group 4
+#group 5
+#group 6
+#group 7
+#group 8
+#group 9
+#group 10
+
+## make the variable for bottom 20%, middle 60%, and top 20%
+
+## for intervals that corresopnd to bottom, middle and top 
+mpce$cad.prs.lec=cut(mpce$cad.prs,breaks = c(-5,qnorm(0.2),qnorm(0.8),5),labels = c("low","int","high"))
+mpce$int=interaction(mpce$f.31.0.0,mpce$cad.prs.lec)
+
+## for more levels
+prs_quants=qnorm(c(seq(0.1,0.9,by=0.1)))
+mpce$newlev=cut(mpce$cad.prs,breaks = c(-5,prs_quants,5),labels = c(1:10))
+mpce$newint=interaction(mpce$f.31.0.0,mpce$newlev)
+levels(mpce$newint)=c(1:20)
+
+
+
+
+
+
+## males should be 2*newlev
+## females should be 2*newlev-1
+#prs_quants=qnorm(c(0.2,0.5,0.8))
+
+mpce$cad.prs.lec=cut(mpce$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","int","high"))
+mpce$int=interaction(mpce$f.31.0.0,mpce$cad.prs.lec)
+levels(mpce$interaction) <- c(1,2,3,4,5,6)
+
+prs_quants=qnorm(c(0.1,0.5,0.9))## for middle of interval 
+#prs_quants=qnorm(seq(0.1,0.9,by=0.1))
+sfull2=stateriskfunc_smoking(ages = ages,start = "Health",stop = "Cad",prs_quants = prs_quants,modelfit = fixedsmoke)
+a=plotfunc_prs_sex(array = sfull2[,,,1],title = "Healthy, No Smoking")
+m=multipleprsfunc(s=sfull2[,,,1],prsprobs = pnorm(prs_quants))
+tenyear_highm=xyear_projection(smoothedplot = m,category = 6,agestart = 40,agestop = 50)
+lifetime_highm=xyear_projection(smoothedplot = m,category = 6,agestart = 40,agestop = 80)
+
+
+riskmat=matrix(NA,nrow=length(levels(mpce$int)),ncol=2)
+
+for(i in 1:length(levels(mpce$int))){
+  cat=levels(mpce$int)[i]
+riskmat[i,1]=xyear_projection(smoothedplot = m,category = cat,agestart = 40,agestop = 50)
+riskmat[i,2]=xyear_projection(smoothedplot = m,category = cat,agestart = 40,agestop = 80)
+}
+
+
+# riskmat=matrix(NA,nrow=length(levels(mpce$newint)),ncol=2)
+# 
+# for(i in 1:length(levels(mpce$newint))){
+#   cat=levels(mpce$newint)[i]
+# riskmat[i,1]=xyear_projection(smoothedplot = m,category = cat,agestart = 50,agestop = 60)
+# riskmat[i,2]=xyear_projection(smoothedplot = m,category = cat,agestart = 40,agestop = 80)
+# }
+
+### who
+
+```
+
+Show RMSE
+```{r}
+
+## recall that here the predicted risk will be that for the top or bottom of category
+
+empriskmat=matrix(NA,nrow=length(levels(mpce$int)),ncol=2)
+
+for(i in 1:length(levels(mpce$int))){
+cat=levels(mpce$int)[i]
+empriskmat[i,1]=compute_empiricalrisk(age=40,age2 = 50,df_frame = mpce,cat = cat)
+empriskmat[i,2]=compute_empiricalrisk(age=40,age2 = 80,df_frame = mpce,cat = cat)
+}
+
+
+males_pred=riskmat[c(2,4,6),]
+males_emp=empriskmat[c(2,4,6),]
+
+females_pred=riskmat[c(1,3,5),]
+females_emp=empriskmat[c(1,3,5),]
+
+tenm=cbind(males_pred[,1]*100,males_emp[,1]*100,ascvdriskmat[c(2,4,6),1])
+tenf=cbind(females_pred[,1]*100,females_emp[,1]*100,ascvdriskmat[c(1,3,5),1])
+colnames(tenm)=colnames(tenf)=c("Predicted","Empirical","PCE")
+rownames(tenm)=rownames(tenf)=c("0.2","0.5","0.8")
+
+
+barplot(t(tenm ), beside = TRUE, ylim = c(0, 8), las = 2, col = c("grey", "blue","black"),ylab="10-year Risk (Percent), 40 year old male",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical","PCE"), col = c("grey", "blue","black"), pch = 19)
+        
+barplot(t(tenf ), beside = TRUE, ylim = c(0, 8), las = 2, col = c("grey", "pink","black"),ylab="10-year Risk (Percent), 40 year old female",,xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical","PCE"), col = c("grey", "pink","black"), pch = 19)
+        
+lm=cbind(males_pred[,2],males_emp[,2])
+lf=cbind(females_pred[,2],females_emp[,2])
+colnames(lm)=colnames(lf)=c("Predicted","Empirical")
+rownames(lm)=rownames(lf)=c("0.2","0.5","0.8")
+
+barplot(t(lm * 100), beside = TRUE, ylim = c(0, 30), las = 2, col = c("grey", "blue"),ylab="Lifetime Risk (Percent), 40 year old male",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical"), col = c("grey", "blue"), pch = 19)
+        
+barplot(t(lf * 100), beside = TRUE, ylim = c(0, 30), las = 2, col = c("grey", "pink"),ylab="Lifetime Risk (Percent), 40 year old female",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical"), col = c("grey", "pink"), pch = 19)
+        
+
+
+df2=readRDS("output/dfascvd_newbp.rds")
+
+
+mframe=merge(df2[,c("sample_id","ascvd_10y_accaha")],mpce,by.x="sample_id",by.y="identifier")
+# mframe$cad.prs=scale(mframe$cad.prs)
+# mframe$cad.prs.lec=cut(mframe$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+# mframe$int=interaction(mframe$f.31.0.0.x,mframe$cad.prs.lec)
+# mframe$phenos.enrollment=mframe$age
+# #mframe$as2=mframe$ascvd_10y_accaha
+# # Relabel the levels of the interaction variable
+# levels(mframe$int) <- c(1,2,3,4,5,6)
+mframe=data.table(mframe)
+
+ascvdriskmat=matrix(NA,nrow=length(levels(mframe$int)),ncol=2)
+
+
+for(i in 1:length(levels(mframe$int))){
+cat=levels(mframe$int)[i]
+ascvdriskmat[i,1]=compute_pce_predictedrisk(age=40,df_frame =mframe ,cat = cat)
+#ascvdriskmat[i,2]=compute_empiricalrisk(age=40,df_frame = mpce,cat = cat)
+}
+
+
+
+```
+
+Now do AUC
+
+```{r}
+
+
+set.seed(456)
+enrollments=c(41:70)
+aucmat=matrix(NA,nrow=length(enrollments),ncol=2)
+semat=matrix(NA,nrow=length(enrollments),ncol=2)
+
+for(i in 1:length(enrollments)){
+  age=enrollments[i]
+  start=age
+  stop=age+10
+  p=multipleprsfunc(s = sfull2[,,,1],prsprobs = pnorm(prs_quants))
+  a=xyear_projection(smoothedplot = p,category = 1,agestart = start,agestop =stop)
+  b=xyear_projection(smoothedplot = p,category = 2,agestart = start,agestop =stop)
+  c=xyear_projection(smoothedplot = p,category = 3,agestart = start,agestop =stop)
+  d=xyear_projection(smoothedplot = p,category = 4,agestart = start,agestop =stop)
+  e=xyear_projection(smoothedplot = p,category = 5,agestart = start,agestop =stop)
+  f=xyear_projection(smoothedplot = p,category = 6,agestart = start,agestop =stop)
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+  
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &smoke==0 , ]
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("int" = "factor_level"))
+  df_updated$ms=df_updated$value
+  df_updated$outcome=ifelse(df_updated$Cad_0_Any==2&df_updated$Cad_0_censor_age<stop,1,0)
+  aucmat[i,1]=roc(df_updated$outcome~df_updated$ms)$auc
+  #semat[i,1]=roc(df_updated$outcome~df_updated$ms)$se
+  
+  
+  
+  
+  
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  
+
+  aucmat[i,2]=roc(d$outcome~d$ascvd_10y_accaha)$auc
+  #semat[i,1]=roc(d$outcome~d$ascvd_10y_accaha)$se
+  
+}
+
+rownames(aucmat)=enrollments
+
+m=melt(aucmat,id.vars="Age")
+names(m)=c("Age","Model","AUC")
+m$Model=as.factor(m$Model)
+levels(m$Model)[1]="Multistate"
+levels(m$Model)[2]="Non Genomic"
+gplot <- ggplot(m,aes(x = Age,y = AUC,color = Model,ymin=AUC,ymax=AUC))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0.5,1)
+
+
+rocmat=aucmat
+
+### now do prROC
+
+
+for(i in 1:length(enrollments)){
+  age=enrollments[i]
+  start=age
+  stop=age+10
+  p=multipleprsfunc(s = sfull2[,,,1],prsprobs = pnorm(prs_quants))
+  a=xyear_projection(smoothedplot = p,category = 1,agestart = start,agestop =stop)
+  b=xyear_projection(smoothedplot = p,category = 2,agestart = start,agestop =stop)
+  c=xyear_projection(smoothedplot = p,category = 3,agestart = start,agestop =stop)
+  d=xyear_projection(smoothedplot = p,category = 4,agestart = start,agestop =stop)
+  e=xyear_projection(smoothedplot = p,category = 5,agestart = start,agestop =stop)
+  f=xyear_projection(smoothedplot = p,category = 6,agestart = start,agestop =stop)
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+  
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age, ]
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("int" = "factor_level"))
+  df_updated$ms=df_updated$value
+  
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  d$outcome=ifelse(d$Cad_0_Any==2&d$Cad_0_censor_age<stop,1,0)
+  
+#require(PRROC)
+fg <- d$ms[d$outcome == 1]
+bg <- d$ms[d$outcome == 0]
+  
+aucmat[i,1]=pr.curve(scores.class0 = bg, scores.class1 = fg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+fg <- na.omit(d$ascvd_10y_accaha[d$outcome == 1])
+bg <- na.omit(d$ascvd_10y_accaha[d$outcome == 0])
+  aucmat[i,2]=pr.curve(scores.class0 = bg, scores.class1 = fg)$auc.integral
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+}
+  
+
+m=melt(aucmat,id.vars="Age")
+names(m)=c("Age","Model","pROC")
+m$Model=as.factor(m$Model)
+levels(m$Model)[1]="Multistate"
+levels(m$Model)[2]="Non Genomic"
+gplot <- ggplot(m,aes(x = Age,y = pROC,color = Model,ymin=pROC,ymax=pROC))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0,0.15)
+
+```
+
+# now do for more discretized empirical quants, using means
+
+```{r}
+#prs_quants=qnorm(seq(0.05,0.95,by=0.1))
+
+
+empiric.quants=data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3]
+
+## do the mean
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+set.seed(456)
+enrollments=c(41:70)
+aucmat=matrix(NA,nrow=length(enrollments),ncol=2)
+semat=matrix(NA,nrow=length(enrollments),ncol=2)
+
+for(z in 1:length(enrollments)){
+  age=enrollments[z]
+  start=age
+  stop=age+10
+  prsprobs=pnorm(prs_quants)
+  p=multipleprsfunc(s = snew[,,,1],prsprobs = prsprobs)
+  a=xyear_projection(smoothedplot = p,category = 1,agestart = start,agestop =stop)
+  b=xyear_projection(smoothedplot = p,category = 2,agestart = start,agestop =stop)
+  c=xyear_projection(smoothedplot = p,category = 3,agestart = start,agestop =stop)
+  d=xyear_projection(smoothedplot = p,category = 4,agestart = start,agestop =stop)
+  e=xyear_projection(smoothedplot = p,category = 5,agestart = start,agestop =stop)
+  f=xyear_projection(smoothedplot = p,category = 6,agestart = start,agestop =stop)
+  g=xyear_projection(smoothedplot = p,category = 7,agestart = start,agestop =stop)
+  h=xyear_projection(smoothedplot = p,category = 8,agestart = start,agestop =stop)
+  i=xyear_projection(smoothedplot = p,category = 9,agestart = start,agestop =stop)
+  j=xyear_projection(smoothedplot = p,category = 10,agestart = start,agestop =stop)
+  k=xyear_projection(smoothedplot = p,category = 11,agestart = start,agestop =stop)
+  l=xyear_projection(smoothedplot = p,category = 12,agestart = start,agestop =stop)
+ m=xyear_projection(smoothedplot = p,category = 13,agestart = start,agestop =stop)
+  n=xyear_projection(smoothedplot = p,category = 14,agestart = start,agestop =stop)
+  o=xyear_projection(smoothedplot = p,category = 15,agestart = start,agestop =stop)
+  p1=xyear_projection(smoothedplot = p,category = 16,agestart = start,agestop =stop)
+  q=xyear_projection(smoothedplot = p,category = 17,agestart = start,agestop =stop)
+  r=xyear_projection(smoothedplot = p,category = 18,agestart = start,agestop =stop)
+ s=xyear_projection(smoothedplot = p,category = 19,agestart = start,agestop =stop)
+  t=xyear_projection(smoothedplot = p,category = 20,agestart = start,agestop =stop)
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)),
+                           value = c(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p1,q,r,s,t))
+  
+  df_frame=mpce
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &smoke==0 , ]
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("newint" = "factor_level"))
+  df_updated$ms=df_updated$value
+
+
+  df_updated$outcome=ifelse(df_updated$Cad_0_Any==2&df_updated$Cad_0_censor_age<stop,1,0)
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  aucmat[z,1]=roc(d$outcome~d$ms)$auc
+ 
+  aucmat[z,2]=roc(d$outcome~d$asc)$auc
+  #semat[i,1]=roc(d$outcome~d$ascvd_10y_accaha)$se
+  print(paste0("Completedforage",z))
+}
+
+rownames(aucmat)=enrollments
+
+m=melt(aucmat,id.vars="Age")
+names(m)=c("Age","Model","AUC")
+m$Model=as.factor(m$Model)
+levels(m$Model)[1]="Multistate"
+levels(m$Model)[2]="Non Genomic"
+gplot <- ggplot(m,aes(x = Age,y = AUC,color = Model,ymin=AUC,ymax=AUC))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0.5,1)
+
+
+rocmat=aucmat
+
+### now do prROC
+
+
+for(i in 1:length(enrollments)){
+  age=enrollments[i]
+  start=age
+  stop=age+10
+  p=multipleprsfunc(s = sfull2[,,,1],prsprobs = pnorm(prs_quants))
+  a=xyear_projection(smoothedplot = p,category = 1,agestart = start,agestop =stop)
+  b=xyear_projection(smoothedplot = p,category = 2,agestart = start,agestop =stop)
+  c=xyear_projection(smoothedplot = p,category = 3,agestart = start,agestop =stop)
+  d=xyear_projection(smoothedplot = p,category = 4,agestart = start,agestop =stop)
+  e=xyear_projection(smoothedplot = p,category = 5,agestart = start,agestop =stop)
+  f=xyear_projection(smoothedplot = p,category = 6,agestart = start,agestop =stop)
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6)),
+                           value = c(a,b,c,d,e,f))
+  
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &
+                        smoke==0, ]
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("newint" = "factor_level"))
+  df_updated$ms=df_updated$value
+
+  df_updated$ms=df_updated$value
+  df_updated$outcome=ifelse(df_updated$Cad_0_Any==2&df_updated$Cad_0_censor_age<stop,1,0)
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  aucmat[i,1]=roc(d$outcome~d$ms)$auc
+  #semat[i,1]=roc(df_updated$outcome~df_updated$ms)$se
+  
+  
+  
+  
+  
+ 
+  
+
+  aucmat[i,2]=roc(d$outcome~d$ascvd_10y_accaha)$auc
+  #semat[i,1]=roc(d$outcome~d$ascvd_10y_accaha)$se
+  
+  
+}
+  
+
+m=melt(aucmat,id.vars="Age")
+names(m)=c("Age","Model","pROC")
+m$Model=as.factor(m$Model)
+levels(m$Model)[1]="Multistate"
+levels(m$Model)[2]="Non Genomic"
+gplot <- ggplot(m,aes(x = Age,y = pROC,color = Model,ymin=pROC,ymax=pROC))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0,0.15)
+
+```
+
+### create a function to return per year fits:
+
+```{r aucreal}
+mpce=readRDS("output/mpcecomplete.rds")
+ages=c(20:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+#fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+# saveRDS(fixedsmoke,"output/fixedsmokefullmpce.rds")
+fixedsmoke=readRDS("output/fixedsmokefullmpce.rds")
+empiric.quants=data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3]
+
+## do the mean
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+##for smokers
+prsprobs=pnorm(prs_quants)
+#a=multipleprsfunc(s = snew[,,,2],prsprobs = prsprobs)
+m=matriskfun(a,ages=c(20:80),quantiles = prs_quants)
+
+
+set.seed(456)
+enrollments=c(41:70)
+aucmat=matrix(NA,nrow=length(enrollments),ncol=4)
+prcmat=matrix(NA,nrow=length(enrollments),ncol=3)
+for(z in 1:length(enrollments)){
+  age=enrollments[z]
+  start=age
+  stop=age+10
+  r=projection_withmat(survivalmat = m$yearlynotrisk,agestart = start,agestop = stop)
+  
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)),
+                           value = r)
+  
+  df_frame=mpce
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &smoke==0 , ]
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("newint" = "factor_level"))
+  df_updated$ms=100*df_updated$value
+
+#require(pROC)
+  df_updated$outcome=ifelse(df_updated$Cad_0_Any==2&df_updated$Cad_0_censor_age<stop,1,0)
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[z,1]=roc(d$outcome~d$ms)$auc
+  aucmat[z,2]=roc(d$outcome~d$ascvd_10y_accaha)$auc
+  aucmat[z,4]=roc(d$outcome~d$cad.prs)$auc
+  d=d[!is.na(d$ascvd_10y_accaha),]
+  h=d$ascvd_10y_accaha+d$ms
+  aucmat[z,3]=roc(d$outcome~h)$auc
+ 
+
+    
+require(PRROC)
+fg <- d$ms[d$outcome == 1]
+bg <- d$ms[d$outcome == 0]
+  
+prcmat[z,1]=pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+fg <- na.omit(d$ascvd_10y_accaha[d$outcome == 1])
+bg <- na.omit(d$ascvd_10y_accaha[d$outcome == 0])
+prcmat[z,2]=pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+
+fg <- na.omit(d$cad.prs[d$outcome == 1])
+bg <- na.omit(d$cad.prs[d$outcome == 0])
+prcmat[z,3]=pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+
+  print(paste0("Completedforage",z))
+  
+  
+  
+}
+
+
+
+improv=mean(aucmat[,1]-aucmat[,2])*100
+rownames(aucmat)=enrollments
+m=melt(aucmat,id.vars="Age")
+names(m)=c("Age","Model","AUC")
+m$Model=as.factor(m$Model)
+
+levels(m$Model)[1]="MSGene"
+levels(m$Model)[2]="PCE"
+levels(m$Model)[3]="Combined"
+levels(m$Model)[4]="PRS"
+#m=m[m$Model%in%c("MSGene","PCE","PRS"),]
+aucplot <- ggplot(m,aes(x = Age,y = AUC,color = Model,ymin=AUC,ymax=AUC))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0.5,1)+theme_classic()+ggtitle(paste0("10-year risk prediction"))
+
+
+improv=mean(prcmat[,1]-prcmat[,2])*100
+rownames(prcmat)=enrollments
+m=melt(prcmat,id.vars="Age")
+names(m)=c("Age","Model","PRauc")
+m$Model=as.factor(m$Model)
+levels(m$Model)[1]="MSGene"
+levels(m$Model)[2]="PCE"
+levels(m$Model)[3]="Combined"
+levels(m$Model)[4]="PRS"
+prplot <- ggplot(m,aes(x = Age,y = PRauc,color = Model,ymin=PRauc,ymax=PRauc))+geom_point()+geom_line(aes(group=Model,color =Model),linewidth=3)+geom_pointrange()+ylim(0,0.5)+theme_classic()+ggtitle(paste0("10-year risk prediction"))
+
+ga=ggarrange(aucplot,prplot,common.legend = T)
+ggsave(ga,file="plots/png/aucprc.png",height = 5,width=10)
+```
+
+# now do a massive RMSE
+
+```{r}
+mpce$cad.prs=scale(mpce$cad.prs)
+mpce$cad.prs.lec=cut(mpce$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+mpce$int=interaction(mpce$f.31.0.0,mpce$cad.prs.lec)
+levels(mpce$int) <- c(1,2,3,4,5,6)
+
+mpce%>%group_by(int)%>%summarise(mean(cad.prs),median(cad.prs))
+## grab means
+
+prs_quants=c(data.frame(mpce%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
+prsprobs= pnorm(prs_quants)
+
+
+## generate new arrays
+
+s=stateriskfunc_smoking(ages = c(40:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+p=multipleprsfunc(s = s[,,,1],prsprobs = pnorm(prs_quants))
+m=matriskfun(p,ages,quantiles = prs_quants)
+
+
+# s2=stateriskfunc_smoking_smoothedcoef(ages = c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+# p=multipleprsfunc(s = s2[,,,1],prsprobs = pnorm(prs_quants))
+# m=matriskfunc_coef(p,ages,quantiles = prs_quants)
+
+
+
+
+agesint=seq(40,70,by=5)
+ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+for(i in 1:length(agesint)){
+  age=agesint[i]
+  ten.year[i,]=projection_withmat(survivalmat = m$yearlynotrisk,agestart =age,agestop = age+10)
+  lifetime[i,]=projection_withmat(survivalmat = m$yearlynotrisk,agestart = age,agestop = 80)
+}
+
+
+emp.ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+emp.lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+for(i in 1:length((agesint))){
+  age=agesint[i]
+  for(j in 1:length(levels(mpce$int))){
+  
+cat=levels(mpce$int)[j]
+emp.ten.year[i,j]=compute_empiricalrisk(age=age,age2 = age+10,df_frame = mpce,cat = cat)
+emp.lifetime[i,j]=compute_empiricalrisk(age=age,age2 = 100,df_frame = mpce,cat = cat)
+}}
+
+
+
+ascvd.ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+for(i in 1:length((agesint))){
+  age=agesint[i]
+  for(j in 1:length(levels(mpce$int))){
+  cat=levels(mpce$int)[j]
+ascvd.ten.year[i,j]=compute_pce_predictedrisk(age=age,df_frame =mpce,cat = cat)
+#ascvdriskmat[i,2]=compute_empiricalrisk(age=40,df_frame = mpce,cat = cat)
+}
+}
+
+
+
+
+library(ehaGoF)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year*100))
+mslif=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(lifetime*100))
+
+pcr=gofRRMSE(Obs = as.vector(emp.ten.year),Prd = as.vector(ascvd.ten.year))
+msr=gofRRMSE(Obs = as.vector(emp.ten.year),Prd = as.vector(ten.year))
+mslifr=gofRRMSE(Obs = as.vector(emp.lifetime),Prd = as.vector(lifetime))
+
+print(xtable(data.frame("RMSE"=c(pcten,msten,mslif),"RRMSE"=c(pcr,msr,mslifr))),row.names=FALSE)
+
+diff.ascvd=abs(data.frame(ascvd.ten.year/100-emp.ten.year))
+d=as.matrix(diff.ascvd)
+sqrt(mean(d^2))
+
+diff.mstate=abs(data.frame(ten.year-emp.ten.year))
+d=as.matrix(diff.mstate)
+sqrt(mean(d^2))
+
+diff.mstate.life=abs(data.frame(lifetime-emp.lifetime))
+d=as.matrix(diff.mstate.life)
+sqrt(mean(d^2))
+
+# mean(as.matrix(emp.ten.year))
+# mean.es=mean(as.matrix(emp.ten.year))
+# rel.diff.mstate=sqrt(mean(d^2))/mean.es
+# 
+# diff.mstate=data.frame(lifetime-emp.lifetime)
+
+# ##  sqrt(mean(as.matrix(diff.mstate)))
+# [1] 0.1522733
+# 
+# sd(as.matrix(diff.mstate^2))
+# Error: unexpected ')' in "sd(as.matrix(diff.mstate)))"
+# # > sd(as.matrix(diff.mstate))
+# # [1] 0.01173952
+
+
+# rdiff=diff.mstate/emp.lifetime
+# d=as.matrix(rdiff)
+# sqrt(mean(d^2))/mean(as.matrix(emp.lifetime))
+# 
+# rel.diff.mstate=sqrt(mean((diff.mstate/(emp.lifetime*100))^2))
+
+diff.ascvd$se=sd(as.matrix(sqrt(diff.ascvd^2)))
+diff.ascvd$score=rep("PCE",7)
+diff.ascvd$age=agesint
+
+diff.mstate$se=sd(as.matrix(sqrt(diff.mstate^2)))
+diff.mstate$score=rep("MSGene",7)
+diff.mstate$age=agesint
+r=rbind(diff.ascvd,diff.mstate)
+rownames(r)=NULL
+rf=r[,c(1,3,5,7,8,9)]
+rf$sex=rep("female",nrow(rf))
+
+rm=r[,c(2,4,6,7,8,9)]
+rm$sex=rep("male",nrow(rm))
+names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
+
+
+
+r=rbind(diff.ascvd,diff.mstate)
+rownames(r)=NULL
+rf=r[,c(1,3,5,7,8,9)]
+rm=r[,c(2,4,6,7,8,9)]
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rm)=c("Low","Intermediate","High","se","score","age")
+m=melt(rm,id.vars=c("age","score","se"))
+
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+m$value=abs(m$value)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+
+r2_male=ggplot(data = m,
+aes(x=age,
+y= value,
+ymin=value-se,
+ymax=value+se,
+fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+geom_bar(position="dodge", stat = "identity") +
+geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)+ylim(c(0,0.20))
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+
+ggsave(r2_male,file = "~/multistate/rmseten.png",dpi = 300,height = 4,width = 8)
+
+
+### do for female
+
+
+colnames(rf)=c("Low","Intermediate","High","se","score","age")
+m=melt(rf,id.vars=c("age","score","se"))
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+m$value=abs(m$value)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+
+r2_female=ggplot(data = m,
+aes(x=age,
+y= value,
+ymin=value-se,
+ymax=value+se,
+fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+geom_bar(position="dodge", stat = "identity") +
+geom_errorbar( position = position_dodge(), colour="black") +ylim(c(0,0.20))+labs(y="RMSE 10 year risk, Female",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 15)
+
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+
+ggsave(ggarrange(r2_male,r2_female,nrow = 1,common.legend = T,legend = "right"),file = "~/multistate/rmseten_both.png",dpi = 300,height = 4,width = 12)
+
+
+############
+
+r=rbind(rf,rm)
+r$sex=repeat("female",length(ages))
+
+m=melt(r,id.vars=c("age","sex","se","score"))
+m$interaction=interaction(m$variable,m$sex)
+m$se=c(lf$se,lm$se)
+m$se=m$se/sqrt(1000)
+m$value=as.numeric(m$value)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+r2=ggplot(data = m,
+aes(x=age,
+y= value,
+ymin=value-se,
+ymax=value+se,
+fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+geom_bar(position="dodge", stat = "identity") +
+geom_errorbar( position = position_dodge(), colour="black") 
+labs(y="RMSE 10 year risk, Health to CAD",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 15)
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+
+diff.mstate.life$se=sd(as.matrix(sqrt(diff.mstate.life^2)))
+diff.mstate.life$score=rep("mstate",7)
+diff.mstate.life$age=agesint
+lf=diff.mstate.life[,c(1,3,5,7,8,9)]
+lf$sex=rep("female",nrow(lf))
+lm=diff.mstate.life[,c(2,4,6,7,8,9)]
+lm$sex=rep("male",nrow(lm))
+names(lf)[1:3]=names(lm)[1:3]=c("low","medium","high")
+l2=rbind(lf,lm)
+
+l2$sex=as.factor(l2$sex)
+m=melt(l2,id.vars=c("age","sex","se","score"))
+m$interaction=interaction(m$variable,m$sex)
+m$se=m$se/sqrt(1000)
+m$value=as.numeric(m$value)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+r2=ggplot(data = m,
+aes(x=age,
+y= value,
+ymin=value-se,
+ymax=value+se,
+fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+geom_bar(position="dodge", stat = "identity") +
+geom_errorbar( position = position_dodge(), colour="black") +
+labs(y="RMSE Lifetime risk, Health to CAD",x="Age",fill="Genomic Level: Sex")+theme_classic(base_size = 15)
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+ggsave(r2,file = "~/multistate/rmselife.png",dpi = 300,height = 4,width = 8)
+
+
+
+
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rm)=c("Low","Intermediate","High","se","score","age")
+m=melt(rm,id.vars=c("age","score","se"))
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+m$value=abs(m$value)
+interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+
+r2=ggplot(data = m,
+aes(x=age,
+y= value,
+#ymin=value-se,
+#ymax=value+se,
+fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+geom_bar(position="dodge", stat = "identity") +
+#geom_errorbar( position = position_dodge(), colour="black") 
+labs(y="RMSE 10 year risk, Health to CAD",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 15)
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+
+ggsave(r2,file = "~/multistate/rmseten.png",dpi = 300,height = 4,width = 8)
+
+
+
+levels(m$variable)[1]="Low"
+# 
+levels(m$variable)[2]="Intermediate"
+# 
+levels(m$variable)[3]="High"
+ ggplot(m,aes(age,value,color=score,shape=variable))+geom_point(size=3)+labs(y="RMSE:10 year risk, Women,Healthy to CAD",x="Age",col="Score",shape="PRS Level")+theme_classic(base_size = 20)
+# 
+
+
+#colnames(rm)=c("Low","Intermediate","High","score","age")
+ 
+ggplot(m,aes(age,value,fill=interaction))+geom_bar(stat="identity",pos="dodge")+scale_fill_manual(values=interaction_colors)+theme_classic(base_size = 20)+labs(y="RMSE, Male Health to CAD",x="Age",fill="Genomic Level: Score")
+
+##### now relative
+
+r=rbind(rel.diff.ascvd,rel.diff.mstate)
+rownames(r)=NULL
+rf=r[,c(1,3,5,7,8)]
+rm=r[,c(2,4,6,7,8)]
+
+
+library("RColorBrewer")
+display.brewer.pal(n = 8, name = 'RdBu')
+library("RColorBrewer")
+colnames(rf)=c("Low","Intermediate","High","score","age")
+m=melt(rf,id.vars=c("age","score"))
+m$interaction=interaction(m$variable,m$score)
+interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+ggplot(m,aes(age,value,ymin=value-se,value+se,fill=interaction))+geom_bar(stat="identity",position="dodge")+scale_fill_manual(values=interaction_colors)+theme_classic(base_size = 20)+labs(y="RMSE, Female Health to CAD",x="Age",fill="Genomic Level: Score")
+
+
+
+# levels(m$variable)[1]="Low"
+# 
+# levels(m$variable)[2]="Intermediate"
+# 
+# levels(m$variable)[3]="High"
+# 
+# ggplot(m,aes(age,value,color=score,shape=variable))+geom_point(size=3)+labs(y="RRMSE:10 year risk, Women,Healthy to CAD",x="Age",col="Score",shape="PRS Level")+theme_classic(base_size = 20)
+# 
+
+
+colnames(rm)=c("Low","Intermediate","High","score","age")
+m=melt(rm,id.vars=c("age","score"))
+m$interaction=interaction(m$variable,m$score)
+
+
+col=brewer.pal(n = 3, name = "RdBu")
+interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+
+ggplot(m,aes(age,value,fill=interaction))+geom_bar(stat="identity",pos="dodge")+scale_fill_manual(values=interaction_colors)+theme_classic(base_size = 20)+labs(y="RMSE, Male Health to CAD",x="Age",fill="Genomic Level: Score")
+
+
+colnames(emp.lifetime)=colnames(lifetime)=colnames(ten.year)=colnames(emp.ten.year)=colnames(ascvd.ten.year)=levels(interaction(mpce$f.31.0.0,mpce$cad.prs.lec))
+rownames(emp.lifetime)=rownames(lifetime)=rownames(ten.year)=rownames(ascvd.ten.year)=rownames(emp.ten.year)=agesint
+
+
+males_pred=data.frame(ten.year[,c(2,4,6)]*100)
+males_pred$score="ms"
+males_emp=data.frame(100*emp.ten.year[,c(2,4,6)])
+males_emp$score="emp"
+males_ascvd=data.frame(ascvd.ten.year[,c(2,4,6)])
+males_ascvd$score="pce"
+
+
+
+r=rbind(males_pred,males_emp,males_ascvd)
+colnames(r)=c("low","int","high","score")
+r$score=as.factor(r$score)
+r$age=rep(agesint,3)
+rownames(r)=NULL
+r2=melt(r,id.vars=c("age","score"))
+
+
+levels(r2$score)[1]="Truth (empiric)"
+levels(r2$score)[2]="MSGene"
+levels(r2$score)[3]="PCE"
+tmale=ggplot(r2,aes(x=age,y=value,ymin=value-0.15,ymax=value+0.15,fill=score,shape=variable))+geom_bar(stat="identity",pos="dodge")+geom_errorbar( position = position_dodge(), colour="black")+theme_classic()+labs(fill="Score",x="Age",y="Male 10-year Risk")
+
+m2=r2
+m2$sex=rep("Male",nrow(r2))
+
+females_pred=data.frame(100*ten.year[,c(1,3,5)])
+females_pred$score="ms"
+females_emp=data.frame(100*emp.ten.year[,c(1,3,5)])
+females_emp$score="emp"
+females_ascvd=data.frame(ascvd.ten.year[,c(1,3,5)])
+females_ascvd$score="pce"
+
+
+r=rbind(females_pred,females_emp,females_ascvd)
+colnames(r)=c("low","int","high","score")
+r$score=as.factor(r$score)
+r$age=rep(agesint,3)
+rownames(r)=NULL
+r2=melt(r,id.vars=c("age","score"))
+
+
+levels(r2$score)[1]="Truth (empiric)"
+levels(r2$score)[2]="MSGene"
+levels(r2$score)[3]="PCE"
+
+tfem=ggplot(r2,aes(x=age,y=value,ymin=value-0.05,ymax=value+0.05,fill=score,shape=variable))+geom_bar(stat="identity",pos="dodge")+geom_errorbar( position = position_dodge(), colour="black")+theme_classic()+labs(fill="Score",x="Age",y="Female 10-year Risk")
+r2$sex=rep("Female",nrow(r2))
+
+f=rbind(m2,r2)
+facet=ggplot(f,aes(x=age,y=value,ymin=value-0.05,ymax=value+0.05,fill=score,shape=variable))+geom_bar(stat="identity",pos="dodge")+geom_errorbar( position = position_dodge(), colour="black")+theme_classic()+labs(fill="Score",x="Age",y="10-year Risk")+facet_wrap(~sex,nrow = 1)+scale_fill_nejm()
+### Lifetime
+
+males_pred=data.frame(lifetime[,c(2,4,6)]*100)
+males_pred$score="ms"
+males_emp=data.frame(100*emp.lifetime[,c(2,4,6)])
+males_emp$score="emp"
+
+
+r=rbind(males_pred,males_emp)
+colnames(r)=c("low","int","high","score")
+r$score=as.factor(r$score)
+r$age=rep(agesint,2)
+rownames(r)=NULL
+r2=melt(r,id.vars=c("age","score"))
+
+
+levels(r2$score)[1]="Truth (empiric)"
+levels(r2$score)[2]="MSGene"
+
+lmale=ggplot(r2,aes(x=age,y=value,ymin=value-0.5,ymax=value+0.5,fill=score,shape=variable))+geom_bar(stat="identity",pos="dodge")+geom_errorbar( position = position_dodge(), colour="black")+theme_classic()+labs(fill="Score",x="Age",y="Male Lifetime Risk")
+m2=r2
+m2$sex=rep("Male",nrow(r2))
+
+females_pred=data.frame(lifetime[,c(1,3,5)]*100)
+females_pred$score="ms"
+females_emp=data.frame(100*emp.lifetime[,c(1,3,5)])
+females_emp$score="emp"
+
+
+r=rbind(females_pred,females_emp)
+colnames(r)=c("low","int","high","score")
+r$score=as.factor(r$score)
+r$age=rep(agesint,2)
+rownames(r)=NULL
+r2=melt(r,id.vars=c("age","score"))
+
+
+levels(r2$score)[1]="Truth (empiric)"
+levels(r2$score)[2]="MSGene"
+r2$sex=rep("Female",nrow(r2))
+
+r2=rbind(m2,r2)
+
+lfacet=ggplot(r2,aes(x=age,y=value,ymin=value-0.15,ymax=value+0.15,fill=score,shape=variable))+geom_bar(stat="identity",pos="dodge")+geom_errorbar( position = position_dodge(), colour="black")+theme_classic()+labs(fill="Score",x="Age",y="Lifetime Risk")+facet_wrap(~sex)+scale_fill_nejm()
+
+ggsave(plot=ggarrange(tmale,tfem,ncol=2,common.legend = T),"plots/png/tenyear.png",dpi=300,width=10,height=5)
+
+ggsave(plot=ggarrange(lmale,lfemale,ncol=2,common.legend = T),"plots/png/lyear.png",dpi=300,width=10,height=5)
+
+ggsave(plot = lfacet,"plots/png/lyear_facet.png",dpi=300,width=10,height=5)
+ggsave(plot = facet,"plots/png/year_facet.png",dpi=300,width=10,height=5)
+
+tenm=cbind(males_pred[,1]*100,males_emp[,1]*100,ascvdriskmat[,c(2,4,6)])
+tenf=cbind(females_pred[,1]*100,females_emp[,1]*100,ascvdriskmat[c(1,3,5),1])
+colnames(tenm)=colnames(tenf)=c("Predicted","Empirical","PCE")
+rownames(tenm)=rownames(tenf)=c("0.2","0.5","0.8")
+
+
+barplot(t(tenm ), beside = TRUE, ylim = c(0, 8), las = 2, col = c("grey", "blue","black"),ylab="10-year Risk (Percent), 40 year old male",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical","PCE"), col = c("grey", "blue","black"), pch = 19)
+        
+barplot(t(tenf ), beside = TRUE, ylim = c(0, 8), las = 2, col = c("grey", "pink","black"),ylab="10-year Risk (Percent), 40 year old female",,xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical","PCE"), col = c("grey", "pink","black"), pch = 19)
+        
+lm=cbind(males_pred[,2],males_emp[,2])
+lf=cbind(females_pred[,2],females_emp[,2])
+colnames(lm)=colnames(lf)=c("Predicted","Empirical")
+rownames(lm)=rownames(lf)=c("0.2","0.5","0.8")
+
+barplot(t(lm * 100), beside = TRUE, ylim = c(0, 30), las = 2, col = c("grey", "blue"),ylab="Lifetime Risk (Percent), 40 year old male",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical"), col = c("grey", "blue"), pch = 19)
+        
+barplot(t(lf * 100), beside = TRUE, ylim = c(0, 30), las = 2, col = c("grey", "pink"),ylab="Lifetime Risk (Percent), 40 year old female",xlab="Genomic Risk")
+legend("topleft", legend = c("Predicted", "Empirical"), col = c("grey", "pink"), pch = 19)
+  
+
+
+plot(ten.year[,c(2,4,6)],lifetime[,c(2,4,6)],pch=19,col=c(rep("green",7),rep("blue",7),rep("red",7)),xlab="Male,10 year",ylab="Male, Lifetime");legend("topleft",col=c("green","blue","red"),c("Low","Intermediate","High"),pch=19)
+plot(ten.year[,c(1,3,5)],lifetime[,c(1,3,5)],pch=19,col=c(rep("green",7),rep("blue",7),rep("red",7)),xlab="Female,10 year",ylab="Female, Lifetime");legend("topleft",col=c("green","blue","red"),c("Low","Intermediate","High"),pch=19)
+      
+```
+
+## compare tenyear to lifettime
+
+```{r for fewerquants}
+
+
+prs_quants=c(data.frame(mpce%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),3))
+dimnames(tenlifarray)=list(agesint,levels(mpce$int),c("Ten","Lifetime","PCE"))
+levels(mpce$int) <- c(1,2,3,4,5,6)
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+  tenlifarray[g,,1]=100*projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+  l=list(levels(mpce$int))
+  tenlifarray[g,,3]=sapply(l[[1]],function(x){compute_pce_predictedrisk(age,mpce,x)})
+  tenlifarray[g,,2]=100*projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+}
+
+m=melt(tenlifarray[,c(2,4,6),])
+m$PRS=factor(m$Var2,levels = c(2,4,6),labels = c(0.2,0.5,0.8))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime","PCE"),labels = c("Ten Year","Lifetime","Pooled Cohort"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(Score,PRS)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+m=melt(tenlifarray[,c(2,4,6),])
+m$PRS=factor(m$Var2,levels = c(2,4,6),labels = c(0.2,0.5,0.8))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime","PCE"),labels = c("Ten Year","Lifetime","PCE"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(PRS,Score)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+
+
+t=melt(tenlifarray[,,1])
+l=melt(tenlifarray[,,2])
+p=melt(tenlifarray[,,3])
+f=merge(t,l,by=c("Var1","Var2"))
+f2=merge(f,p,by=c("Var1","Var2"))
+g=merge(t,l,by=c("Var1","Var2"))
+
+g=g[g$Var2%in%c(2,4,6),]
+g$Var2=factor(g$Var2,labels=c(0.2,0.5,0.8))
+
+ggplot(g,aes(x=value.x,y=value.y,col=as.factor(Var1),group=as.factor(Var1)))+geom_point(aes(color=as.factor(Var2)))+geom_line(aes(col=as.factor(Var1)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var2)))+geom_point(aes(color=as.factor(Var1)))+geom_line(aes(col=as.factor(Var2)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+```
+
+
+```{r for fewer quants}
+
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+
+#prs_quants=qnorm(c(0.2,0.5,0.8))
+agesint=seq(40,70,by=5)
+
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),3))
+dimnames(tenlifarray)=list(agesint,levels(mpce$newint),c("Ten","Lifetime","PCE"))
+
+
+ages=c(20:80)
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+  tenlifarray[g,,1]=projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+  l=list(levels(mpce$newint))
+  tenlifarray[g,,3]=sapply(l[[1]],function(x){compute_pce_predictedrisk_newint(age,mpce,x)})
+  tenlifarray[g,,2]=projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+}
+
+m=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),])
+m$PRS=factor(m$Var2,levels = c(2,4,6,8,10,12,14,16,18,20),labels = seq(0.10,1,by=0.1))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime"),labels = c("Ten Year","Lifetime"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(Score,PRS)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+m=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),])
+m$PRS=factor(m$Var2,levels = c(2,4,6,8,10,12,14,16,18,20),labels = seq(0.10,1,by=0.1))
+m$Score=factor(m$Var3,levels=c("Ten","Lifetime"),labels = c("Ten Year","Lifetime"))
+ggplot(m,aes(x = Var1,y = value,fill=interaction(PRS,Score)))+geom_bar(stat="identity",position="dodge")+labs(y="Mstate Predicted Risk",x="Ages")+theme_classic()
+
+
+
+t=melt(tenlifarray[,,1])
+l=melt(tenlifarray[,,2])
+merge(t,l,by=c("Var1","Var2"))
+
+g=merge(t,l,by=c("Var1","Var2"))
+g=g[g$Var2%in%c(2,4,6,8,10,12,14,16,18,20),]
+g$Var2=factor(g$Var2,labels=c(seq(0.1,1,by=0.1)))
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var1)))+geom_point(aes(color=as.factor(Var2)))+geom_line(aes(col=as.factor(Var1)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+g=merge(t,l,by=c("Var1","Var2"))
+g=g[g$Var2%in%c(2,4,6,8,10,12,14,16,18,20),]
+g$Var2=factor(g$Var2,labels=c(seq(0.1,1,by=0.1)))
+
+ggplot(g,aes(value.x,value.y,col=as.factor(Var1),group=as.factor(Var2)))+geom_point(aes(color=as.factor(Var1)))+geom_line(aes(col=as.factor(Var2)))+labs(x="Ten Year Risk",y="Lifetime Risk",color="Age and Risk Level")+theme_classic()
+
+```
+
+```{r}
+
+cool=array(NA,dim=c(length(agesint),(length(prs_quants)*2),5))
+dimnames(cool)=list(agesint,levels(mpce$newint),c("SickLess","SickGreater","Less","Greater","Events"))
+thresh=5
+
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  for(c in 1:length(levels(mpce$newint))){
+    print(c)
+    mpce=mpce[!is.na(mpce$ascvd_10y_accaha),]
+    cool[g,c,1]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$ascvd_10y_accaha<thresh&mpce$smoke==0)
+    cool[g,c,2]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$ascvd_10y_accaha>thresh&mpce$smoke==0)
+    cool[g,c,3]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$ascvd_10y_accaha<thresh&mpce$smoke==0)
+    cool[g,c,4]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$ascvd_10y_accaha>thresh&mpce$smoke==0)
+    cool[g,c,5]=sum(round(mpce$phenos.enrollment,0)==age&mpce$newint==c&mpce$Cad_0_Any==2&mpce$smoke==0)
+  }}
+    
+### 
+
+## To do : count mumber of people with lifetime multsitate >10% and PCE <5% (or 7.5%)
+
+
+
+````
+
+```{r livesaved}
+
+## Assuming a relative risk reduction of 0.2 per year, someone at the highest risk would have a 6% rediction from year 40 to 80, while someone at the highest age
+prs_quants=qnorm(c(0.2,0.5,0.8))
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+###or for more qaunts 
+
+prs_quants=c(data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3])
+agesint=seq(40,70,by=5)
+
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+m=matriskfun(smoothedplot = a,ages = c(20:80),quantiles = prs_quants)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+[1] TRUE
+
+# > 1-prod(m$yearlynotrisk[21:60,20])
+# [1] 0.3126114
+# > 1-prod(m$yearlyreducednotmad[21:60,20])
+# [1] 0.2588465
+
+tenlifarray=array(NA,dim=c(length(agesint),(length(prs_quants)*2),4))
+dimnames(tenlifarray)=list(agesint,levels(mpce$newint),c("Ten","Lifetime","TenBenefit","LifetimeBenefit"))
+
+
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+
+  
+   tenlifarray[g,,1]=projection_withmat(m$yearlynotrisk,agestart = age,ages= age+10)
+
+  tenlifarray[g,,2]=projection_withmat(m$yearlynotrisk,agestart = age,agestop = 80)
+  
+    tenlifarray[g,,3]=projection_withmat(m$yearlyreducednotmad,agestart = age,ages= age+10)
+  #l=list(levels(mpce$int))
+  #tenlifarray[g,,5]=sapply(l[[1]],function(x){compute_pce_predictedrisk_newint(age,mpce,x)})
+  tenlifarray[g,,4]=projection_withmat(m$yearlyreducednotmad,agestart = age,agestop = 80)
+}
+
+netben=tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"]-tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"]
+ben=melt(netben)
+ben2=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"])
+ten=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Ten"])
+l=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"])
+
+mer=merge(ten,l,by=c("Var1","Var2"))
+mer=merge(mer,ben,by=c("Var1","Var2"))
+
+colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+mer$`PRS Category`=factor(mer$`PRS Category`,labels = seq(0.1,1,by=0.1))
+mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
+## dot point
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Lifetime`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+ggsave(plot = g1,filename = "MS ten vs MS Lf.tiff",dpi=300)
+
+g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.01,ymax=`Lifetime`+0.01,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+
+ggsave(plot = g1,filename = "MS ten vs MS Lf_saturn.png",dpi=300,height = 4,width = 6)
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`PRS Category`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+
+#plot_individual_timeline(dfData.settings,ind_all_event_dt = rf,ind_identifier =1002707)
+#head(cad$df.casecontrol[identifier%in%"1002707",])
+
+
+
+ggsave(plot = g1,filename = "MS ten vs benf.png",dpi=300,height = 4,width = 6)
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic()+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Therapy Benefit")
+
+ggsave(plot = g1,filename = "MS ten vs benf_facet.tiff",dpi=300)
+g2=ggplot(mer,aes(`Lifetime`,y = `Net Ben`,color=`PRS Category`))+geom_point()+facet_wrap(~Age,nrow=7)+theme_classic()+labs(x="MS Predicted Lifetime Risk",y="MS Lifetime Therapy Benefit")
+ggsave(plot = g2,filename = "MS lt vs benf.tiff",dpi=300)
+
+ggarrange(g1,g2,ncol = 2,common.legend = T)
+
+
+### now bar plots
+
+ben2=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"LifetimeBenefit"])
+l=melt(tenlifarray[,c(2,4,6,8,10,12,14,16,18,20),"Lifetime"])
+r=rbind(l,ben2)
+r$Var3=c(rep("Lifetime Risk",nrow(l)),rep("With Therapy",nrow(ben2)))
+
+colnames(r)=c("Age","PRS Category","value","Var3")
+#r$`PRS Category`=factor(r$`PRS Category`,labels = c("Low","Intermediate","High"))
+r$`PRS Category`=factor(r$`PRS Category`,labels = round(pnorm(prs_quants),1))
+
+ggplot(r, aes(x=`PRS Category`, y = value, fill = Var3)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~Age, nrow = 7) +
+  labs(title = "Risk and Net Benefit by Age Group and Risk Category") +
+  scale_fill_nejm()+theme_classic()+labs(y="Predicted Lifetime Risk, Multistate",fill="Intervention")
+
+  scale_fill_manual(values = c("#FF5555", "#55AAFF", "#55FF55"),
+                    labels = c("Ten-Year Risk", "Lifetime Risk", "Net Benefit")) +
+  theme_bw()
+
+ggplot(mermelt, aes(x =Cat, y = value, fill = variable)) +
+geom_bar(stat = "identity", position = "dodge") +
+facet_wrap(~Age, nrow = 7) +
+labs(title = "Risk and Net Benefit by Age Group and Risk Category") +
+scale_fill_manual(values = c("#FF5555", "#55AAFF", "#55FF55"),
+labels = c("Ten-Year Risk", "Lifetime Risk", "Net Benefit")) +
+theme_bw()
+
+
+```
+
+Show transtisions   
+
+```{r}
+
+freak=list()
+
+for(i in 1:length(levels(mpce$cad.prs.lev))){
+  lev=levels(mpce$cad.prs.lev)[i]
+freak[[i]]=fitfunc(mpce[mpce$cad.prs.lev==lev,],ages = c(40:80),nstates = nstates,mode = "binomial",covariates="cad.prs")
+}
+
+
+
+
+melow=melt(freak[[1]]$events[,c(2:6),"Health"])
+g1=ggplot(melow,aes(Var1,value,fill=Var2))+geom_bar(stat="identity")+labs(x="Age",y="Number of Events",fill="Ending State",title = "Low Genetic Risk transitions from Health")+theme_classic()
+
+memed=melt(freak[[2]]$events[,c(2:6),"Health"])
+g2=ggplot(memed,aes(Var1,value,fill=Var2))+geom_bar(stat="identity")+labs(x="Age",y="Number of Events",fill="Ending State",title = "Intermediate Genetic Risk transitions from Health")+theme_classic()
+
+mehigh=melt(freak[[3]]$events[,c(2:6),"Health"])
+g3=ggplot(mehigh,aes(Var1,value,fill=Var2))+geom_bar(stat="identity")+labs(x="Age",y="Number of Events",fill="Ending State",title = "High Genetic Risk transitions from Health")+theme_classic()
+
+ggarrange(g1,g2,g3,nrow = 3,labels = "AUTO",common.legend = TRUE)
+
+
+
+m=matriskfun(smoothedplot = a,ages=ages,quantiles = prs_quants)
+
+
+enrollments=c(41:70)
+thresh_l=10
+thresh_t=5
+
+prs_quants=data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3]
+
+
+differencelist=list()
+overa_list=list()
+snew=stateriskfunc_smoking(ages=c(20:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+m=matriskfun(smoothedplot = a,ages = c(20:80),quantiles = prs_quants)
+saved=matrix(NA,nrow=length(enrollments),ncol=7)
+
+dfascvd=readRDS("~/multistate/output/dfascvd_newbp.rds")
+m2=merge(mpce,dfascvd[,c("sample_id","ldladj","hdladj","choladj","sbp","dbp")],by.x="identifier",by.y="sample_id")
+
+for(z in 1:length(enrollments)){
+  age=enrollments[z]
+  start=age
+  stop=80
+  r=projection_withmat(survivalmat = m$yearlynotrisk,agestart = start,agestop = stop)
+  
+  
+  lookup_table <- data.frame(factor_level = as.factor(c(1:20)),
+                           value = r)
+  
+  df_frame=m2
+  atrisk = df_frame[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age &smoke==0 , ]
+  
+  
+  # Join the lookup table with the original data frame based on the factor variable
+  df_updated <- atrisk %>% 
+  left_join(lookup_table, by = c("newint" = "factor_level"))
+  df_updated$ms=100*df_updated$value
+
+#require(pROC)
+  df_updated$outcome=ifelse(df_updated$Cad_0_Any==2,1,0)
+  
+  d=df_updated[round(phenos.enrollment,0)==age&smoke==0,]
+  d=d[!is.na(d$ascvd_10y_accaha),]
+  
+  print(age)
+  # d$ldladj=scale(d$ldladj)
+  # d$hdladj=scale(d$hdladj)
+  # d$choladj=scale(d$choladj)
+  # d$sbp=scale(d$sbp)
+  # d$dbp=scale(d$dbp)
+  over=d[d$ascvd_10y_accaha>thresh_t,]
+
+  coolmat=over[,c("cad.prs","ascvd_10y_accaha","ldladj","hdladj","choladj","sbp","dbp","f.31.0.0")]
+  coolmat$f.31.0.0=as.numeric(ifelse(coolmat$f.31.0.0=="1",1,0))
+  overa_list[[z]]=coolmat
+  under=d[d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l,]
+  undermat=under[,c("cad.prs","ascvd_10y_accaha","ldladj","hdladj","choladj","sbp","dbp","f.31.0.0")]
+  undermat$f.31.0.0=as.numeric(ifelse(undermat$f.31.0.0=="1",1,0))
+  differencelist[[z]]=undermat
+  under_low=mean(d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l&d$cad.prs.lev=="low")
+  under_mid=mean(d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l&d$cad.prs.lev=="mid")
+  under_high=mean(d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l&d$cad.prs.lev=="high")
+  saved[z,1]=sum(d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l)
+  saved[z,2]=mean(d$ascvd_10y_accaha<thresh_t&d$ms>thresh_l)
+  saved[z,3]=age
+  saved[z,4]=nrow(d)
+  saved[z,5]=under_low
+  saved[z,6]=under_mid
+  saved[z,7]=under_high
+  
+  
+}
+
+## at age 40, 48% (SEM 0.005) of people have a lifetime risk over 10% but an ascvd risk <5%, whil at age 60 only 2.6% (SEM 0.0015) do   saved[,1]/saved[,4]
+
+
+c=cbind(enrollments,saved[,1]/saved[,4])
+sd=sqrt(((1-saved[,1]/saved[,4])*(saved[,1]/saved[,4]))/saved[,5])
+
+overmat=t(sapply(overa_list,function(x){
+  colMeans(x)
+}))
+
+rownames(overmat)=rownames(saved)=enrollments
+overmat=data.frame(overmat)
+overmat$f=rep("over",nrow(overmat))
+
+meanmat=t(sapply(differencelist,function(x){
+  colMeans(x)
+}))
+rownames(meanmat)=enrollments
+meanmat=data.frame(meanmat)
+meanmat$f=rep("under",nrow(meanmat))
+
+mass=rbind(overmat,meanmat)
+colnames(mass)=c("CAD.prs","PCE 10 year","LDL-C","HDL-C","Total Cholesterol","Systolic BP","Diastolic BP","Proportion Male","Score")
+mass$age=enrollments
+ma=melt(mass,id.vars=c("age","Score"))
+ma=ma[ma$variable!="PCE 10 year",]
+ma=ma[ma$variable!="Total Cholesterol",]
+ma$Score=factor(ma$Score,levels = c("over","under"),labels = c("10 year > 5%","Lifetime > 10% & 10 year < 5%"))
+wrap=ggplot(ma,aes(age,y=value,group=Score,color=Score))+stat_smooth()+labs(y="Value",x="Age",)+facet_wrap(~variable,scales="free")+theme_classic2()
+
+ggsave(plot = wrap,filename="~/multistate/g_wrap.png",dpi = 300,width = 12,height = 6)
+
+barplot((saved[,2]),names=enrollments,ylab="Proportion of Individuals with PCE < 5% & MS_lifetime > 15%",xlab="Age",pch=19,col="red")
+
+
+prsnums=data.frame(saved[,c(3,5,6,7)])
+colnames(prsnums)=c("Age","Low","Int","High")
+p=melt(prsnums,id.vars="Age")
+p$variable=factor(p$variable,levels=c("Low","Int","High"),labels=c("Low","Intermediate","High"))
+
+levels(p$variable)[1]="Low"
+levels(p$variable)[2]="Intermediate"
+levels(p$variable)[3]="High"
+g=ggplot(p,aes(x = Age,y = value,group=variable,fill=variable ))+geom_bar(stat="identity")+labs(x="Age",y="Proportion PCE-10yr <5% and MSGene-lifetime > 10%",fill="Genomic Risk Level")+theme_classic(base_size = 15)+scale_fill_aaas()
+
+ggsave(plot = g,filename="~/multistate/g.png",dpi = 300,height = 7,width = 10)
+
+head(saved)
+
+
+## plots
+##How to use
+
+## read in data frame
+mpce=readRDS("output/mpcecomplete.rds")
+# specify ages of interest and states
+ages=c(20:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+# create age x start x stop array
+fixedsmoke = fitfunc(df_frame = mpce,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+# specify PRS quants of interest
+prs_quants=qnorm(c(0.2,0.5,0.8))
+# extract start to stop state projections of annual predictions
+snew=stateriskfunc_smoking(ages=c(40:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+#create smoothed plot
+#a=multipleprsfunc(s = snew[,,,1],prsprobs = pnorm(prs_quants))
+
+a=plotfunc_prs_sex(array = snew[,,,1],title = "Health to CAD")
+#xtract smoothed particular projection
+projection_with_plot(a,ages = c(20:80),quantiles = prs_quants,agestart = 40,agestop = 80)
+projection_with_plot(a,ages = c(20:80),quantiles = prs_quants,agestart = 50,agestop = 80)
+projection_with_plot(a,ages = c(20:80),quantiles = prs_quants,agestart = 60,agestop = 80)
+projection_with_plot(a,ages = c(20:80),quantiles = prs_quants,agestart = 70,agestop = 80)
+
+### 
+> b=stateriskfunc_smoking(ages = c(20:80),prs_quants = prs_quants,start = "Health",stop = "Health",modelfit = fixedsmoke)
+p2=plotfunc_prs_sex(array = b[,,,1],title = "Health to Health")
+## to grab standard errors
+ggp_data20 <- ggplot_build(p2)$data[[1]]
+tail(ggp_data20)
+
+
+```
+
+```{r}
+links=mat[c(1:10),] %>%
+as.data.frame() %>%
+rownames_to_column(var="source") %>%
+gather(key="target", value="value", -1) %>%
+filter(value != 0)
+
+
+
+nodes <- data.frame(
+name=c(as.character(links$source), as.character(links$target)) %>%
+unique()
+)
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1
+links$IDtarget <- match(links$target, nodes$name)-1
+# Make the Network
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+Source = "IDsource", Target = "IDtarget",
+Value = "value", NodeID = "name",
+sinksRight=FALSE)
+p
+
+
+links=mat[c(15:25),] %>%
+as.data.frame() %>%
+rownames_to_column(var="source") %>%
+gather(key="target", value="value", -1) %>%
+filter(value != 0)
+
+
+
+nodes <- data.frame(
+name=c(as.character(links$source), as.character(links$target)) %>%
+unique()
+)
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1
+links$IDtarget <- match(links$target, nodes$name)-1
+# Make the Network
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+Source = "IDsource", Target = "IDtarget",
+Value = "value", NodeID = "name",
+sinksRight=FALSE)
+p
+
+
+links=mat[c(25:35),] %>%
+as.data.frame() %>%
+rownames_to_column(var="source") %>%
+gather(key="target", value="value", -1) %>%
+filter(value != 0)
+
+
+
+nodes <- data.frame(
+name=c(as.character(links$source), as.character(links$target)) %>%
+unique()
+)
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1
+links$IDtarget <- match(links$target, nodes$name)-1
+# Make the Network
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+Source = "IDsource", Target = "IDtarget",
+Value = "value", NodeID = "name",
+sinksRight=FALSE)
+p
+
+
+fixed_low=fitfunc(mpce[mpce$cad.prs.lev=="low",],ages = c(20:80),nstates = nstates
+                   ,mode = "binomial",covariates = "cad.prs+f.31.0.0+smoke")
+fixed_mid=fitfunc(mpce[mpce$cad.prs.lev=="mid",],ages = c(20:80),nstates = nstates
+                   ,mode = "binomial",covariates = "cad.prs+f.31.0.0+smoke")
+fixed_high=fitfunc(mpce[mpce$cad.prs.lev=="high",],ages = c(20:80),nstates = nstates
+                   ,mode = "binomial",covariates = "cad.prs+f.31.0.0+smoke")
+
+young_health=colSums(fixed_low$events[c(20:35),c(2:6),"Health"])
+names(young_health)=c("Hypertension","Hyperlipidemia","Diabetes","CAD","Death")
+links1=data.frame("source"=rep("Health_low:40",5),"target"=paste0(names(young_health),":40-55"),"value"=young_health)
+
+young_health2=colSums(fixed_mid$events[c(20:35),c(2:6),"Health"])
+names(young_health2)=c("Hypertension","Hyperlipidemia","Diabetes","CAD","Death")
+links2=data.frame("source"=rep("Health_mid:40",5),"target"=paste0(names(young_health2),":40-55"),"value"=young_health2)
+
+young_health3=colSums(fixed_high$events[c(20:35),c(2:6),"Health"])
+names(young_health3)=c("Hypertension","Hyperlipidemia","Diabetes","CAD","Death")
+links3=data.frame("source"=rep("Health_high:40",5),"target"=paste0(names(young_health3),":40-55"),"value"=young_health3)
+
+mid_all=fixed$events[c(35:60),c(2:6),c(2:6)]
+mid_f=apply(mid_all,2,colSums)
+rownames(mid_f)=c("Hypertension","Hyperlipidemia","Diabetes","CAD","Death")
+colnames(mid_f)=c("Hypertension","Hyperlipidemia","Diabetes","CAD","Death")
+m=melt(data = mid_f)
+links4=data.frame("source"=paste0(m$Var1,":40-55"),"target"=paste0(m$Var2,":55-70"),"value"=m$value)
+
+links=rbind(links1,links2,links3,links4)
+
+#link$source=factor(links$source,levels = c("Health","Htmid")
+
+
+nodes <- data.frame(
+    name=c(as.character(links$source), 
+           as.character(links$target)) %>% unique()
+)
+
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
+
+# Make the Network
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+                   Source = "IDsource", Target = "IDtarget",
+                   Value = "value", NodeID = "name", 
+                   sinksRight=FALSE,fontSize = 18,fontFamily = "Arial")
+p
+```
+
+## table1
+
+```{r}
+library(table1)
+dat=readRDS("output/fortable1.rds")
+dat=merge(dat,mpce[,c("identifier","smoke","ascvd_10y_accaha","antihtn")],by.x="eid",by.y = "identifier",all.x=TRUE)
+dat$agerec=as.numeric(dat$agerec)
+dat$agerec[dat$agerec<18]=18
+dat$f.31.0.0=ifelse(dat$f.31.0.0==1,"Male","Female")
+dat$ascvd_10y_accaha[is.na(dat$ascvd_10y_accaha)]=median(!is.na(dat$ascvd_10y_accaha))
+dat$Birthdate=year(dat$Birthdate)
+dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
+dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
+dat$Dm_0_Any=as.factor(ifelse(dat$Dm_0_Any==2,1,0))
+dat$Cad_0_Any=as.factor(ifelse(dat$Cad_0_Any==2,1,0))
+dat$cad.prs.lev=factor(dat$cad.prs.lev,levels = c("low","mid","high"),labels=c("Low","Intermediate","High"))
+
+label(dat$f.31.0.0) <- "Sex"
+label(dat$antihtn) <- "Start an anti-Hypertensive"
+label(dat$smoke) <- "Begin Smoking"
+label(dat$Ht_0_Any) <- "Develop Hypertension"
+label(dat$Dm_0_Any) <- "Develop Diabetes"
+label(dat$HyperLip_0_Any) <- "Develop Hyperlipidemia"
+label(dat$Cad_0_Any) <- "Develop Coronary Disease"
+#label(dat$ascvd_10y_accaha) <- "ASCVD at Enrollment"
+label(dat$agerec) <- "Age First Enrolled in NHS"
+label(dat$Durationfollowed) <- "Years Followed"
+
+f=table1(~ f.31.0.0 + agerec+Durationfollowed+Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+antihtn+smoke|cad.prs.lev, data=dat)
+
+library(xtable)
+
+print(xtable(as.data.frame(f)),include.rownames=F)
+
+```
+

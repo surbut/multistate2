@@ -1,0 +1,691 @@
+---
+title: "Multistate:UKB"
+output: ioslides_presentation
+date: '2023-04-10'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
+```
+
+## life transitions
+
+People are complicated. Look at this transition through lifestages for an individual based on diagnostic codes, lab data, and biomarkers. 
+
+```{r, out.width= "500px", echo=FALSE}
+knitr::include_graphics("~/multistate/docs/assets/pheno_output.png")
+```
+
+## Lifetime risk
+
+Previously, authors have soguth to capture static lifetime risk
+
+```{r, out.width= "500px", echo=FALSE}
+
+knitr::include_graphics("~/Dropbox/lifecvd.png")
+```
+
+## Multistate modeling
+
+We can think of these life transitions as progressing through a variety of states:
+
+
+```{r, out.width= "500px", echo=FALSE}
+
+knitr::include_graphics("~/multistate/docs/assets/figms.jpg")
+```
+
+## PRS
+
+```{r labphenos, echo=FALSE}
+setwd("~/multistate/")
+library("data.table")
+source('code/fullarray.R')
+source('code/plotcode.R')
+source('code/fitarray.R')
+source('code/ses.R')
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(dplyr)
+
+custom.col = c("#E69F00","#56B4E9","#009E73", "#F0E442","#0072B2","#D55E00", "#CC79A7","#FFDB6D")
+custom.col = brewer.pal(n = 8, name = 'Dark2')
+
+```
+
+```{r,echo=FALSE}
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+ages=c(20:80)
+## how to run
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+df_final$cad.prs=scale(df_final$cad.prs)
+
+#reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+#df_final=df_final[identifier%in%reg$eid,]
+
+# abinom = arrayfunc2(df_frame = df_final,
+#                ages = ages,
+#               nstates = nstates,mode = "binomial")
+
+
+abinom=readRDS("data/abinom.rds")
+
+plotlist=list()
+ind=c(1:4,7:10)
+cc=abinom$coef_cont
+ss=abinom$se_cont
+event=abinom$events
+
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x])
+  n=event[,"Cad",x]
+  m[n<10]="NA"
+  mf=data.frame(m)
+  mf$age=as.numeric(rownames(mf))
+  mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mf$col=rep(i,times=nrow(mf))
+  
+  smax=exp(cc[,"Cad",x]+1.96*ss[,"Cad",x])
+  n=event[,"Cad",x]
+  smax[n<10]="NA"
+  sf=data.frame(smax)
+  sf$age=as.numeric(rownames(sf))
+  sf$smax=as.numeric(smax)
+  sf=na.omit(sf)
+  sf$col=rep(i,times=nrow(sf))
+  
+   
+  smin=exp(cc[,"Cad",x]-1.96*ss[,"Cad",x])
+  n=event[,"Cad",x]
+  smin[n<10]="NA"
+  sb=data.frame(smin)
+  sb$age=as.numeric(rownames(sb))
+  sb$smin=as.numeric(smin)
+  sb=na.omit(sb)
+  sb$col=rep(i,times=nrow(sb))
+  
+  ## merge into a matrix of measurement and upper and lower bounds
+  a=merge(mf,sb,by = c("age","col"))
+  t=merge(a,sf,by = c("age","col"))
+  pname=paste0(dimnames(event)[[3]][x]," to CAD")
+  
+  p=ggplot(data = t,aes(x = age,y=m,color=col))+
+    geom_point(color=custom.col[i],size=0)+
+    stat_smooth(color=custom.col[i],method = "loess",fill=custom.col[i])+
+    theme_classic(base_size = 15)+
+    #geom_errorbar(aes(ymin=smin,ymax=smax),col=custom.col[i])+
+    ylim(c(0.5,2.5))+
+    labs(title=pname,y=paste0("CAD~PRS.sd ",dimnames(event)[[3]][x]))
+  #gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+   
+}
+
+grid.arrange(grobs=plotlist,ncol=3)
+
+#save("bigplot_rf_up_big.png",p)
+```
+
+## Simplification
+
+Now, we plot just from one two and three risk factor condensed to CAD. We remove all transitions with NAR < 10.
+
+```{r,echo=FALSE}
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+df_final=df_final[identifier%in%reg$eid,]
+# restrict to regsitered in primary care
+ages = c(40:80)
+plotlist=list()
+
+nstates=c("Health","oneRF","twoRF","threeRF","Cad","death")
+
+#abinom = arrayrf(df_frame = df_final,
+                   # ages = ages,
+                   # nstates = nstates,mode = "binomial")
+
+abinom=readRDS("data/abinom_rf.rds")
+
+cc=abinom$coef_cont
+event=abinom$events
+
+
+
+ind=c(1:4)
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x])
+  n=event[,"Cad",x]
+  m[n<10]="NA"
+  mf=data.frame(m)
+  mf$age=as.numeric(rownames(mf))
+  mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mf$col=rep(i,times=nrow(mf))
+  pname=paste0(dimnames(event)[[3]][x],"_toCad")
+  p=ggplot(data = mf,aes(x = age,y=m,color=col))+
+    geom_point(color=custom.col[i],size=0)+
+    stat_smooth(color=custom.col[i],method = "loess")+theme_classic()+labs(title=pname
+,y=paste0("Prs.quant to CAD from ",dimnames(event)[[3]][x]))
+ # gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+  
+}
+
+grid.arrange(grobs=plotlist,ncol=2)
+
+#gg#save("bigplot_binom_up_rf.png",p)
+rm(abinom)
+```
+
+
+## Number at Risk 
+
+```{r}
+abinom=readRDS("data/abinom.rds")
+cad=abinom$AR[,"Cad",]
+c=melt(cad)
+
+ggplot(c,aes(Var1,value,fill=Var2))+geom_bar(stat="identity",position = position_stack(reverse = TRUE))+ylab("Number at Risk")+xlab("Age of disease") + labs(fill = "Risk Factor Start")+theme_classic()
+       
+```
+
+## Raw number of transitions
+
+```{r}
+cad=abinom$events[,"Cad",]
+c=melt(cad)
+c=c[-which(c$Var2=="Cad"),]
+
+ ggplot(c,aes(Var1,value,fill=Var2))+geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+   xlab("Age")+ylab("Number of transitions")+labs(fill = "Risk Factor Start")+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+ 
+```
+
+## Rates
+
+
+```{r,echo=F}
+cad=abinom$rates[,"Cad",]
+c=melt(cad)
+c=c[-which(c$Var2=="Cad"),]
+
+c$hope=c$value*0.80
+
+c1=ggplot(c,aes(Var1,value*1000,fill=Var2))+
+  geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+  xlab("Age")+ylab("Rates of transitions per 1000")+labs(fill="Risk Factor Start")+ylim(c(0,150))+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+
+ggplot(c,aes(Var1,value*0.80*1000,fill=Var2))+
+  geom_bar(stat="identity",position = position_stack(reverse = TRUE))+
+  xlab("Age")+ylab("Rates of transitions per 1000")+labs(fill="Risk Factor Start")+ylim(c(0,150))+theme_classic()
+# look at correlation between PRS and HTN, HLD, 
+# providing absolute risk, Lifetime risk, 
+```
+
+
+## Prediction
+
+But what about absolute risk??
+
+```{r,echo=F}
+rm(abinom)
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+ages=c(20:80)
+## how to run
+df_final = data.table(readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds"))
+df_final$cad.prs=scale(df_final$cad.prs)
+#reg=fread("~/Dropbox/ukb+gp/gp_registrations.txt")
+#df_final=df_final[identifier%in%reg$eid,]
+
+#a3=predictstate(df_frame = df_final,ages = ages,nstates = nstates,mode = "binomial")
+
+a3=readRDS("data/a3.rds")
+plotlist=list()
+ind=c(1:4,7:10)
+cc=a3$coef_cont
+ss=a3$se_cont
+cint=a3$coef_int
+sint=a3$se_int
+event=a3$events
+
+for(i in 1:length(ind)){
+  x=ind[i]
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(mfr$variable)
+  p=ggplot(mfr,aes(age,value,col=variable))+geom_point(size=0)+geom_smooth(aes(fill=variable),span=1,se=F)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+  # #mf$col=rep(i,times=nrow(mf))
+  # 
+  # smax=exp(cc[,"Cad",x]+1.96*ss[,"Cad",x])
+  # n=event[,"Cad",x]
+  # smax[n<10]="NA"
+  # sf=data.frame(smax)
+  # sf$age=as.numeric(rownames(sf))
+  # sf$smax=as.numeric(smax)
+  # sf=na.omit(sf)
+  # sf$col=rep(i,times=nrow(sf))
+  # 
+  #  
+  # smin=exp(cc[,"Cad",x]-1.96*ss[,"Cad",x])
+  # n=event[,"Cad",x]
+  # smin[n<10]="NA"
+  # sb=data.frame(smin)
+  # sb$age=as.numeric(rownames(sb))
+  # sb$smin=as.numeric(smin)
+  # sb=na.omit(sb)
+  # sb$col=rep(i,times=nrow(sb))
+  # 
+  # ## merge into a matrix of measurement and upper and lower bounds
+  # a=merge(mf,sb,by = c("age","col"))
+  # t=merge(a,sf,by = c("age","col"))
+  # pname=paste0(dimnames(event)[[3]][x]," to CAD")
+  # 
+  # p=ggplot(data = t,aes(x = age,y=m,color=col))+
+  #   geom_point(color=custom.col[i],size=0)+
+  #   stat_smooth(color=custom.col[i],method = "loess",fill=custom.col[i])+
+  #   theme_classic(base_size = 15)+
+  #   #geom_errorbar(aes(ymin=smin,ymax=smax),col=custom.col[i])+
+  #   ylim(c(0.5,2.5))+
+  #   labs(title=pname,y=paste0("CAD~PRS.sd ",dimnames(event)[[3]][x]))
+  # #gg#save(paste0(pname,"binom.png"),p)
+  plotlist[[i]] = p   
+   
+}
+
+grid.arrange(grobs=plotlist,ncol=3)
+```
+
+## Now let's pick a given curve:
+
+```{r}
+x=1
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_point(size=1)+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+   
+## How about hypertensive:
+
+```{r}
+
+a3=readRDS("data/a3.rds")
+plotlist=list()
+
+cc=a3$coef_cont
+ss=a3$se_cont
+cint=a3$coef_int
+sint=a3$se_int
+event=a3$events
+
+  x=2
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_point(size=1)+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR",dimnames(event)[[3]][x],"toCAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+   
+   
+## How about multiple risk factors
+
+```{r}
+x=7
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_point(size=1)+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR_",dimnames(event)[[3]][x],"to_CAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+
+## All 3
+
+```{r}
+
+#lapply(a3$model_list,function(x){x[["Cad"]][[z]]$coefficients[["cad.prs"]]})
+
+  x=10
+  m=exp(cc[,"Cad",x]*1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]+cint[,"Cad",x]))
+  m2=exp(cc[,"Cad",x]*2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*2+cint[,"Cad",x]))
+  m0=exp(cc[,"Cad",x]*0+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*0+cint[,"Cad",x]))
+  mm=exp(cc[,"Cad",x]*-1+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-1+cint[,"Cad",x]))
+  mt=exp(cc[,"Cad",x]*-2+cint[,"Cad",x])/(1+exp(cc[,"Cad",x]*-2+cint[,"Cad",x]))
+  n=event[,"Cad",x]
+  
+  #mf=data.frame(m,m2,m0,mm,mt)
+  
+  mf=data.frame(m,m0,mm)
+  names(mf)=c("1SD","median","-1SD")
+  mf[which(n<10),]="NA"
+  mf$age=as.numeric(rownames(mf))
+  #mf$m=as.numeric(m)
+  mf=na.omit(mf)
+  mfr=melt(mf,id.vars="age")
+  mfr$value=as.numeric(mfr$value)
+  mfr$value=1000*mfr$value
+  mfr$variable=as.factor(as.character(mfr$variable))
+  p=ggplot(mfr,aes(age,value,col=variable,fill=variable))+geom_point(size=1)+geom_smooth(aes(fill=variable,col=variable),span=1,se=T)+labs(y=paste0("AR_",dimnames(event)[[3]][x],"to_CAD"))+theme_classic(base_size = 10)
+
+library(plotly)
+ggplotly(p)
+```
+
+
+## now we look at meds and additional info
+
+- 15% of GP pool go onto use a statin, marked at time of first interaction 
+- 21% go onto use anti-htn, from [here](https://www.thelancet.com/journals/landig/article/PIIS2589-7500(22)00151-0/fulltext#:~:text=The%20CODE%2DEHR%20framework%20seeks,lives%20and%20wellbeing%20of%20patients)
+- time in state: for each age, age - censoring
+
+```{r yearsinstateanddrugs}
+## now lookat meds and other info
+
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+pc=unique(reg$eid)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+dfh=data.table(dfh)
+dfp=dfh[dfh$identifier%in%pc,]
+
+ages=c(40:80)
+# abinom = fitfunc(df_frame = dfp,
+# ages = ages,
+# nstates = nstates,mode = "binomial",covariates = "cad.prs+yearsinstate+statin_now+antihtn_now+f.31.0.0")
+# saveRDS(abinom,"~/multistate/output/allcovariates.rds")
+
+abinom=readRDS("~/multistate/output/allcovariates.rds")
+
+year.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+prs.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+int.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+statin.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+anti.htn.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+sex.mat=matrix(NA,nrow=length(ages),ncol =length(nstates))
+
+for (i in 1:length(ages)) {
+  age = ages[i]
+  agename = as.character(age)
+  for (j in 1:length(nstates)) {
+    #print(agename)
+    start = nstates[[j]]
+    #print(start)
+    f = abinom$model_list[[agename]][['Cad']][[start]]
+    nar = abinom$events[i, "Cad", j]
+    #print(nar)
+if (length(f) < 2) {
+         year.mat[i, j] = NA
+          prs.mat[i, j] = NA
+          int.mat[i, j] = NA
+          anti.htn.mat[i, j] = NA
+          statin.mat[i, j] = NA
+          sex.mat[i, j] = NA
+          
+    } else{
+        if (nar < 10) {
+          year.mat[i, j] = NA
+          prs.mat[i, j] = NA
+          int.mat[i, j] = NA
+          anti.htn.mat[i, j] = NA
+          statin.mat[i, j] = NA
+          sex.mat[i, j] = NA
+        }
+        else{
+          if(j==1) {
+            year.mat[i, j] = NA
+            prs.mat[i, j] = f["cad.prs","Estimate"]
+          int.mat[i, j] = f["(Intercept)","Estimate"]
+          anti.htn.mat[i, j] = f["antihtn_now","Estimate"]
+          statin.mat[i, j] = f["statin_now","Estimate"]
+          sex.mat[i,j]=f["f.31.0.01","Estimate"]
+         }
+          else{
+          year.mat[i,j] = f["yearsinstate","Estimate"]
+          prs.mat[i, j] = f["cad.prs","Estimate"]
+          int.mat[i, j] = f["(Intercept)","Estimate"]
+          anti.htn.mat[i, j] = f["antihtn_now","Estimate"]
+          statin.mat[i, j] = f["statin_now","Estimate"]
+          sex.mat[i,j]=f["f.31.0.01","Estimate"]
+          }
+        }
+      }
+    }
+}
+
+
+
+year.mat=data.frame(year.mat)
+prs.mat=data.frame(prs.mat)
+int.mat=data.frame(int.mat)
+statin.mat=data.frame(statin.mat)
+anti.htn.mat=data.frame(anti.htn.mat)
+
+names(year.mat)=names(prs.mat)=names(int.mat)=names(statin.mat)=names(anti.htn.mat)=nstates
+rownames(year.mat)=rownames(prs.mat)=rownames(int.mat)=rownames(statin.mat)=rownames(anti.htn.mat)=ages
+
+
+```
+
+## Now look at effect of meds and time in state
+
+Absolute Risk (intercept)
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_diamonds(i,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+
+```
+
+
+
+## Statin Use
+
+```{r}
+
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,statin.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+## time in state
+
+```{r}
+
+count=1
+myplots <- vector("list",7)
+for(i in c(2:4,7:10)){
+myplots[[count]] <- plot_ors(i,year.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+
+## antihtn use
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,anti.htn.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+## Sex
+
+```{r}
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,sex.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+
+
+## Now let's just do it for genetics
+
+```{r}
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+pc=unique(reg$eid)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+dfh=data.table(dfh)
+dfp=dfh[dfh$identifier%in%pc,]
+ages=c(40:80)
+# aprs = fitfunc(df_frame = dfp,nstates = nstates,ages = ages,mode = "binomial",covariates = "cad.prs")
+# saveRDS(aprs,file="~/multistate/output/aprs.rds")
+aprs=readRDS("output/aprs.rds")
+
+
+prs.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+int.mat=matrix(NA,nrow=length(ages),ncol=length(nstates))
+
+for (i in 1:length(ages)) {
+  age = ages[i]
+  agename = as.character(age)
+  for (j in 1:length(nstates)) {
+    #print(agename)
+    start = nstates[[j]]
+    #print(start)
+    f = aprs$model_list[[agename]][['Cad']][[start]]
+    nar = aprs$events[i, "Cad", j]
+    #print(nar)
+if (length(f) < 2) {
+       prs.mat[i, j] = NA
+       int.mat[i, j] = NA
+       } else {
+         if (nar < 10) {
+           prs.mat[i, j] = NA
+           int.mat[i, j] = NA
+           }
+        else {
+        prs.mat[i, j] = f["cad.prs","Estimate"]
+        int.mat[i, j] = f["(Intercept)","Estimate"]
+        }
+      }
+  }
+}
+
+
+
+
+
+prs.mat=data.frame(prs.mat)
+int.mat=data.frame(int.mat)
+
+names(prs.mat)=names(int.mat)=nstates
+rownames(prs.mat)=rownames(int.mat)=ages
+count=1
+myplots <- vector("list",7)
+for(i in c(1:4,7:10)){
+myplots[[count]] <- plot_ors(i,prs.mat,plotind = count)
+count = count +1
+}
+
+grid.arrange(grobs=myplots,ncol=3)
+```
+

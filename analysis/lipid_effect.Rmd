@@ -1,0 +1,226 @@
+---
+title: "lipid_effect"
+author: "Sarah Urbut"
+date: '2023-02-12'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup,echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
+```
+
+## Introduction
+
+One of the aims of joint analysis is to capture the error of an individuals' measurement's, the inherent challenges of the fact that to contribute to a covariate measurement once must have survived to time s and thus the existence of the longitudinal endogenous covariate is not independent from the survival fucniton. We also consdier the challenges of not including medication effects in biomarker assessment and reasons for prescribing. For example, if we look at the diagnostic codes for someone with early onset CAD, we see the clear relationship between CAD and PRS.
+
+```{r}
+library("data.table")
+library("ukbpheno")
+library("ggplot2")
+library("survival")
+library("dplyr")
+library("tidyr")
+# the directory with datafiles
+library("ukbpheno")
+library("ggplot2")
+library("survival")
+
+library("tidyr")
+library("dplyr")
+df_final=readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds")
+
+# the directory with datafiles
+lst.harmonized.data=readRDS("~/Dropbox/pheno_dir/lst.harmonized.data.rds")
+df_frame=readRDS("~/Dropbox/pheno_dir/df_frame_gponly.rds")
+
+sta_date=readRDS("~/Dropbox/sta_gp.rds")
+
+## find non diabetics
+d=df_frame[df_frame$Cad_0_Any==2&df_frame$Dm_0_censor_age>df_frame$Cad_0_censor_age,]
+ldl=readRDS("~/Dropbox/ldl_date.rds")
+
+sta.min=sta_date%>%group_by(eid)%>%summarise(min(mage))
+mc=merge(sta.min,d,by.x="eid",by.y="identifier")
+ldl_sum=ldl%>%group_by(eid)%>%summarise(l=length(value1))
+mo=data.frame(merge(mc,ldl_sum,by="eid"))
+mf=mo[order(mo$l,decreasing = T),]
+
+## start a statin two years before CAD 
+before=mf[mf$min.mage.-mf$Cad_0_censor_age<=-2,]
+## start a statin two years after CAD 
+after=mf[mf$min.mage.>mf$Cad_0_censor_age,]
+# mc$eid[mc$`min(mage)`-mc$Cad_0_censor_age]
+# good=intersect(i,ldl$eid[ldl$mage<50])
+pheno_dir="~/Dropbox (Personal)/pheno_dir/"
+# main dataset 
+out_folder<-paste0(pheno_dir,"output/")
+extdata_dir <- paste0(system.file("extdata", package="ukbpheno"),"/")
+fdata_setting <- paste0(extdata_dir,"data.settings.tsv")
+dfData.settings <- fread(fdata_setting)
+#p=plot_individual_timeline(df.data.settings = dfData.settings,lst.data=lst.harmonized.data$lst.data,ind_identifier =1037981)
+d4<-lst.harmonized.data$dfukb[,c("identifier","f.52.0.0","f.34.0.0")] 
+# # f.34.0.0 contains year of birth, f.52 is month of birth, create birthday on 15th of month
+lst.harmonized.data$dfukb$Birthdate<-as.Date(with(d4,paste(f.34.0.0,f.52.0.0,15,sep="-")),"%Y-%m-%d")
+
+df_reference_dt_v0<-lst.harmonized.data$dfukb[,c("identifier","Birthdate")]
+
+extdata_dir <- paste0(system.file("extdata", package="ukbpheno"),"/")
+
+fdata_setting <- paste0(extdata_dir,"data.settings.tsv")
+dfData.settings <- fread(fdata_setting)
+
+
+disease=trait="Cad"
+
+fdefinitions <- paste0(extdata_dir,"definitions_cardiometabolic_traits.tsv")
+dfDefinitions_processed_expanded<-read_definition_table(fdefinitions,fdata_setting,extdata_dir)
+
+```
+
+While PRS is useful, it's not everything: there are a number of folks who develop preamutre CAD with lower prs levels and no DM
+
+```{r}
+sum(df_final$Cad_0_Any==2&df_final$Cad_0_censor_age<50&df_final$cad.prs.lev!="high"&df_final$Dm_0_Any==1)
+```
+
+And `r sum(df_final$Cad_0_Any==2&df_final$Cad_0_censor_age<50&df_final$cad.prs.lev!="high"&df_final$Dm_0_Any==1)/sum(df_final$Cad_0_Any==2&df_final$Cad_0_censor_age<50)` of cases under 50 don't have high prs or DM!
+
+Similarly, `r nrow(df_final[df_final$cad.prs.lev=="high"&df_final$Cad_0_Any==1,])` of the folks with high level PRS never go on to develop CAD.
+
+```{r}
+youngnops=df_final$identifier[df_final$Cad_0_Any==2&df_final$Cad_0_censor_age<50&df_final$cad.prs.lev!="high"&df_final$Dm_0_Any==1]
+
+
+i=intersect(youngnops,before$eid)
+```
+
+
+
+
+```{r}
+cad=get_cases_controls(definitions=dfDefinitions_processed_expanded %>% filter(TRAIT==disease), lst.harmonized.data$lst.data,dfData.settings, df_reference_date=df_reference_dt_v0)
+
+print_code=function(id)
+{
+  bd=data.frame(df_reference_dt_v0[identifier%in%id,])
+  df1=data.frame(cad$all_event_dt.Include_in_cases[identifier%in%id,][which.min(eventdate)])
+  df2=data.frame(sta_date[eid%in%id,][order(from)])
+return(list(bday=bd,diag=df1,statin=df2))
+
+}
+source("code/plotting_code.R")
+  
+```
+
+## Plot folks wihout DM or high PRS but with early CAD:
+
+This guy had event at 48 and started statin at age 44. Not listed as hyperlipidemia, not hypertensive, not diabetic until age 56 ... who knows?
+
+```{r}
+print_code(i[2])
+pheno_plot(i[2])
+```
+
+Here's someone who was on an antipyschotic, developed CAD at age 48
+
+```{r}
+print_code(i[7])
+
+pheno_plot(i[7])
+```
+
+
+# High PRS folks
+
+Here, we see that our friend had a PRS that was 2.65 SD above baseline, was born in 1958, enrolled in the UKBB in 2009 at age 51.  However, he developed CAD at age 47 in Jan 2006, 15 years before being diagnosed with Hypertension.
+
+Finally,he started a statin in June 2007 at age 49.But his first date of CAD diagnosis was in 2006 at age 47.
+
+
+```{r}
+print_code("1037981")
+pheno_plot(id="1037981")
+```
+
+
+
+
+There are also other where folks started meds before disease: The first patient had an MI at age 34 after starting meds at age 32.
+
+```{r}
+
+## example before disease, 
+print_code("3970893")
+pheno_plot(id="3970893")
+```
+
+
+The second patient was diagnosted at age 40, 5 years after starting a statin.
+```{r}
+print_code("5799285")
+pheno_plot(id="5799285")
+```
+
+
+As you might interf from the prescribing info both were diabetic.
+
+```{r}
+# # example started after disease
+# d[identifier%in%1037981,c("Birthdate","f.53.0.0","Cad_0_censor_age","Cad_0_Any","Dm_0_censor_age","Dm_0_Any","HyperLip_0_Any","HyperLip_0_Any","cad.prs"]
+# 
+# ## example started before disease
+# 
+# d[identifier%in%3970893,c("Birthdate","f.53.0.0","Cad_0_censor_age","Cad_0_Any","Ht_0_censor_age","Ht_0_Any","HyperLip_0_Any","HyperLip_0_Any","cad.prs","ldl.prs","htn.prs")]
+# 
+# d[identifier%in%5799285,c("Birthdate","f.53.0.0","Cad_0_censor_age","Cad_0_Any","Ht_0_censor_age","Ht_0_Any","HyperLip_0_Any","HyperLip_0_Any","cad.prs","ldl.prs","htn.prs")]
+
+```
+This is consistent with his use of diagnostic codes. So genetics would key us in to his disease long before lab measurement.
+
+Let's look at some non diabetes and look at two examples who started statins before and two after. The first example has hypercholesterolemia:
+
+```{r}
+
+print_code(before$eid[1])
+pheno_plot(before$eid[1])
+
+```
+
+The second example had his event at age 43, and only after started receiving LDL measurements. He was recorded as hypercholesterolemia at a young age but we don't have LDL measurements
+
+```{r}
+
+print_code(before$eid[4])
+pheno_plot(before$eid[4])
+
+```
+
+Here's someone who started  a statin 16 years before:
+
+```{r}
+print_code(before$eid[2])
+pheno_plot(before$eid[2])
+```
+
+
+And here is 
+```{r}
+print_code(1002769)
+pheno_plot(1002769)
+```
+
+
+## Afters
+
+
+First we look at someone who started statin after disease. We see that he didn't start a statin until 1.5 years after diagnsosis, thus obscruing the relationship between CAD and statin benefit, as well as lipid levels and CAD. We then find someone who have started before:
+
+```{r}
+print_code(after$eid[3])
+pheno_plot(after$eid[3])
+```
+
+
+
+
