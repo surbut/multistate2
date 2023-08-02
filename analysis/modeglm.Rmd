@@ -2600,8 +2600,9 @@ enrollments=c(41:70)
 thresh_l=10
 thresh_t=5
 
+mpce=readRDS("output/mpcecomplete.rds")
 prs_quants=data.frame(mpce%>%group_by(newint)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6,8,10,12,14,16,18,20),3]
-
+fixedsmoke=readRDS("~/multistate/output/fixedsmoke.rds")
 
 differencelist=list()
 overa_list=list()

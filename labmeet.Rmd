@@ -86,7 +86,7 @@ age_of_event=rep(c("0-40","40-45","45-50","50-55","55-60","60-65","65-70","70-75
 df=data.frame(est=exp(c),ui=ui,li=li,var=variable,age_of_event=age_of_event)
 
 #d2=df[-which(df$var=="sex.time"),]
-ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var))+geom_errorbar(aes(ymin=ui, ymax=li), width=.1)+stat_smooth(method="loess")+geom_point()+labs(y="exp(B(x(t))",title = "TDS Term",col="Variable")+theme_classic(base_size = 15))
+ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom_errorbar(aes(ymin=ui, ymax=li), width=.1)+stat_smooth(method="loess")+geom_point()+labs(y="exp(B(x(t))",title = "TDS Term",col="Variable")+theme_classic(base_size = 15))
 ```
 
 ## Attempt 2
@@ -117,7 +117,7 @@ ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom
 -- lag effects of medication, time-dependent confounding !
 -- how can we account for age dependent effects without error prone biometric data
 
-```{r, out.width= "500px", echo=FALSE}
+```{r, out.width= "700px", echo=FALSE}
 knitr::include_graphics("~/Desktop/peoplediff.png")
 ```
 
@@ -126,7 +126,7 @@ knitr::include_graphics("~/Desktop/peoplediff.png")
 
 We can think of these life transitions as progressing through a variety of states:
 
-```{r, out.width= "500px", echo=FALSE}
+```{r, out.width= "700px", echo=FALSE}
 knitr::include_graphics("docs/assets/figms.jpg")
 ```
 
@@ -183,15 +183,13 @@ knitr::include_graphics("~/multistate/table1.png")
 
 ## Advantages of multistate
 
-```{r}
+```{r,fig.height=4,fig.width=4}
 library(plotly)
 ggplotly(readRDS("output/numbertransplot.rds"))
 ```
-
 * `time dependent` state vs `time invariant` predictors
 * inhomogenous != memoryless
-* condition on new state
-* flexible fits between states
+* condition on new state with *flexible* fits between states
 
 ## Distribution of states
 
@@ -212,7 +210,7 @@ ggplotly(n)
 
 ## Under the hood:
 
-* giant array
+**Giant array**
 
 ```{r,echo=F,eval=T}
 head(fitfunc)
@@ -506,7 +504,9 @@ knitr::include_graphics("lpp.png")
 
 
 ## Thank you!
-
+* NL Lab! and ...
+* Giovanni Parmigiani
+* Sasha Gusev
 
 ```{r, out.width= "500px", echo=FALSE}
 knitr::include_graphics("bayespic.png")
