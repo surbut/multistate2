@@ -113,11 +113,11 @@ ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom
 
 ## People are different!
 
--- note the distribution of PRS risk by age of initiation
--- lag effects of medication, time-dependent confounding !
--- how can we account for age dependent effects without error prone biometric data
+* Time dependent confounding: assignment to medication is far from random
+* lag effects of medication, time-dependent confounding
+* How can we account for age dependent effects without error prone biometric data?
 
-```{r, out.width= "700px", echo=FALSE}
+```{r, out.width= "500px", echo=FALSE}
 knitr::include_graphics("~/Desktop/peoplediff.png")
 ```
 
