@@ -311,18 +311,19 @@ $$\begin{equation}
         \end{equation}$$
 
 
-## In practice: PRS Quanta vs Individual PRS: Dataframe
+## In practice: PRS Quanta vs PRS: Dataframe
 
 ```{r echo=T,fig.width=3,fig.height=3}
 prs_quants=qnorm(c(0.2,0.5,0.8))
 ages = c(40:80)
-s2=stateriskfunc_smoking_smoothedcoef(ages = c(40:80),prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+s2=stateriskfunc_smoking_smoothedcoef(ages = c(40:80),
+prs_quants = prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
 p=multipleprsfunc(s = s2[,,,"none"],prsprobs = pnorm(prs_quants))
 ggplotly(p)
 ```
 
 
-## In practice: PRS Quant vs Individual:DF
+## In practice: PRS Quanta vs PRS:DF
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
 projection_with_plotcoef(p,ages = ages,quantiles = prs_quants,agestart = 40,agestop = 80)
 ```
@@ -331,7 +332,8 @@ projection_with_plotcoef(p,ages = ages,quantiles = prs_quants,agestart = 40,ages
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
 compute_prediction_product(modelfit = fixedsmoke,
 start = "Health",
-stop = "Cad",agesmooth = 40:80,agepredinterval = 40:80,prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
+stop = "Cad",agesmooth = 40:80,agepredinterval = 40:80,
+prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
 ```
 
 
