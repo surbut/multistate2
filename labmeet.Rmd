@@ -443,11 +443,11 @@ ggplotly(readRDS("~/multistate/plotas.rds"))
 
 ```{r}
 cnew=readRDS("~/Dropbox/cnew.rds")
-qqplot(as.numeric(cnew$agecompute),as.numeric(cnew$ageenroll),xlab="First Longitudinal Measurement AGE",ylab="Age at Enrollment General Cohort")
+ggplot(cnew[cnew$minfollow>20,],aes(x=agecompute,y=ageenroll,col=cad.prs))+geom_point()+stat_smooth()+theme_classic()+labs(x="Age Compute",y="Age Enrolled",col="CAD PRS")
 ```
 
 
-## C statistic ... really?
+## C statistic ... hmmm
 ```{r}
 readRDS("~/multistate/lifetimeriskusingfirstscore.rds")
 ```
