@@ -106,7 +106,9 @@ ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom
 
 ```{r,echo=T,eval=F}
 mos$lipidadj=ifelse(mos$stat==1,mos$ldl/0.7,mos$ldl)
-fit1=coxph(Surv(tstart,Cad_0_censor_age,Cad_0_Any)~cad.prs:timegroup+lipidadj:timegroup+sbp:timegroup+bmi:timegroup+h1c:timegroup+sex:timegroup,data=mos)
+fit1=coxph(Surv(tstart,Cad_0_censor_age,Cad_0_Any)~
+cad.prs:timegroup+lipidadj:timegroup+sbp:timegroup
++bmi:timegroup+h1c:timegroup+sex:timegroup,data=mos)
 ```
 
 ```{r,eval=T,echo=F}
