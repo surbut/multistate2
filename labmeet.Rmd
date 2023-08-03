@@ -464,8 +464,8 @@ ggplotly(readRDS("~/multistate/nri.rds"))
 ## Life ... using earliest values
 
 
-```{r, out.width= "500px", echo=FALSE}
-knitr::include_graphics("skew.png")
+```{r, out.width=700, echo=FALSE}
+knitr::include_graphics("~/Dropbox/skew.png")
 ```
 
 
@@ -473,15 +473,17 @@ knitr::include_graphics("skew.png")
 ## Followup populations are different 
 
 ```{r,echo=F}
+library(DT)
 cframe=readRDS("~/Dropbox/cnew.rds")
-sumframe=data.frame(cnew%>%group_by(followlevel)%>%summarise(antiHtnEver=mean(antihtn),
-                                                          antiHtn_compute=mean(antihtn_compute),
-                                                          statinEver=mean(statin),
-                                                          statinCompute=mean(statin_compute),
-                                                          agecompute=mean(agecompute),
-                                                          ageenroll=mean(ageenroll),
-                                                          prs=mean(cad.prs))
-                    )
+sumframe=DT::datatable(cnew%>%group_by(followlevel)%>%
+summarise(antiHtnEver=round(mean(antihtn),2),
+                                                          Anti_Htn_compute=round(mean(antihtn_compute),2),
+                                                          StatinEver=round(mean(statin),2),
+                                                          StatinCompute=round(mean(statin_compute),2),
+                                                          Agecompute=round(mean(agecompute),1),
+                                                          Ageenroll=round(mean(ageenroll),1),
+prs=round(mean(cad.prs),1)
+                    ))
 sumframe
 ```
 
