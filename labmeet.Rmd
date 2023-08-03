@@ -436,7 +436,7 @@ readRDS("rmseten.rds")
 ## Sarah  ... How did you do that?
 
 ```{r}
-ggplotly(readRDS("~/multistate/plotas.rds"))
+ggplotly(readRDS("~/Dropbox//plotasminfollow.rds"))
 ```
 
 ## Ages
