@@ -329,7 +329,9 @@ projection_with_plotcoef(p,ages = ages,quantiles = prs_quants,agestart = 40,ages
 
 ... or for an individual with specific covariates
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
-compute_prediction_product(modelfit = fixedsmoke,start = "Health",stop = "Cad",agesmooth = 40:80,agepredinterval = 40:80,prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
+compute_prediction_product(modelfit = fixedsmoke,
+start = "Health",
+stop = "Cad",agesmooth = 40:80,agepredinterval = 40:80,prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
 ```
 
 
@@ -337,9 +339,11 @@ compute_prediction_product(modelfit = fixedsmoke,start = "Health",stop = "Cad",a
 
 .... finally, using `smoothed` coefficient matrix
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
-mat=return_smoothedmatrix(start = "Health",stop = "Cad",ages = ages,modelfit = fixedsmoke)
+mat=return_smoothedmatrix(start = "Health",stop = "Cad",
+ages = ages,modelfit = fixedsmoke)
 atrisk=readRDS("~/multistate/atrisk.rds")
-compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(40:80),coefmat = mat)
+compute_prediction_product_matrix(atrisk = atrisk,
+agepredinterval = c(40:80),coefmat = mat)
 ```
 
 ## Ten year Curves for Any Transitions: visualize the jump
