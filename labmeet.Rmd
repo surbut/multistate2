@@ -387,16 +387,13 @@ ggplotly(tenlifeplotting("Ht&Dm","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,a
 
 ## Is it all hopeless?
 
-The counterfactual ... imputation from RCT
-* Take home; those at lowest ten year risk have highest benefit
-
-```{r}
+```{r,fig.height=5.5}
 ggplotly(readRDS("~/multistate/tenyearb.rds"))
 ```
 
 ## But lifetime behaves the way you want!
 
-```{r}
+```{r,fig.height=5.5}
 ggplotly(readRDS("~/multistate/lifetimeb.rds"))
 ```
 
