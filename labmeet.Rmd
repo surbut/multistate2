@@ -387,6 +387,13 @@ ggplotly(g)
 ggplotly(tenlifeplotting("Ht&Dm","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,agesint = c(40:70))$lifeplot+theme_classic())
 ```
 
+
+## Putting it all together
+
+```{r}
+readRDS("~/Dropbox/combiinedrisk.rds")
+```
+
 ## Is it all hopeless?
 
 ```{r,fig.height=5.5}
@@ -405,12 +412,14 @@ ggplotly(readRDS("~/multistate/lifetimeb.rds"))
 knitr::include_graphics("~/multistate/saturn.png")
 ```
 
+
 ## Who are we identifying per age 
 * Compare with PCE at each age of enrollment
 
 ```{r}
 ggplotly(readRDS("gplotbar.rds"))
 ```
+
 
 ## So who are we identifying per age 
 * Compare with PCE at each age of enrollment
