@@ -414,7 +414,7 @@ ggplotly(readRDS("gplotbar.rds"))
 * Compare with PCE at each age of enrollment
 
 ```{r}
-ggplotly(readRDS("wrap.rds"))
+ggplotly(readRDS("~/Dropbox/wrap.rds"))
 ```
 
 
