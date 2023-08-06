@@ -2,30 +2,31 @@
 ### extract average coefficients from plot
 
 coefplotsmooth=function(ages,start,stop,modelfit){
+  require(ggplot2)
 agenames=as.character(c(ages))
-s=sapply(agenames,function(x){fixedsmoke$model_list[[x]][[stop]][[start]][,"Estimate"]})
+s=sapply(agenames,function(x){modelfit$model_list[[x]][[stop]][[start]][,"Estimate"]})
 s=data.frame(s)
 colnames(s)=agenames
 s=t(s)
 melt=melt(s)
-g=ggplot(melt,aes(Var1,value,col=Var2))+stat_smooth()
+g=ggplot(melt,aes(Var1,value,col=Var2))+stat_smooth()+geom_point()
 m=ggplot_build(g)$data[[1]]
 return(list("mat"=m,"plot"=g))}
 
 ### return smoothed per age and coefficient
 coefsmooth=
   function(start,stop,ages,modelfit){
- 
   m=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$m
   ##grab mean for each age from smoothed
-  returnlist=lapply(seq(1:4),function(t){
+  nterms=as.numeric(levels(as.factor(m$group)))
+  returnlist=lapply(nterms,function(t){
   df=data.frame(m[m$group==t,]%>%group_by(round(x,0))%>%summarise(mean(y)))
   rownames(df)=as.character(c(ages))
   colnames(df)=c("age","avgcoef")
   return(df)
   })
   agenames=as.character(c(ages))
-  s=sapply(agenames,function(x){fixedsmoke$model_list[[x]][[stop]][[start]][,"Estimate"]})
+  s=sapply(agenames,function(x){modelfit$model_list[[x]][[stop]][[start]][,"Estimate"]})
   s=data.frame(s)
 names(returnlist)=rownames(s)
 return(returnlist)
@@ -44,30 +45,34 @@ return(final_df)}
 
 
 ## now compute preidction for an indiviaul patient for a given year
-compute_prediction <- function(coefficients_matrix, age, prs_quant, sex, smoking) {
-  # Find the row that corresponds to the given age
-  age_row <- coefficients_matrix[coefficients_matrix[, 'age'] == age, ]
-  
-  # Extract coefficients
-  intercept_coef <- age_row[,"(Intercept)"]
-  genetics_coef <- age_row[, "cad.prs"]
-  sex_coef <- age_row[, "f.31.0.01"]
-  smoking_coef <- age_row[, "smoke"]
-  sexnum=ifelse(sex=="male",1,0)
-  # Compute the prediction using the linear model
-  prediction <- intercept_coef + genetics_coef * prs_quant + sex_coef * sexnum + smoking_coef * smoking
-  p=exp(prediction)/(1+exp(prediction))
-  return(p)
-}
+## TODO: make generic for any coefficients
 
-## now compute preidction for an indiviaul patient for a given year
-compute_prediction_product <- function(modelfit,start,stop, agesmooth,agepredinterval, prs_quant, sexnum, smoking) {
+# compute_prediction <- function(coefficients_matrix, age, prs_quant, sex, smoking) {
+#   # Find the row that corresponds to the given age
+#   age_row <- coefficients_matrix[coefficients_matrix[, 'age'] == age, ]
+#   
+#   # Extract coefficients
+#   intercept_coef <- age_row[,"(Intercept)"]
+#   genetics_coef <- age_row[, "cad.prs"]
+#   sex_coef <- age_row[, "f.31.0.01"]
+#   smoking_coef <- age_row[, "smoke"]
+#   sexnum=ifelse(sex=="male",1,0)
+#   # Compute the prediction using the linear model
+#   prediction <- intercept_coef + genetics_coef * prs_quant + sex_coef * sexnum + smoking_coef * smoking
+#   p=exp(prediction)/(1+exp(prediction))
+#   return(p)
+# }
+
+## now compute preidction for an indiviaul patient for a given year nesting the coefficient matrix production
+
+compute_prediction_product <- function(modelfit,start,stop, agesmooth,agepredinterval, covariatevector) {
   
   smoothedlist=coefsmooth(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)
   coefficients_matrix=convertlistmat(smoothedlist = smoothedlist)
   # Subset the matrix to include only the rows within the given age interval
   age_rows <- coefficients_matrix[coefficients_matrix[, 'age'] %in% agepredinterval, ]
-  xmat=matrix(c(1,prs_quant,sexnum,smoking))
+  ## make sure the covariate vector has terms in the same order as the model
+  xmat=matrix(as.numeric(c(1,covariatevector)))
 
  # Compute the prediction using the linear model
   logodds <-as.matrix(age_rows[,-1])%*%xmat
@@ -350,11 +355,12 @@ projection_with_plotcoef=function(plot,ages,quantiles,agestart,agestop){
 # g=ggplot(lookup_table2,aes(age,y = lifetime,color=as.factor(variable)))+
 #   stat_smooth()+labs(x="Age",y="Lifetime Risk",col="PRS:Sex")
 # 
+# make sure that atrisk has the dimension of regression
 
 compute_prediction_product_matrix=function(atrisk,agepredinterval,coefmat){
-
-atrisk_for_regression=data.frame("Intercept"=rep(1,nrow(atrisk)),atrisk[,c("cad.prs","f.31.0.0","smoke")])
-atrisk_for_regression$f.31.0.0=as.numeric(atrisk_for_regression$f.31.0.0)
+#require(dplyr) 
+atrisk_for_regression=data.frame(c(1,atrisk))
+# atrisk_for_regression$f.31.0.0=as.numeric(atrisk_for_regression$f.31.0.0)
 atriskmat=as.matrix(atrisk_for_regression)
 age_rows <- as.matrix(coefmat[coefmat[, 'age'] %in% agepredinterval, ])
 tar=t(age_rows[,-1])
