@@ -1,0 +1,82 @@
+---
+title: "examination of weights"
+output: html_document
+date: "2023-08-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+We can view a loess smoother as WLS, in which the weights are proportional to both the distance and the inverse square of the standard error.
+
+
+```{r cars}
+
+ages=c(40:80)
+modelfit=readRDS("../output/allcovariates.rds")
+start="Health"
+stop="Cad"
+
+c=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.2,degree = 2)
+
+ggplotly(c$plot)
+```
+
+Here we look at the transition from Ht to Cad and note that some of the noisier coefficients are smoothed;
+
+```{r}
+start="Ht"
+stop="Cad"
+c=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)
+
+ggplotly(c$plot)
+
+```
+
+You can see that the places with the largest errors contribute the least:
+
+```{r}
+head(c$errors[,"statin_now"])
+```
+
+
+How do we use?
+
+```{r}
+
+coefmat=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+
+head(coefmat)
+
+cad.prs=qnorm(c(seq(0.1,0.9,by=.1)))
+sex=c(0,1)
+statin=c(0,1)
+antihtn=c(0,1)
+yearsinstate=c(0,5,10,15)
+
+# Use expand.grid to create all possible combinations
+atriskmat <- expand.grid(intercept=1,cad.prs = cad.prs,years_in_state = yearsinstate, statin = statin,anti_htn = antihtn, sex = sex )
+
+
+##now compute prediction product for individuals of those combinations for a given year interval
+
+a=compute_prediction_product_matrix(atriskmat,c(40:80),coefmat)
+
+atriskmat[,"Lifetime"]=a$PredictedIntervalrisk
+
+mat=return_smoothedmatrix(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)
+atrisk=data.frame(cad.prs=rep(prs_quants,2),f.31.0.0=c(rep(0,length(prs_quants)),rep(1,length(prs_quants))),smoke=rep(0,length(prs_quants)))
+ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+for(i in 1:length(agesint)){
+  age=agesint[i]
+  ten.year[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(age+10)),coefmat = mat)
+  
+  lifetime[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(80)),coefmat = mat)
+}
+
+

@@ -13,7 +13,7 @@ g=ggplot(melt,aes(Var1,value,col=Var2))+stat_smooth()+geom_point()
 m=ggplot_build(g)$data[[1]]
 return(list("mat"=m,"plot"=g))}
 
-### return smoothed per age and coefficient
+### return P list of smoothed per age coefficient
 coefsmooth=
   function(start,stop,ages,modelfit){
   m=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$m
@@ -37,6 +37,7 @@ return(returnlist)
 #library(purrr)
 
 convertlistmat=function(smoothedlist){
+  require(purrr)
 list_of_dfs <- lapply(smoothedlist, as.data.frame)
 final_df <- reduce(list_of_dfs, function(x, y) merge(x, y, by="age"))
 final_matrix <- as.matrix(final_df)
@@ -357,22 +358,31 @@ projection_with_plotcoef=function(plot,ages,quantiles,agestart,agestop){
 # 
 # make sure that atrisk has the dimension of regression
 
+coefinput=function(start,stop,ages,modelfit){
+  sl=coefsmooth(start = start,stop = stop,ages = ages,modelfit = modelfit)
+  mat=convertlistmat(sl)
+  return(mat)
+}
+
 compute_prediction_product_matrix=function(atrisk,agepredinterval,coefmat){
 #require(dplyr) 
-atrisk_for_regression=data.frame(c(1,atrisk))
-# atrisk_for_regression$f.31.0.0=as.numeric(atrisk_for_regression$f.31.0.0)
-atriskmat=as.matrix(atrisk_for_regression)
-age_rows <- as.matrix(coefmat[coefmat[, 'age'] %in% agepredinterval, ])
-tar=t(age_rows[,-1])
-### now calc X beta which should b NxY years (i.e., NxP * PXY)
+atrisk_for_regression=data.frame(atrisk)
+## ensure that every column is numeric
+atriskmat=sapply(1:ncol(atrisk_for_regression),function(x){as.numeric(atrisk_for_regression[,x])})
+
+##YxP
+age_rows <- as.matrix(coefmat[rownames(coefmat) %in% agepredinterval, ])
+###PxY
+tar=t(age_rows)
+### now calc X %*% beta which should b NxY years (i.e., NxP * PXY)
 logoddsall=atriskmat%*%tar
 
 prediction=exp(logoddsall)/(1+exp(logoddsall))
 prediction_not=1-prediction
-# Compute the product of the predictions
+# Compute the product of the predictions which is over the colums since XB is NY
 prediction_product <- apply(prediction_not,1,prod)
 risk=1-prediction_product
-return(risk)}
+return(list("PredictedIntervalrisk"=risk,"Survival"=prediction_not,"Yearly Risk"=prediction))}
 
 
 ## return smoothedmatrix
