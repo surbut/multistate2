@@ -20,7 +20,7 @@ modelfit=readRDS("../output/allcovariates.rds")
 start="Health"
 stop="Cad"
 
-c=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.2,degree = 2)
+c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.2,degree = 2)
 
 ggplotly(c$plot)
 ```
@@ -30,7 +30,7 @@ Here we look at the transition from Ht to Cad and note that some of the noisier 
 ```{r}
 start="Ht"
 stop="Cad"
-c=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)
+c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)
 
 ggplotly(c$plot)
 
@@ -45,38 +45,86 @@ head(c$errors[,"statin_now"])
 
 How do we use?
 
+1) Create a matrix of coefficients extracted using smoothing for a given model fit and smoothing parameters
 ```{r}
 
-coefmat=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+##
+mat=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
 
 head(coefmat)
+```
 
+2) create a matrix with at risk parameters of interest:
+
+```{r}
 cad.prs=qnorm(c(seq(0.1,0.9,by=.1)))
 sex=c(0,1)
 statin=c(0,1)
 antihtn=c(0,1)
 yearsinstate=c(0,5,10,15)
-
+smoke=c(0,1)
 # Use expand.grid to create all possible combinations
-atriskmat <- expand.grid(intercept=1,cad.prs = cad.prs,years_in_state = yearsinstate, statin = statin,anti_htn = antihtn, sex = sex )
+atriskmat <- expand.grid(intercept=1,cad.prs = cad.prs,years_in_state = yearsinstate, statin = statin,anti_htn = antihtn, sex = sex ,smoke=smoke)
+head(atrismat)
+```
 
+3) compute prediction product for individuals of those combinations for a given year interval. This will return per year survival and risk probabilities as well as $1 - \prod(per yearsurvival).$
 
-##now compute prediction product for individuals of those combinations for a given year interval
-
+```{r}
 a=compute_prediction_product_matrix(atriskmat,c(40:80),coefmat)
+attributes(a)
 
-atriskmat[,"Lifetime"]=a$PredictedIntervalrisk
-
-mat=return_smoothedmatrix(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)
-atrisk=data.frame(cad.prs=rep(prs_quants,2),f.31.0.0=c(rep(0,length(prs_quants)),rep(1,length(prs_quants))),smoke=rep(0,length(prs_quants)))
+atriskmat=data.table(atriskmat)
+ar=data.frame(atriskmat[years_in_state==0&statin==0&anti_htn==0&smoke==0,])
 ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
 lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
-
+agesint=40:70
 for(i in 1:length(agesint)){
   age=agesint[i]
-  ten.year[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(age+10)),coefmat = mat)
+  ten.year[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(age+10)),coefmat = mat)$PredictedIntervalrisk
   
-  lifetime[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(80)),coefmat = mat)
+  lifetime[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(80)),coefmat = mat)$PredictedIntervalrisk
 }
+
+
+
+emp.ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+emp.lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+
+for(i in 1:length((agesint))){
+  age=agesint[i]
+  for(j in 1:length(levels(mpce$int))){
+    
+    cat=levels(mpce$int)[j]
+    atrisk = mpce[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age & smoke==0 & (antihtn==0|htn_age>age)&(statin==0|statin_age>age), ]
+    
+    emp.ten.year[i,j]=compute_empiricalrisk(age=age,age2 = age+10,df_frame = mpce,cat = cat)
+    emp.lifetime[i,j]=compute_empiricalrisk(age=age,age2 = 100,df_frame = mpce,cat = cat)
+  }}
+
+
+
+ascvd.ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+for(i in 1:length((agesint))){
+  age=agesint[i]
+  for(j in 1:length(levels(mpce$int))){
+    cat=levels(mpce$int)[j]
+     atrisk = mpce[age < Cad_0_censor_age &
+                        age < Ht_0_censor_age &
+                        age < HyperLip_0_censor_age &
+                        age < Dm_0_censor_age & smoke==0 & (antihtn==0|htn_age>age)&(statin==0|statin_age>age), ]
+    ascvd.ten.year[i,j]=compute_pce_predictedrisk(age=age,df_frame =mpce,cat = cat)
+    #ascvdriskmat[i,2]=compute_empiricalrisk(age=40,df_frame = mpce,cat = cat)
+  }
+}
+
+
+```
+
 
 

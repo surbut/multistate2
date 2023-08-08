@@ -536,7 +536,7 @@ saveRDS(abinom,"~/multistate/output/genetics_sex.rds")
 abinom = fitfunc(df_frame = dfp,
 ages = ages,
 nstates = nstates,mode = "binomial",covariates = "cad.prs+yearsinstate+statin_now+antihtn_now+f.31.0.0+smoke")
-# saveRDS(abinom,"~/multistate/output/allcovariates.rds")
+saveRDS(abinom,"~/multistate2/output/allcovariates.rds")
 
 abinom=readRDS("~/multistate/output/allcovariates.rds")
 
