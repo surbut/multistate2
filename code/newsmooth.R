@@ -6,10 +6,14 @@ coefplotsmooth=function(ages,start,stop,modelfit){
 agenames=as.character(c(ages))
 s=sapply(agenames,function(x){modelfit$model_list[[x]][[stop]][[start]][,"Estimate"]})
 s=data.frame(s)
+e=sapply(agenames,function(x){modelfit$model_list[[x]][[stop]][[start]][,"Std. Error"]})
 colnames(s)=agenames
 s=t(s)
+error=t(e)
 melt=melt(s)
-g=ggplot(melt,aes(Var1,value,col=Var2))+stat_smooth()+geom_point()
+melterr=melt(error)
+melt$e2=melterr$value^2
+g=ggplot(melt,aes(Var1,value,col=Var2,weight=1/e2))+stat_smooth()+geom_point()
 m=ggplot_build(g)$data[[1]]
 return(list("mat"=m,"plot"=g,"OG"=s))}
 

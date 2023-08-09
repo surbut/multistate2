@@ -36,9 +36,7 @@ Here we look at the transition from Ht to Cad and note that some of the noisier 
 
 ```{r echo=F}
 ages=c(40:80)
-#modelfit=readRDS("~/multistate2//output/fixedsmoke.rds")
-start="Health"
-stop="Cad"
+
 
 start="Ht"
 stop="Cad"
@@ -57,12 +55,13 @@ head(c$errors[,"statin_now"])
 
 How do we use?
 
-1) Create a matrix of coefficients extracted using smoothing for a given model fit and smoothing parameters
-```{r}
+1) Create a matrix of coefficients extracted using smoothing for a given model fit and smoothing parameters. Here we'll use a smaller modelfit.
+```{r,echo=T}
+modelfit=readRDS("~/multistate2/output/fixedsmoke.rds")
 start="Health"
 stop="Cad"
 ##
-mat=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+mat=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$custom_smooth
 
 head(mat)
 ```
@@ -89,8 +88,10 @@ atriskmat=data.table(atriskmat)
 #statin==0&anti_htn==0&
 modelfit=readRDS("~/multistate2/output/fixedsmoke.rds")
 ar=data.frame(atriskmat[smoke==0,])
-agesint=seq(40,70,by=5)
 mat=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+age=50
+c=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(age+10)),coefmat = mat)
+attributes(c)
 
 ```
 
@@ -142,7 +143,7 @@ lifetime.new=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = fixedsmoke,window_width = 5,span = 0.2,degree = 2)
 ggplotly(b$plot)
 
-coefs=b$mat
+coefs=b$custom_smooth
 for(i in 1:length(agesint)){
   age=agesint[i]
  
@@ -266,12 +267,6 @@ r2_male=ggplot(data = m,
 r2_male
 
 
-rm=r[,c(2,4,6,7,8,9)]
-#rm$sex=rep("male",nrow(rm))
-#names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
-
-
-
 #t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
 
 colnames(rf)=c("Low","Intermediate","High","se","score","age")
@@ -384,23 +379,23 @@ Compare coefficients with old approach:
 
 ```{r,echo=T,eval=T}
 abinom=readRDS("~/multistate2/output/allcovariates.rds")
-a=return_smoothedmatrix(start = "Health",stop = "Cad",ages = 40:80,modelfit = abinom)
-ggplotly(coefplotsmooth(start = "Health",stop = "Cad",ages = 40:80,modelfit = abinom)$plot)
+a=return_smoothedmatrix(start = "Ht",stop = "Cad",ages = 40:80,modelfit = abinom)
+ggplotly(coefplotsmooth(start = "Ht",stop = "Cad",ages = 40:80,modelfit = abinom)$plot)
 
-b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = abinom,window_width = 5,span = 0.2,degree = 2)
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = abinom,window_width = 5,span = 0.2,degree = 2)
 ggplotly(b$plot)
 
 ```
 
 ```{r}
 par(mfrow=c(3,3))
-for(i in c(1:6)){plot(a$coefmat[,i+1],b$mat[,i],xlab="GGPlotLOESSnoWeights",ylab="WeightedSmoothing",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+for(i in c(1:7)){plot(a$coefmat[,i+1],b$mat[,i],xlab="GGPlotLOESSnoWeights",ylab="WeightedSmoothing",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
 
 par(mfrow=c(3,3))
-for(i in c(1:6)){plot(a$original[,i],a$coefmat[,(i+1)],xlab="Original",ylab="LoessSmoothed",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+for(i in c(1:7)){plot(a$original[,i],a$coefmat[,(i+1)],xlab="Original",ylab="LoessSmoothed",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
 
 par(mfrow=c(3,3))
-for(i in c(1:6)){plot(a$original[,i],b$mat[,i],xlab="Original",ylab="WLS",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+for(i in c(1:7)){plot(a$original[,i],b$mat[,i],xlab="Original",ylab="WLS",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
 
 ```
 
