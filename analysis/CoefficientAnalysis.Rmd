@@ -5,7 +5,7 @@ date: "2023-08-07"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
 ```
 
 ## R Markdown
@@ -13,21 +13,33 @@ knitr::opts_chunk$set(echo = TRUE)
 We can view a loess smoother as WLS, in which the weights are proportional to both the distance and the inverse square of the standard error.
 
 
-```{r cars}
+```{r echo=T}
+source("~/dynamichr/code/utils.R")
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
 
 ages=c(40:80)
-modelfit=readRDS("../output/allcovariates.rds")
+modelfit=readRDS("~/multistate2/output/allcovariates.rds")
 start="Health"
 stop="Cad"
 
 c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.2,degree = 2)
 
 ggplotly(c$plot)
+
+c2=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)
+
+ggplotly(c2$plot)
 ```
 
 Here we look at the transition from Ht to Cad and note that some of the noisier coefficients are smoothed;
 
-```{r}
+```{r echo=F}
+ages=c(40:80)
+#modelfit=readRDS("~/multistate2//output/fixedsmoke.rds")
+start="Health"
+stop="Cad"
+
 start="Ht"
 stop="Cad"
 c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)
@@ -38,7 +50,7 @@ ggplotly(c$plot)
 
 You can see that the places with the largest errors contribute the least:
 
-```{r}
+```{r echo=F}
 head(c$errors[,"statin_now"])
 ```
 
@@ -47,44 +59,102 @@ How do we use?
 
 1) Create a matrix of coefficients extracted using smoothing for a given model fit and smoothing parameters
 ```{r}
-
+start="Health"
+stop="Cad"
 ##
-mat=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+mat=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
 
-head(coefmat)
+head(mat)
 ```
 
 2) create a matrix with at risk parameters of interest:
 
 ```{r}
-cad.prs=qnorm(c(seq(0.1,0.9,by=.1)))
-sex=c(0,1)
+mpce=readRDS("~/multistate2/output/mpcecomplete.rds")
+prs_quants=c(data.frame(mpce%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 statin=c(0,1)
 antihtn=c(0,1)
-yearsinstate=c(0,5,10,15)
+sex=c(0,1)
 smoke=c(0,1)
 # Use expand.grid to create all possible combinations
-atriskmat <- expand.grid(intercept=1,cad.prs = cad.prs,years_in_state = yearsinstate, statin = statin,anti_htn = antihtn, sex = sex ,smoke=smoke)
-head(atrismat)
+atriskmat <- expand.grid(intercept=1,cad.prs = prs_quants,#statin = statin,anti_htn = antihtn, 
+                         sex = sex,smoke=smoke)
+head(atriskmat)
 ```
 
 3) compute prediction product for individuals of those combinations for a given year interval. This will return per year survival and risk probabilities as well as $1 - \prod(per yearsurvival).$
 
 ```{r}
-a=compute_prediction_product_matrix(atriskmat,c(40:80),coefmat)
-attributes(a)
-
 atriskmat=data.table(atriskmat)
-ar=data.frame(atriskmat[years_in_state==0&statin==0&anti_htn==0&smoke==0,])
-ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
-lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
-agesint=40:70
+#statin==0&anti_htn==0&
+modelfit=readRDS("~/multistate2/output/fixedsmoke.rds")
+ar=data.frame(atriskmat[smoke==0,])
+agesint=seq(40,70,by=5)
+mat=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 10,span = 0.5,degree = 2)$mat
+
+```
+
+# Do downstream testing
+
+
+```{r}
+source("code/fitarray.R")
+fixedsmoke=readRDS("~/multistate2//output/fixedsmoke.rds")
+s2=stateriskfunc_smoking_smoothedcoef(ages,prs_quants,start = "Health",stop = "Cad",modelfit = fixedsmoke)
+p2=multipleprsfunc(s2[,,,1],prsprobs = pnorm(prs_quants))
+m=matriskfunc_coef(p2,ages,quantiles = prs_quants)
+agesint=seq(40,70,by=1)
+
+
+ten.year.old=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+lifetime.old=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
 for(i in 1:length(agesint)){
   age=agesint[i]
-  ten.year[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(age+10)),coefmat = mat)$PredictedIntervalrisk
-  
-  lifetime[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(80)),coefmat = mat)$PredictedIntervalrisk
+  ten.year.old[i,]=projection_withmat(survivalmat = m$yearlynotrisk,agestart =age,agestop = age+10)
+  lifetime.old[i,]=projection_withmat(survivalmat = m$yearlynotrisk,agestart = age,agestop = 80)
 }
+
+####
+a=return_smoothedmatrix(start = start,stop = stop,ages = ages,modelfit = fixedsmoke)$coefmat
+rownames(a)=a[,1]
+mat=a[,c(2:5)]
+
+ten.year.two=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+lifetime.two=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+
+for(i in 1:length(agesint)){
+  age=agesint[i]
+  ten.year.two[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(age+10)),coefmat = mat)$PredictedIntervalrisk
+lifetime.two[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(80)),coefmat = mat)$PredictedIntervalrisk
+}
+
+## remember to reshuffle so the orders are the same
+ten.year.two=ten.year.two[,c(1,4,2,5,3,6)]
+lifetime.two=ten.year.two[,c(1,4,2,5,3,6)]
+
+
+####
+ten.year.new=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+lifetime.new=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = fixedsmoke,window_width = 5,span = 0.2,degree = 2)
+ggplotly(b$plot)
+
+coefs=b$mat
+for(i in 1:length(agesint)){
+  age=agesint[i]
+ 
+  ten.year.new[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(age+10)),coefmat = coefs)$PredictedIntervalrisk
+  lifetime.new[i,]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(80)),coefmat = coefs)$PredictedIntervalrisk
+}
+
+
+## remember to reshuffle so the orders are the same
+ten.year.new=ten.year.new[,c(1,4,2,5,3,6)]
+lifetime.new=ten.year.new[,c(1,4,2,5,3,6)]
+
 
 
 
@@ -100,7 +170,7 @@ for(i in 1:length((agesint))){
     atrisk = mpce[age < Cad_0_censor_age &
                         age < Ht_0_censor_age &
                         age < HyperLip_0_censor_age &
-                        age < Dm_0_censor_age & smoke==0 & (antihtn==0|htn_age>age)&(statin==0|statin_age>age), ]
+                        age < Dm_0_censor_age & smoke==0, ]
     
     emp.ten.year[i,j]=compute_empiricalrisk(age=age,age2 = age+10,df_frame = mpce,cat = cat)
     emp.lifetime[i,j]=compute_empiricalrisk(age=age,age2 = 100,df_frame = mpce,cat = cat)
@@ -117,14 +187,222 @@ for(i in 1:length((agesint))){
      atrisk = mpce[age < Cad_0_censor_age &
                         age < Ht_0_censor_age &
                         age < HyperLip_0_censor_age &
-                        age < Dm_0_censor_age & smoke==0 & (antihtn==0|htn_age>age)&(statin==0|statin_age>age), ]
-    ascvd.ten.year[i,j]=compute_pce_predictedrisk(age=age,df_frame =mpce,cat = cat)
+                        age < Dm_0_censor_age & smoke==0, ]
+    ascvd.ten.year[i,j]=compute_pce_predictedrisk(age=age,df_frame =atrisk,cat = cat)
     #ascvdriskmat[i,2]=compute_empiricalrisk(age=40,df_frame = mpce,cat = cat)
   }
 }
 
 
+
+
+library(ehaGoF)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.new*100))
+msten.two=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.old*100))
+msten.three=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.two*100))
+
+
+
+print((data.frame("RMSE"=c(pcten,msten,msten.two),"Method"=c("PCE","MSNEW","MSOLD"))))
+
+```
+
+
+Now we plot:
+
+```{r plotting,echo=F,eval=T}
+diff.ascvd=abs(data.frame(ascvd.ten.year/100-emp.ten.year))
+d=as.matrix(diff.ascvd)
+sqrt(mean(d^2))
+
+diff.mstate=abs(data.frame(ten.year.new-emp.ten.year))
+d=as.matrix(diff.mstate)
+sqrt(mean(d^2))
+
+
+
+diff.ascvd$se=sd(as.matrix(sqrt(diff.ascvd^2)))
+diff.ascvd$score=rep("PCE",length(agesint))
+diff.ascvd$age=agesint
+
+diff.mstate$se=sd(as.matrix(sqrt(diff.mstate^2)))
+diff.mstate$score=rep("MSGene",length(agesint))
+diff.mstate$age=agesint
+
+r=rbind(diff.ascvd,diff.mstate)
+
+rownames(r)=NULL
+rf=r[,c(1,3,5,7,8,9)]
+#rf$sex=rep("female",nrow(rf))
+
+rm=r[,c(2,4,6,7,8,9)]
+#rm$sex=rep("male",nrow(rm))
+#names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
+
+
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rm)=c("Low","Intermediate","High","se","score","age")
+m=melt(rm,id.vars=c("age","score","se"))
+
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+
+r2_male=ggplot(data = m,
+               aes(x=age,
+                   y= value,
+                   ymin=value-se,
+                   ymax=value+se,
+                   fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+  geom_bar(position="dodge", stat = "identity") +
+  geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+r2_male
+
+
+rm=r[,c(2,4,6,7,8,9)]
+#rm$sex=rep("male",nrow(rm))
+#names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
+
+
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rf)=c("Low","Intermediate","High","se","score","age")
+m=melt(rf,id.vars=c("age","score","se"))
+
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+
+r2_female=ggplot(data = m,
+               aes(x=age,
+                   y= value,
+                   ymin=value-se,
+                   ymax=value+se,
+                   fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+  geom_bar(position="dodge", stat = "identity") +
+  geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
 ```
 
 
 
+
+
+
+
+
+Old
+
+```{r,eval=T,echo=F}
+
+diff.ascvd=abs(data.frame(ascvd.ten.year/100-emp.ten.year))
+d=as.matrix(diff.ascvd)
+sqrt(mean(d^2))
+
+diff.mstate.old=abs(data.frame(ten.year.old-emp.ten.year))
+d=as.matrix(diff.mstate.old)
+sqrt(mean(d^2))
+
+
+
+diff.ascvd$se=sd(as.matrix(sqrt(diff.ascvd^2)))
+diff.ascvd$score=rep("PCE",length(agesint))
+diff.ascvd$age=agesint
+
+diff.mstate.old$se=sd(as.matrix(sqrt(diff.mstate.old^2)))
+diff.mstate.old$score=rep("MSGene",length(agesint))
+diff.mstate.old$age=agesint
+
+r=rbind(diff.ascvd,diff.mstate.old)
+
+rownames(r)=NULL
+rf=r[,c(1,3,5,7,8,9)]
+#rf$sex=rep("female",nrow(rf))
+
+rm=r[,c(2,4,6,7,8,9)]
+#rm$sex=rep("male",nrow(rm))
+#names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
+
+
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rm)=c("Low","Intermediate","High","se","score","age")
+m=melt(rm,id.vars=c("age","score","se"))
+
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+
+r2_male=ggplot(data = m,
+               aes(x=age,
+                   y= value,
+                   ymin=value-se,
+                   ymax=value+se,
+                   fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+  geom_bar(position="dodge", stat = "identity") +
+  geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
+#geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+
+r2_male
+
+
+
+#t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+
+colnames(rf)=c("Low","Intermediate","High","se","score","age")
+m=melt(rf,id.vars=c("age","score","se"))
+
+m$se=m$se/sqrt(1000)
+m$interaction=interaction(m$variable,m$score)
+#interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+
+r2_female=ggplot(data = m,
+               aes(x=age,
+                   y= value,
+                   ymin=value-se,
+                   ymax=value+se,
+                   fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+  geom_bar(position="dodge", stat = "identity") +
+  geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
+
+r2_female
+```
+
+
+Compare coefficients with old approach:
+
+```{r,echo=T,eval=T}
+abinom=readRDS("~/multistate2/output/allcovariates.rds")
+a=return_smoothedmatrix(start = "Health",stop = "Cad",ages = 40:80,modelfit = abinom)
+ggplotly(coefplotsmooth(start = "Health",stop = "Cad",ages = 40:80,modelfit = abinom)$plot)
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = abinom,window_width = 5,span = 0.2,degree = 2)
+ggplotly(b$plot)
+
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(i in c(1:6)){plot(a$coefmat[,i+1],b$mat[,i],xlab="GGPlotLOESSnoWeights",ylab="WeightedSmoothing",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+
+par(mfrow=c(3,3))
+for(i in c(1:6)){plot(a$original[,i],a$coefmat[,(i+1)],xlab="Original",ylab="LoessSmoothed",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+
+par(mfrow=c(3,3))
+for(i in c(1:6)){plot(a$original[,i],b$mat[,i],xlab="Original",ylab="WLS",main=paste0("Variable_",names(a$coefmat)[i+1]));abline(c(0,1),col="red")}
+
+```
+
+
+I think it must be the smoothing within the ggplot that works so robustly. They create a number of Xs for each actual X...

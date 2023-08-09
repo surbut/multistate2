@@ -1,6 +1,4 @@
 
-
-```{r}
 # Custom LOESS function with adaptive window size and polynomial degree
 custom_loess <-
   function(ages,
@@ -128,7 +126,7 @@ plot_coef = function(ages, coefficients, smoothing_results) {
   p <- ggplot(data_long, aes(x = Age, y = Value)) +
     geom_point(data = filter(data_long, Method == "Coefficient"), aes(color = Method)) +
     geom_line(data = filter(data_long, Method != "Coefficient"), aes(color = Method)) +
-    facet_wrap( ~ Coefficient_Set, ncol = 3, scales = "free_y") +
+    facet_wrap( ~ Coefficient_Set, nrow=2, scales = "free_y") +
     labs(title = "Comparison of LOESS Fits for Different Coefficient Sets",
          y = "Coefficients",
          color = "Method") +

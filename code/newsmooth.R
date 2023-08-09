@@ -11,12 +11,13 @@ s=t(s)
 melt=melt(s)
 g=ggplot(melt,aes(Var1,value,col=Var2))+stat_smooth()+geom_point()
 m=ggplot_build(g)$data[[1]]
-return(list("mat"=m,"plot"=g))}
+return(list("mat"=m,"plot"=g,"OG"=s))}
 
 ### return P list of smoothed per age coefficient
 coefsmooth=
   function(start,stop,ages,modelfit){
   m=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$m
+  or=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$OG
   ##grab mean for each age from smoothed
   nterms=as.numeric(levels(as.factor(m$group)))
   returnlist=lapply(nterms,function(t){
@@ -29,7 +30,7 @@ coefsmooth=
   s=sapply(agenames,function(x){modelfit$model_list[[x]][[stop]][[start]][,"Estimate"]})
   s=data.frame(s)
 names(returnlist)=rownames(s)
-return(returnlist)
+return(list("smoothedlist"=returnlist,"Original"=or))
   }
 
 
@@ -113,7 +114,7 @@ absrisksmoothedcoef=function(age,start,stop,cad.prs,sex,smoke,smoothedlist){
 
 stateriskfunc_smoking_smoothedcoef=function(ages,prs_quants,start,stop,modelfit){
   ## extract smoothed coefficients
-  smoothedlist=coefsmooth(start = start,stop = stop,ages = ages,modelfit = modelfit)
+  smoothedlist=coefsmooth(start = start,stop = stop,ages = ages,modelfit = modelfit)$smoothedlist
   sexes=c(0,1)
   smoking=c(0,1)
   riskmat=array(data = NA,dim = c(length(ages),length(prs_quants),length(sexes),length(smoking)),dimnames = list(ages,pnorm(prs_quants),c("female","male"),c("none","smoke")))
@@ -387,9 +388,11 @@ return(list("PredictedIntervalrisk"=risk,"Survival"=prediction_not,"Yearly Risk"
 
 ## return smoothedmatrix
 return_smoothedmatrix=function(start,stop,ages,modelfit){
-smoothedlist=coefsmooth(start = start,stop = stop,ages = ages,modelfit = fixedsmoke)
+sobj=coefsmooth(start = start,stop = stop,ages = ages,modelfit = modelfit)
+smoothedlist=sobj$smoothedlist
+original=sobj$Original
 mat=convertlistmat(smoothedlist = smoothedlist)
-return(mat)}
+return(list("coefmat"=mat,"original"=original))}
 
 
 
@@ -398,7 +401,7 @@ return(mat)}
 tenlifeplotting=function(start,stop,modelfit,agesmooth,agepred,prs_quants,agesint){
   
 
-mat=return_smoothedmatrix(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)
+mat=return_smoothedmatrix(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)$coefmat
 atrisk=data.frame(cad.prs=rep(prs_quants,2),f.31.0.0=c(rep(0,length(prs_quants)),rep(1,length(prs_quants))),smoke=rep(0,length(prs_quants)))
 ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
 lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
