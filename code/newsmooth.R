@@ -13,15 +13,17 @@ error=t(e)
 melt=melt(s)
 melterr=melt(error)
 melt$e2=melterr$value^2
-g=ggplot(melt,aes(Var1,value,col=Var2,weight=1/e2))+stat_smooth()+geom_point()
+g=ggplot(melt,aes(Var1,value,col=Var2,weight=1/e2))+stat_smooth()+
+  geom_point()+
+  facet_wrap(~Var2,nrow=2,scales="free_y")
 m=ggplot_build(g)$data[[1]]
-return(list("mat"=m,"plot"=g,"OG"=s))}
+return(list("mat"=m,"plot"=g,"original_unsmoothed"=s,"error"=e))}
 
 ### return P list of smoothed per age coefficient
 coefsmooth=
   function(start,stop,ages,modelfit){
-  m=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$m
-  or=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$OG
+  m=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$mat
+  or=coefplotsmooth(ages = ages,start = start,stop = stop,modelfit = modelfit)$original_unsmoothed
   ##grab mean for each age from smoothed
   nterms=as.numeric(levels(as.factor(m$group)))
   returnlist=lapply(nterms,function(t){

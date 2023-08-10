@@ -183,9 +183,7 @@ ggsave(ga,
 
 # now do a massive RMSE to compute average prediction across strata
 
-```{
-  r
-}
+```{r}
 mpce$cad.prs = scale(mpce$cad.prs)
 mpce$cad.prs.lec = cut(
   mpce$cad.prs,
