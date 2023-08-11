@@ -115,12 +115,6 @@ attributes(c)
 
 ```
 
-Now we plot:
-
-```{r plotting,echo=F,eval=T}
-
-```
-
 
 
 Compare coefficients with old approach:
