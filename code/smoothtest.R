@@ -93,7 +93,7 @@ apply_smoothing <-
 
 
 
-plot_coef = function(ages, coefficients, smoothing_results) {
+plot_coef = function(ages, coefficients, smoothing_results,standard_errors) {
   # Create a data frame for ggplot
   data <- data.frame(
     Age = rep(ages, ncol(coefficients)),
@@ -101,6 +101,7 @@ plot_coef = function(ages, coefficients, smoothing_results) {
     Custom_LOESS = as.vector(smoothing_results$custom_loess),
     Standard_LOESS_Weighted = as.vector(smoothing_results$standard_loess_weighted),
     Standard_LOESS_Unweighted = as.vector(smoothing_results$standard_loess_unweighted),
+    Standard_error=as.vector(standard_errors),
     Coefficient_Set = rep(colnames(coefficients), each = length(ages))
     
   )
@@ -121,6 +122,8 @@ plot_coef = function(ages, coefficients, smoothing_results) {
   
   p <- ggplot(data_long, aes(x = Age, y = Value)) +
     geom_point(data = filter(data_long, Method == "Coefficient"), aes(color = Method)) +
+    geom_errorbar(data = subset(data_long, Method == "Coefficient"), 
+                  aes(ymin = Value - Standard_error, ymax = Value + Standard_error, color = Method), width = 0.3)+
     geom_line(data = filter(data_long, Method != "Coefficient"), aes(color = Method)) +
     #geom_smooth(data = filter(data_long, Method == "Coefficient"), aes(color = "red"))+
     facet_wrap( ~ Coefficient_Set, nrow=2, scales = "free_y") +
@@ -162,11 +165,8 @@ coefplotsmooth2 = function(ages,
       degree = degree,
       span = span
     )
-  g = plot_coef(
-    ages = ages,
-    coefficients = s,
-    smoothing_results =     smoothing_results
-  ) + ggtitle(paste0(start, "_to_", stop, "_Coefficients"))
+  g = plot_coef(ages = ages,coefficients = s,smoothing_results = smoothing_results,standard_errors = e) +
+    ggtitle(paste0(start, "_to_", stop, "_Coefficients"))
   w = smoothing_results$standard_loess_weighted
   m = smoothing_results$custom_loess
   colnames(m) = colnames(s)
@@ -200,3 +200,82 @@ function(ages,start,stop,modelfit,window_width = 10,span = 0.2,degree=2){
   colnames(m)=colnames(s)
   rownames(m)=ages
   return(list("mat"=m,"weighted"=w,"plot"=g,"errors"=e,"unsmoothed_coefficients"=s))}
+
+
+## some plotting
+
+plotfuncrmse=function(ascvd.ten.year,emp.ten.year,mstate.ten.year){
+  ten.year.new=mstate.ten.year
+  diff.ascvd=abs(data.frame(ascvd.ten.year/100-emp.ten.year))
+  d=as.matrix(diff.ascvd)
+  sqrt(mean(d^2))
+  
+  diff.mstate=abs(data.frame(ten.year.new-emp.ten.year))
+  d=as.matrix(diff.mstate)
+  sqrt(mean(d^2))
+  
+  
+  
+  diff.ascvd$se=sd(as.matrix(sqrt(diff.ascvd^2)))
+  diff.ascvd$score=rep("PCE",length(agesint))
+  diff.ascvd$age=agesint
+  
+  diff.mstate$se=sd(as.matrix(sqrt(diff.mstate^2)))
+  diff.mstate$score=rep("MSGene",length(agesint))
+  diff.mstate$age=agesint
+  
+  r=rbind(diff.ascvd,diff.mstate)
+  
+  rownames(r)=NULL
+  rf=r[,c(1,3,5,7,8,9)]
+  #rf$sex=rep("female",nrow(rf))
+  
+  rm=r[,c(2,4,6,7,8,9)]
+  #rm$sex=rep("male",nrow(rm))
+  #names(rf)[1:3]=names(rm)[1:3]=c("low","medium","high")
+  
+  
+  
+  #t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+  
+  colnames(rm)=c("Low","Intermediate","High","se","score","age")
+  m=melt(rm,id.vars=c("age","score","se"))
+  
+  m$se=m$se/sqrt(1000)
+  m$interaction=interaction(m$variable,m$score)
+  #interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+  interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+  
+  r2_male=ggplot(data = m,
+                 aes(x=age,
+                     y= value,
+                     ymin=value-se,
+                     ymax=value+se,
+                     fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+    geom_bar(position="dodge", stat = "identity") +
+    geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
+  #geom_point(position=position_dodge(.9), aes(y=value, colour=interaction))
+  
+  r2_male
+  
+  
+  #t.test(x = rm[c(1:7),c(1:3)],r[c(8:14),c(1:3)])
+  
+  colnames(rf)=c("Low","Intermediate","High","se","score","age")
+  m=melt(rf,id.vars=c("age","score","se"))
+  
+  m$se=m$se/sqrt(1000)
+  m$interaction=interaction(m$variable,m$score)
+  #interaction_colors=c(brewer.pal(n = 6, name = "RdBu"))
+  interaction_colors <- c(brewer.pal(n = 3, name = "Reds")[1:3], brewer.pal(n = 3, name = "Blues"))
+  
+  r2_female=ggplot(data = m,
+                   aes(x=age,
+                       y= value,
+                       ymin=value-se,
+                       ymax=value+se,
+                       fill=interaction)) +scale_fill_manual(values=interaction_colors)+
+    geom_bar(position="dodge", stat = "identity") +
+    geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
+  
+  return(list(f=r2_female,m=r2_male))}
