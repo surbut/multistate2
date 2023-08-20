@@ -198,6 +198,7 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       rm(censored)
       rm(atrisk)
     }
+    
     ## From one risk states to 2,3,4,CAD or death
     
     # From HT
@@ -224,6 +225,7 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       
       #se_high[i,"death",2]=NA
     } else{
+      
       atrisk = atrisk %>% mutate(yearsinstate = (age - Ht_0_censor_age))
       atrisk$statin_now = ifelse(atrisk$statin == 1 &
                                    atrisk$statin_age <= nx, 1, 0)
@@ -231,6 +233,8 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
                                     atrisk$htn_age <= nx, 1, 0)
       
       timeatrisk[[agename]][["Ht"]] = atrisk$yearsinstate
+      
+      ## censored for CAD
       
       censored = dim(atrisk[which(Cad_0_censor_age <= nx &
                                     Cad_0_Any == 2 &
@@ -324,9 +328,9 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
                                     HyperLip_0_censor_age <= nx &
                                     HyperLip_0_Any  == 2 &
                                     Cad_0_censor_age > nx), ])[1]
-      nar[i, "Ht&HyperLip&Dm", 2] = NAR
-      event[i, "Ht&HyperLip&Dm", 2] = censored
-      mean[i, "Ht&HyperLip&Dm", 2] = censored / NAR
+      nar[i,"Ht&HyperLip&Dm", 2] = NAR ## not recording 
+      event[i,"Ht&HyperLip&Dm", 2] = censored
+      mean[i,"Ht&HyperLip&Dm", 2] = censored / NAR
       
       
       rm(atrisk)
@@ -342,6 +346,9 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
                         age < Ht_0_censor_age &
                         age < Dm_0_censor_age, ]
     NAR = dim(atrisk)[1]
+    
+   
+    
     
     
     if (nrow(atrisk) < 10) {
@@ -377,6 +384,7 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       mean[i, "Cad", 3] = censored / NAR
       
       rm(censored)
+      
       
       fit2 = glm(
         as.formula(paste0("ifelse(Cad_0_censor_age <= nx &Cad_0_Any == 2, 1, 0) ~",
@@ -439,11 +447,13 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       
       
       
+      ## now do the uninteresting ones
       ## from HyperLip (2) to Ht and Hyperlip directly 
       censored = dim(atrisk[which(Ht_0_censor_age <= nx &
                                     Ht_0_Any  == 2 &
                                     Cad_0_censor_age > nx &
                                     nx < Dm_0_censor_age), ])[1]
+      
       nar[i, "Ht&HyperLip", "HyperLip"] = NAR
       event[i, "Ht&HyperLip", "HyperLip"] = censored
       mean[i, "Ht&HyperLip", "HyperLip"] = censored / NAR
@@ -453,22 +463,23 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
                                     Dm_0_Any  == 2 &
                                     Cad_0_censor_age > nx &
                                     nx < Ht_0_censor_age), ])[1]
-      nar[i, "HyperLip&Dm", 3] = NAR
-      event[i, "HyperLip&Dm", 3] = censored
-      mean[i, "HyperLip&Dm", 3] = censored / NAR
       
-      ## from HT (2) to Ht and Dm and Hyperip directly 
+      nar[i, "HyperLip&Dm", "HyperLip"] = NAR
+      event[i, "HyperLip&Dm", "HyperLip"] = censored
+      mean[i, "HyperLip&Dm", "HyperLip"] = censored / NAR
+      
+      ## from Hyperlip to Ht and Dm and Hyperip directly 
       censored = dim(atrisk[which(Dm_0_censor_age <= nx &
                                     Dm_0_Any  == 2 &
                                     Ht_0_censor_age <= nx &
                                     Ht_0_Any  == 2 &
                                     Cad_0_censor_age > nx), ])[1]
-      nar[i, "Ht&HyperLip&Dm", 3] = NAR
-      event[i, "Ht&HyperLip&Dm", 3] = censored
-      mean[i, "Ht&HyperLip&Dm", 3] = censored / NAR
+      nar[i, "Ht&HyperLip&Dm", "HyperLip"] = NAR
+      event[i, "Ht&HyperLip&Dm", "HyperLip"] = censored
+      mean[i, "Ht&HyperLip&Dm", "HyperLip"] = censored / NAR
       
       
-      
+  
       
       rm(atrisk)
       
@@ -595,13 +606,11 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       agelist[[agename]][["death"]][["Dm"]] =summary(fit2)$coefficients
       
       
-      
-      
-      ## from Dm (4) to Ht and Dm directly 
+     ## from Dm (4) to Ht and Dm directly 
       censored = dim(atrisk[which(Ht_0_censor_age <= nx &
                                     Ht_0_Any  == 2 &
                                     Cad_0_censor_age > nx &
-                                    nx < Dm_0_censor_age), ])[1]
+                                    nx < HyperLip_0_censor_age), ])[1]
       nar[i, "Ht&Dm", "Dm"] = NAR
       event[i, "Ht&Dm", "Dm"] = censored
       mean[i, "Ht&Dm", "Dm"] = censored / NAR
@@ -697,40 +706,7 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       )
       agelist[[agename]][["Cad"]][["Cad"]] =summary(fit2)$coefficients
       
-      
-      
-      
-      
-      
-      
-      ## from HyperLip (2) to Ht and Hyperlip directly 
-      censored = dim(atrisk[which(Ht_0_censor_age <= nx &
-                                    Ht_0_Any  == 2 &
-                                    Cad_0_censor_age > nx &
-                                    nx < Dm_0_censor_age), ])[1]
-      nar[i, "Ht&HyperLip", "HyperLip"] = NAR
-      event[i, "Ht&HyperLip", "HyperLip"] = censored
-      mean[i, "Ht&HyperLip", "HyperLip"] = censored / NAR
-      
-      ## from Hyperlip (2) to Hyperlip and Dm directly 
-      censored = dim(atrisk[which(Dm_0_censor_age <= nx &
-                                    Dm_0_Any  == 2 &
-                                    Cad_0_censor_age > nx &
-                                    nx < Ht_0_censor_age), ])[1]
-      nar[i, "HyperLip&Dm", 3] = NAR
-      event[i, "HyperLip&Dm", 3] = censored
-      mean[i, "HyperLip&Dm", 3] = censored / NAR
-      
-      ## from HT (2) to Ht and Dm and Hyperip directly 
-      censored = dim(atrisk[which(Dm_0_censor_age <= nx &
-                                    Dm_0_Any  == 2 &
-                                    Ht_0_censor_age <= nx &
-                                    Ht_0_Any  == 2 &
-                                    Cad_0_censor_age > nx), ])[1]
-      nar[i, "Ht&HyperLip&Dm", 2] = NAR
-      event[i, "Ht&HyperLip&Dm", 2] = censored
-      mean[i, "Ht&HyperLip&Dm", 2] = censored / NAR
-      
+   
       rm(atrisk)
     }
     
@@ -1214,7 +1190,9 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
   return(mylist)
 }
 
-
+fitfunc2=function(df_frame,ages,nstates,mode,covariates){
+  suppressWarnings(fitfunc(df_frame,ages,nstates,mode,covariates))
+}
 
 
 plotfunc_prs_sex=function(array,title)
@@ -1687,8 +1665,8 @@ compute_empiricalrisk=function(age,age2,atrisk){
 
 compute_pce_predictedrisk=function(age,atrisk){
   
-  lb=age-1
-  ub=age+1
+  lb=age-2
+  ub=age+2
   atrisk=atrisk[phenos.enrollment>lb&phenos.enrollment<ub,]
   rate=mean(na.omit(atrisk$ascvd_10y_accaha))
   return(rate)

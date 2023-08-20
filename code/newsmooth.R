@@ -75,12 +75,12 @@ return(final_df)}
 
 compute_prediction_product <- function(modelfit,start,stop, agesmooth,agepredinterval, covariatevector) {
   
-  smoothedlist=coefsmooth(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)
-  coefficients_matrix=convertlistmat(smoothedlist = smoothedlist)
+  smoothedlist=coefsmooth(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)$smoothedlist
+ coefficients_matrix=convertlistmat(smoothedlist = smoothedlist)
   # Subset the matrix to include only the rows within the given age interval
   age_rows <- coefficients_matrix[coefficients_matrix[, 'age'] %in% agepredinterval, ]
   ## make sure the covariate vector has terms in the same order as the model
-  xmat=matrix(as.numeric(c(1,covariatevector)))
+  xmat=matrix(as.numeric(cov.vector))
 
  # Compute the prediction using the linear model
   logodds <-as.matrix(age_rows[,-1])%*%xmat
@@ -381,6 +381,7 @@ atriskmat=sapply(1:ncol(atrisk_for_regression),function(x){as.numeric(atrisk_for
 age_rows <- as.matrix(coefmat[rownames(coefmat) %in% agepredinterval, ])
 ###PxY
 tar=t(age_rows)
+
 ### now calc X %*% beta which should b NxY years (i.e., NxP * PXY)
 logoddsall=atriskmat%*%tar
 
@@ -404,19 +405,18 @@ return(list("coefmat"=mat,"original"=original))}
 
 ###
 
-tenlifeplotting=function(start,stop,modelfit,agesmooth,agepred,prs_quants,agesint){
+tenlifeplotting=function(start,stop,modelfit,agesmooth,agesint,atrisk,window_width=20,span=0.75,degree=2,prs_quants){
   
 
-mat=return_smoothedmatrix(start = start,stop = stop,ages = agesmooth,modelfit = modelfit)$coefmat
-atrisk=data.frame(cad.prs=rep(prs_quants,2),f.31.0.0=c(rep(0,length(prs_quants)),rep(1,length(prs_quants))),smoke=rep(0,length(prs_quants)))
+mat=coefplotsmooth2(agesmooth,start,stop,modelfit,window_width=window_width,span = span,degree=degree)$custom_smooth
 ten.year=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
 lifetime=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
 
 for(i in 1:length(agesint)){
   age=agesint[i]
-  ten.year[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(age+10)),coefmat = mat)
+  ten.year[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(age+10)),coefmat = mat)$PredictedIntervalrisk
   
-  lifetime[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(80)),coefmat = mat)
+  lifetime[i,]=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = c(age:(80)),coefmat = mat)$PredictedIntervalrisk
 }
 
 ten.year=data.frame(ten.year)
@@ -524,4 +524,122 @@ plotfuncrmse=function(ascvd.ten.year,emp.ten.year,mstate.ten.year){
     geom_errorbar( position = position_dodge(), colour="black") +labs(y="RMSE 10 year risk",x="Age",fill="Genomic Level: Score")+theme_classic(base_size = 20)
   
   return(list(f=r2_female,m=r2_male))}
+
+
+
+
+columns_to_check <- c("Cad_0_censor_age", "Ht_0_censor_age", "HyperLip_0_censor_age", "Dm_0_censor_age")
+operators_to_use <- c("<", "<", "<", "<")
+int_value_to_filter <- "int" # Replace with appropriate value
+
+
+empriskforloop <- function(test, columns, operators, agesint, prs_quants) {
+  # Validate input
+  if(length(columns) != length(operators)) {
+    stop("Length of columns and operators must be the same")
+  }
+  
+  test = data.table(test)
+  emp.ten.year = matrix(NA, nrow = length(agesint), ncol = length(prs_quants) * 2)
+  emp.lifetime = matrix(NA, nrow = length(agesint), ncol = length(prs_quants) * 2)
+  
+  for(i in 1:length(agesint)) {
+    test$age = agesint[i]
+    
+    for(j in 1:length(levels(test$int))) {
+      int_value = levels(test$int)[j]
+      
+      # Create the dynamic filtering condition for the current int value
+      conditions <- sprintf("test$age %s test$%s", operators, columns)
+      condition_str <- paste(conditions, collapse = " & ")
+      condition_str <- paste(condition_str, sprintf("test$int == '%s'", int_value))
+      
+      # Evaluate the atrisk condition string to get the atrisk subset
+      atrisk = test[eval(parse(text = condition_str)), ]
+      
+      print(dim(atrisk))
+      emp.ten.year[i, j] = compute_empiricalrisk(age = agesint[i], age2 = agesint[i] + 10, atrisk = atrisk)
+      emp.lifetime[i, j] = compute_empiricalrisk(age = agesint[i], age2 = 100, atrisk = atrisk)
+    }
+  }
+  
+  return(list(emp.ten.year = emp.ten.year, emp.lifetime = emp.lifetime))
+}
+
+columns_to_check <- c("Cad_0_censor_age", "Ht_0_censor_age", "HyperLip_0_censor_age", "Dm_0_censor_age")
+operators_to_use <- c("<", "<", "<", "<")
+
+
+columns_to_check <- c("Cad_0_censor_age", "Ht_0_censor_age", "HyperLip_0_censor_age", "Dm_0_censor_age")
+operators_to_use <- c("<", "<", "<", "<")
+
+empriskforloop <- function(test, columns, operators, agesint, prs_quants) {
+  # Validate input
+  if(length(columns) != length(operators)) {
+    stop("Length of columns and operators must be the same")
+  }
+  
+  test = data.table(test)
+  emp.ten.year = matrix(NA, nrow = length(agesint), ncol = length(prs_quants) * 2)
+  emp.lifetime = matrix(NA, nrow = length(agesint), ncol = length(prs_quants) * 2)
+  
+  for(i in 1:length(agesint)) {
+    age_current = agesint[i]
+    
+    for(j in 1:length(levels(test$int))) {
+      int_value = levels(test$int)[j]
+      
+      # Create the dynamic filtering condition for the current int value
+      conditions <- sprintf("age_current %s test$%s", operators, columns)
+      condition_str <- paste(conditions, collapse = " & ")
+      
+      condition_str <- paste(condition_str, " & ", sprintf("int == '%s'", int_value))
+      
+      # Filter the test data.table based on the constructed condition
+      atrisk = test[eval(parse(text = condition_str)), ]
+      
+      print(dim(atrisk))
+      emp.ten.year[i, j] = compute_empiricalrisk(age = age_current, age2 = age_current + 10, atrisk = atrisk)
+      emp.lifetime[i, j] = compute_empiricalrisk(age = age_current, age2 = 100, atrisk = atrisk)
+    }
+  }
+  
+  return(list(emp.ten.year = emp.ten.year, emp.lifetime = emp.lifetime))
+}
+
+
+ascvdriskforloop <- function(test, columns, operators, agesint, prs_quants) {
+  # Validate input
+  if(length(columns) != length(operators)) {
+    stop("Length of columns and operators must be the same")
+  }
+  
+  test = data.table(test)
+  ascvd.ten.year = matrix(NA, nrow = length(agesint), ncol = length(prs_quants) * 2)
+ 
+  
+  for(i in 1:length(agesint)) {
+    age_current = agesint[i]
+    
+    for(j in 1:length(levels(test$int))) {
+      int_value = levels(test$int)[j]
+      
+      # Create the dynamic filtering condition for the current int value
+      conditions <- sprintf("age_current %s test$%s", operators, columns)
+      condition_str <- paste(conditions, collapse = " & ")
+      
+      condition_str <- paste(condition_str, " & ", sprintf("int == '%s'", int_value))
+      
+      # Filter the test data.table based on the constructed condition
+      atrisk = test[eval(parse(text = condition_str)), ]
+      
+      print(dim(atrisk))
+      ascvd.ten.year[i,j]=compute_pce_predictedrisk(age=age_current,atrisk = atrisk)
+      
+    }
+  }
+  
+  return(ascvd.ten.year)
+}
+
 

@@ -14,13 +14,14 @@ knitr::opts_chunk$set(echo = FALSE,warning = F,message = F)
 ```
 
 ```{r}
-setwd("~/multistate/")
+setwd("~/multistate2/")
 library("data.table")
 source('code/fullarray.R')
-source('~/multistate/newsmooth.R')
+source('code/newsmooth.R')
 source('code/plotcode.R')
 source('code/fitarray.R')
 source('code/ses.R')
+source('code/smoothtest.R')
 library(ggplot2)
 library(grid)
 library(gridExtra)
@@ -29,6 +30,7 @@ library(dplyr)
 library(purrr)
 library(tidyr)
 library(plotly)
+library(knitr)
 ```
 
 ## The Cardiologist Who Mistook her Stethoscope for a Probability Distirbution 
@@ -50,8 +52,7 @@ knitr::include_graphics("docs/assets/pheno_output.png")
 Previously, authors have sought to capture static lifetime risk
 
 ```{r, out.width= "700px", echo=FALSE}
-
-knitr::include_graphics("~/Dropbox/lifecvd.png")
+knitr::include_graphics("~/Library/CloudStorage/Dropbox-Personal/lifecvd.png",error = F)
 ```
 
 ## What we know
@@ -59,7 +60,7 @@ knitr::include_graphics("~/Dropbox/lifecvd.png")
 Time matters!
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/dynamichr/Figs/combined456.png")
+knitr::include_graphics("~/dynamichr/Figs/combined456.png",error = F)
 ```
 
 
@@ -69,7 +70,7 @@ knitr::include_graphics("~/dynamichr/Figs/combined456.png")
 * Likelihoods: double the trouble?
 * Competing risks
 ```{r pressure,eval=T,echo=F,size=0.8}
-m=readRDS("~/Dropbox/pheno_dir/output/mos_longitudinal_sbp_ldl_cad.rds")
+m=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/mos_longitudinal_sbp_ldl_cad.rds")
 m$Cad_0_censor_age=round(m$Cad_0_censor_age,2)
 m$cad.prs=round(m$cad.prs,2)
 m$ldl=round(m$ldl,0)
@@ -88,7 +89,7 @@ fit1=coxph(Surv(tstart,Cad_0_censor_age,Cad_0_Any)~cad.prs:timegroup+
 ```
 
 ```{r,echo=FALSE,eval=T}
-fit1=readRDS("~/Dropbox/fit1withstatin.rds")
+fit1=readRDS("~/Library/CloudStorage/Dropbox-Personal/fit1withstatin.rds")
 c=coefficients(fit1)[1:45]
 v=sqrt(diag(fit1$var))[1:45]
 li=exp(c-qnorm(0.975)*v)
@@ -112,7 +113,7 @@ cad.prs:timegroup+lipidadj:timegroup+sbp:timegroup
 ```
 
 ```{r,eval=T,echo=F}
-fit1=readRDS("~/Dropbox/fit1_withoutstatin.rds")
+fit1=readRDS("~/Library/CloudStorage/Dropbox-Personal/fit1_withoutstatin.rds")
 c=coefficients(fit1)[1:45]
 v=sqrt(diag(fit1$var))[1:45]
 li=exp(c-qnorm(0.975)*v)
@@ -133,7 +134,7 @@ ggplotly(ggplot(df, aes(x=age_of_event,y=est,color=var,group=var,fill=var))+geom
 * How can we account for age dependent effects without error prone biometric data?
 
 ```{r, out.width= "500px", echo=FALSE}
-knitr::include_graphics("~/Desktop/peoplediff.png")
+knitr::include_graphics("peoplediff.png",error = F)
 ```
 
 
@@ -164,20 +165,20 @@ knitr::include_graphics("timeline.png")
 ## Error prone biometric data: Not our phenotyping
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/multistate/PN_76.png")
+knitr::include_graphics("PN_76.png",error = F)
 ```
 
 ## But overall ...
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/multistate/butforall.png")
+knitr::include_graphics("butforall.png",error = F)
 ```
 
 
 ## More measurements
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/multistate/numberofmeasurements.png")
+knitr::include_graphics("numberofmeasurements.png")
 ```
 
 
@@ -187,13 +188,13 @@ knitr::include_graphics("~/multistate/numberofmeasurements.png")
 * Buckets of risk: you're in until you're not 
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/multistate/island.png")
+knitr::include_graphics("island.png")
 ```
 
 ## Overview
 
 ```{r, out.width= "800px", echo=FALSE}
-knitr::include_graphics("~/multistate/table1.png")
+knitr::include_graphics("table1.png")
 ```
 
 ## Advantages of multistate
@@ -211,7 +212,7 @@ ggplotly(readRDS("output/numbertransplot.rds"))
 * Fix end: examine cumulative one-step transitions
 
 ```{r}
-n=readRDS("~/multistate/cnar.rds")
+n=readRDS("~/multistate2/cnar.rds")
 ggplotly(n)
 ```
 
@@ -332,10 +333,11 @@ projection_with_plotcoef(p,ages = ages,quantiles = prs_quants,agestart = 40,ages
 
 ... or for an individual with specific covariates
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
+# for a 1.5 PRS, female smoker
+cov.vector=c(1,2,1,0)
 compute_prediction_product(modelfit = fixedsmoke,
 start = "Health",
-stop = "Cad",agesmooth = 40:80,agepredinterval = 40:80,
-prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
+stop = "Cad",agesmooth = c(40:80),agepredinterval = c(40:80),covariatevector = data.frame(cov.vector))
 ```
 
 
@@ -344,10 +346,12 @@ prs_quant = prs_quants[1],sexnum = 1,smoking = 0)
 .... finally, using `smoothed` coefficient matrix
 ```{r,eval=T,echo=T,warning=FALSE,size=0.5}
 mat=return_smoothedmatrix(start = "Health",stop = "Cad",
-ages = ages,modelfit = fixedsmoke)
-atrisk=readRDS("~/multistate/atrisk.rds")
+ages = ages,modelfit = fixedsmoke)$coefmat
+rownames(mat)=mat$age
+mat=mat[,-1]
+atrisk=readRDS("atrisk.rds")
 compute_prediction_product_matrix(atrisk = atrisk,
-agepredinterval = c(40:80),coefmat = mat)
+agepredinterval = c(40:80),coefmat = mat)$PredictedIntervalRisk
 ```
 
 ## Ten year Curves for Any Transitions: visualize the jump
@@ -355,14 +359,25 @@ agepredinterval = c(40:80),coefmat = mat)
 * Healthy non smoker: ten year:
 
 ```{r}
+intercept=1
+cad.prs=prs_quants
+sex=c(0,1)
+smoke=c(0,1)
+
+
+atrisk=expand.grid(intercept,cad.prs,sex,smoke)
+atrisk=atrisk[atrisk$Var4==0,]
+
+
+fixedsmoke=readRDS("output/fixedsmoke.rds")
 prs_quants=qnorm(c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9))
-ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmooth = c(20:80),agepred = c(20:80),prs_quants=prs_quants,agesint = c(40:70))$tenplot)
+ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$tenplot)+theme_classic()
 ```
 
 ## But a lifetime?
 
 ```{r}
-ggplotly(tenlifeplotting("Health","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,agesint = c(40:70))$lifeplot+theme_classic())
+ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$lifeplot)+theme_classic()
 ```
 
 
@@ -371,7 +386,7 @@ ggplotly(tenlifeplotting("Health","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,
 * Behavioral modification ... Predictive (not causal) effect of hypertensive
 
 ```{r}
-ggplotly(tenlifeplotting("Ht","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,agesint = c(40:70))$lifeplot+theme_classic())
+ggplotly(tenlifeplotting(start="Ht",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$lifeplot+theme_classic())
 ```
 
 ## Lifetime Curves for Any Transitions: visualize the jump
@@ -384,32 +399,32 @@ ggplotly(g)
 ## Lifetime Curves for Any Transitions: visualize the jump
 
 ```{r}
-ggplotly(tenlifeplotting("Ht&Dm","Cad",fixedsmoke,c(40:80),c(40:80),prs_quants,agesint = c(40:70))$lifeplot+theme_classic())
+ggplotly(tenlifeplotting(start="Ht&Dm",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$lifeplot+theme_classic())
 ```
 
 
 ## Putting it all together
 
 ```{r}
-readRDS("~/Dropbox/combiinedrisk.rds")
+readRDS("~/Library/CloudStorage/Dropbox-Personal/combiinedrisk.rds")
 ```
 
 ## Is it all hopeless?
 
 ```{r,fig.height=5.5}
-ggplotly(readRDS("~/multistate/tenyearb.rds"))
+ggplotly(readRDS("~/multistate2/tenyearb.rds"))
 ```
 
 ## But lifetime behaves the way you want!
 
 ```{r,fig.height=5.5}
-ggplotly(readRDS("~/multistate/lifetimeb.rds"))
+ggplotly(readRDS("~/multistate2/lifetimeb.rds"))
 ```
 
 ## Out of this world ... 
 
 ```{r, out.width= "1000px", echo=FALSE}
-knitr::include_graphics("~/multistate/saturn.png")
+knitr::include_graphics("saturn.png")
 ```
 
 
@@ -425,7 +440,7 @@ ggplotly(readRDS("gplotbar.rds"))
 * Compare with PCE at each age of enrollment
 
 ```{r}
-ggplotly(readRDS("~/Dropbox/wrap.rds"))
+ggplotly(readRDS("~/Library/CloudStorage/Dropbox-Personal/wrap.rds"))
 ```
 
 
@@ -441,26 +456,26 @@ readRDS("rmseten.rds")
 
 * 6120 individuals with >20 years followup for computable PCE variables
 ```{r,fig.height=4,fig.width=10}
-(readRDS("~/multistate/mstate/grmselife.rds"))
+(readRDS("~/multistate2/mstate/grmselife.rds"))
 ```
 
 ## Sarah  ... How did you do that?
 
 ```{r}
-ggplotly(readRDS("~/Dropbox//plotasminfollow.rds"))
+ggplotly(readRDS("~/Library/CloudStorage/Dropbox-Personal//plotasminfollow.rds"))
 ```
 
 ## Ages
 
 ```{r}
-cnew=readRDS("~/Dropbox/cnew.rds")
+cnew=readRDS("~/Library/CloudStorage/Dropbox-Personal/cnew.rds")
 ggplot(cnew[cnew$minfollow>20,],aes(x=agecompute,y=ageenroll,col=cad.prs))+geom_point()+stat_smooth()+theme_classic()+labs(x="Age Compute",y="Age Enrolled",col="CAD PRS")
 ```
 
 
 ## C statistic ... hmmm
 ```{r}
-readRDS("~/multistate/lifetimeriskusingfirstscore.rds")
+readRDS("lifetimeriskusingfirstscore.rds")
 ```
 
 
@@ -468,7 +483,7 @@ readRDS("~/multistate/lifetimeriskusingfirstscore.rds")
 
 ```{r,fig.height=4,fig.width=10}
 
-ggplotly(readRDS("~/multistate/nri.rds"))
+ggplotly(readRDS("~/Library/CloudStorage/Dropbox-Personal/multistate/nri.rds"))
 ```
 
 
@@ -476,7 +491,7 @@ ggplotly(readRDS("~/multistate/nri.rds"))
 
 
 ```{r, out.width=700, echo=FALSE}
-knitr::include_graphics("~/Dropbox/skew.png")
+knitr::include_graphics("skew.png")
 ```
 
 
@@ -485,7 +500,7 @@ knitr::include_graphics("~/Dropbox/skew.png")
 
 ```{r,echo=F}
 library(DT)
-cframe=readRDS("~/Dropbox/cnew.rds")
+cframe=readRDS("~/Library/CloudStorage/Dropbox-Personal/cnew.rds")
 sumframe=DT::datatable(cnew%>%group_by(followlevel)%>%
 summarise(antiHtnEver=round(mean(antihtn),2),
                                                           Anti_Htn_compute=round(mean(antihtn_compute),2),
@@ -506,7 +521,7 @@ sumframe
 * median 39 years FU (IQR 36-42)
 
 ```{r}
-fhs=readRDS("~/Dropbox/sequentialPCE.rds")
+fhs=readRDS("~/Library/CloudStorage/Dropbox-Personal/sequentialPCE.rds")
 ggplotly(fhs+labs(col="Age",x="Age of Consideration"))
 ```
 
@@ -534,8 +549,9 @@ knitr::include_graphics("lpp.png")
 
 ## Thank you!
 * ALL the members of the NL Lab! and ...
-* Giovanni Parmigiani, PhD
 * Sasha Gusev, PhD
+* Giovanni Parmigiani, PhD
+
 
 ```{r, out.width= "500px", echo=FALSE}
 knitr::include_graphics("bayespic.png")

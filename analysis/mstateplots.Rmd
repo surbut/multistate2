@@ -383,6 +383,7 @@ ages=c(20:80)
 fixedsmall = fitfunc(df_frame = dat,nstates = nstates,ages = ages,mode = "binomial",covariates ="cad.prs+f.31.0.0")
 
 
+fixedsmall=readRDS(file = "output/fixedsmokewithtrain.rds")
 t=(apply(fixedsmall$events[,,"Health"],2,function(x){cumsum(x)}))
 colnames(t)=c("Health","Hypertension","Hyperlipidemia","Diabetes","CAD","Death","Hypertension and Hyperlipidemia","Hyperlipidemia and Diabetes","Hypertension and Diabetes","Hypertension and Hyperlipidemia and Diabetes")
 
@@ -460,6 +461,7 @@ r=rbind(healthg,hyg,hlg,dmg)
 
 numbertransplot=ggplot(r,aes(x=Var1,y=value,fill=Var2))+geom_bar(stat="identity")+labs(y="Cumulative Number of Transitions",x="Age",fill="Final State")+theme_classic()+scm+facet_wrap(~factor(f,levels = c("Health","Hypertension","Hyperlipidemia","Diabetes")),nrow = 2,scales = "free")
 
+saveRDS(numbertransplot,"output/numbertransplot.rds")
 ggsave(plot=numbertransplot,filename = "plots/alltransitions.png",dpi=300)
 library(ggpubr)
 
