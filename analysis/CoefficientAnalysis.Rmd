@@ -222,53 +222,111 @@ agesint=seq(40,70,by=5)
 prs_quants=c(data.frame(test%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 
 ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
-for(i in 1:length(agesint)){
-  age=agesint[i]
-for(j in 1:length(levels(test$int))){
-  cat = levels(test$int)[j]
-  
-  atrisk = test[age < Cad_0_censor_age &
-                  age < Ht_0_censor_age &
-                  age < HyperLip_0_censor_age &
-                  age < Dm_0_censor_age & int == cat,]
-  ar = data.frame(
-    "intercept" = 1,
-    "cad.prs" = atrisk$cad.prs,
-    "sex" = atrisk$f.31.0.0,
-    "smoke" = atrisk$smoke,
-    "antihtn_now" = ifelse(atrisk$antihtn == 1 &
-                             atrisk$htn_age < age, 1, 0)
-  )
 
-  # ar = data.frame(
-  #   "intercept" = 1,
-  #   "cad.prs" = atrisk$cad.prs,
-  #   "sex" = atrisk$f.31.0.0,
-  #   "smoke" = atrisk$smoke
-  # )
-  #   ar = data.frame(
-  #   "intercept" = 1,
-  #   #"cad.prs" = atrisk$cad.prs,
-  #   "sex" = atrisk$f.31.0.0
-  #   #"smoke" = atrisk$smoke
-  # )
-  #ar=data.frame("intercept"=1,"cad.prs"=atrisk$cad.prs,"sex"=atrisk$f.31.0.0)
-  ten.year.new[i, j] = mean(
-    compute_prediction_product_matrix(atrisk = ar, agepredinterval = c(age:(age+10)),coefmat = coefs)$PredictedIntervalrisk)
-  lifetime.new[i,j]=mean(compute_prediction_product_matrix(atrisk = ar,agepredinterval = c(age:(80)),coefmat = coefs)$PredictedIntervalrisk)
-  emp.ten.year[i,j]=compute_empiricalrisk(age = age,age2 = age+10,atrisk = atrisk)
-  emp.lifetime[i,j]=compute_empiricalrisk(age = age,age2 = 80,atrisk = atrisk)
+for(i in 1:length(agesint)) {
+  age = agesint[i]
+  for (j in 1:length(levels(test$int))) {
+    cat = levels(test$int)[j]
+    
+    atrisk = test[age < Cad_0_censor_age &
+                    age < Ht_0_censor_age &
+                    age < HyperLip_0_censor_age &
+                    age < Dm_0_censor_age & int == cat, ]
+    ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                               atrisk$htn_age < age, 1, 0)
+    )
+    
+    # ar = data.frame(
+    #   "intercept" = 1,
+    #   "cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0,
+    #   "smoke" = atrisk$smoke
+    # )
+    #   ar = data.frame(
+    #   "intercept" = 1,
+    #   #"cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0
+    #   #"smoke" = atrisk$smoke
+    # )
+    #ar=data.frame("intercept"=1,"cad.prs"=atrisk$cad.prs,"sex"=atrisk$f.31.0.0)
+    ten.year.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(age + 10)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    lifetime.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(80)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                               atrisk = atrisk)
+    
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+    
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    #
+    frs = fun.frs_30y(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+  }
+}
 
-  ascvd.ten.year[i,j]=compute_pce_predictedrisk(age = age,atrisk = atrisk)## wtih people who are that age at enrollement
-  
-dat=data.frame("id"=atrisk$identifier,"mysex"=as.factor(atrisk$sex),"myage"=rep(age,nrow(atrisk)),"mysbp"=atrisk$sbp,"mytreat"=ifelse(atrisk$antihtn==1&atrisk$htn_age<age,1,0),"mysmoking"=atrisk$smoke,"mydiabetes"=ifelse(atrisk$Dm_0_Any==2&atrisk$Dm_0_censor_age<age,1,0),"mytotalchol"=atrisk$choladj,"myhdl"=atrisk$hdladj,"Race"=atrisk$Race,"mystatnow"=ifelse(atrisk$statin==1&atrisk$statin_age<age,1,0))
-# 
-frs=fun.frs_30y(dat,id = "id",sex = "mysex",age = "myage",sbp ="mysbp",treat = "mytreat",smoking = "mysmoking",diabetes = "mydiabetes",totalchol = "mytotalchol",hdl = "myhdl")
-ascvd.30.year[i,j]=median(frs$frs_orig)
-ascvd.30.year.rc[i,j]=median(frs$frs_recali)
-pce.reverse.tenyear[i,j]=mean(compute_CVrisk2(df = dat,scores = "as2",age = "myage",gender = "mysex",race ="Race",totchol = "mytotalchol",sbp = "mysbp",hdl = "myhdl",bp_med = "mytreat",diabetes = "mydiabetes",smoker = "mysmoking",lipid_med = "mystatnow")$as2)
-}}
-
+library(ehaGoF)
 emp.ten.year=as.matrix(emp.ten.year)
 emp.lifetime=as.matrix(emp.lifetime)
 ten.year.new=as.matrix(ten.year.new)
@@ -287,9 +345,12 @@ mslife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(lifeti
 pclife2=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),]))
 
 
-plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")
+a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")
 
-plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")
+a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")
+
+library(ggpubr)
+saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "sharedrmse.rds")
 
 #sex only 5.341 and 2.162
 
@@ -308,15 +369,17 @@ df=data.frame("sex.only"=2.1,"sex.genetics"=0.592,"sex.genetics.smoking"=0.611,"
 
 r=melt(df)
 
-ggplot(r,aes(variable,value,fill=variable))+geom_bar(stat="identity")+labs(x="Model",y="RMSE, 10 year score",fill="Score")+theme_classic()+theme(axis.text.x = element_text(face = "bold",size = 12, angle = 90))
+g1=ggplot(r,aes(variable,value,fill=variable))+geom_bar(stat="identity")+labs(x="Model",y="RMSE, 10 year score",fill="Score")+theme_classic()+theme(axis.text.x = element_text(face = "bold",size = 12, angle = 90))
 
-
+saveRDS(g1,file = "../output/rmsemodelten.rds")
 
 dflife=data.frame("sex.only"=5.341,"sex.genetics"=2.1,"sex.genetics.smoking"=2.23,"sex.genetics.smoking.antihtn"=0.593,"frs.all"=pclife,"frs.recal"=pclife2)
 
 r=melt(dflife)
 
-ggplot(r,aes(variable,value,fill=variable))+geom_bar(stat="identity")+labs(x="Model",y="RMSE, Lifetime score",fill="Score")+theme_classic()+theme(axis.text.x = element_text(face = "bold",size = 12, angle = 90))
+g2=ggplot(r,aes(variable,value,fill=variable))+geom_bar(stat="identity")+labs(x="Model",y="RMSE, Lifetime score",fill="Score")+theme_classic()+theme(axis.text.x = element_text(face = "bold",size = 12, angle = 90))
+
+saveRDS(g2,file = "../output/rmsemodellife.rds")
 ```
 
 NOw ROC
@@ -337,7 +400,8 @@ ggplotly(b$plot)
 coefs=b$custom_smooth
 
 
-for (z in 1:length(enrollments)) {
+
+for (z in 16:length(enrollments)) {
   age = enrollments[z]
   start = age
   stop = 80
@@ -346,7 +410,7 @@ for (z in 1:length(enrollments)) {
   atrisk = df_frame[age < Cad_0_censor_age &
                       age < Ht_0_censor_age &
                       age < HyperLip_0_censor_age &
-                      age < Dm_0_censor_age & smoke == 0 ,]
+                      age < Dm_0_censor_age & smoke == 0 , ]
   
   
   df_updated = data.frame(atrisk)
@@ -354,7 +418,7 @@ for (z in 1:length(enrollments)) {
     "intercept" = 1,
     "cad.prs" = atrisk$cad.prs,
     "sex" = atrisk$f.31.0.0,
-    #"smoke" = atrisk$smoke,
+    "smoke" = atrisk$smoke,
     "antihtn_now" = ifelse(atrisk$antihtn == 1 &
                              atrisk$htn_age < age, 1, 0)
   )
@@ -364,26 +428,38 @@ for (z in 1:length(enrollments)) {
     "myage" = rep(age, nrow(atrisk)),
     "mysbp" = atrisk$sbp,
     "mytreat" = ifelse(atrisk$antihtn == 1 &
-                       atrisk$htn_age < age, 1, 0),
+                         atrisk$htn_age < age, 1, 0),
     "mysmoking" = atrisk$smoke,
     "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
-                          atrisk$Dm_0_censor_age < age, 1, 0),
+                            atrisk$Dm_0_censor_age < age, 1, 0),
     "mytotalchol" = atrisk$choladj,
     "myhdl" = atrisk$hdladj,
     "Race" = atrisk$Race,
-    "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    "mystatnow" = ifelse(atrisk$statin == 1 &
+                           atrisk$statin_age < age, 1, 0)
   )
-
-  mso=compute_prediction_product_matrix(
+  
+  mso = compute_prediction_product_matrix(
     coefmat = coefs,
     atrisk = ar,
     agepredinterval = c(start:stop)
   )
-
+  
   df_updated$ms = mso$PredictedIntervalrisk
- f=fun.frs_30y(dat,id = "id",sex = "mysex",age = "myage",sbp ="mysbp",treat = "mytreat",smoking = "mysmoking",diabetes = "mydiabetes",totalchol = "mytotalchol",hdl = "myhdl")
- df_updated$frs.30y=f$frs_orig
- df_updated$frs.recal=f$frs_recali
+  f = fun.frs_30y(
+    dat,
+    id = "id",
+    sex = "mysex",
+    age = "myage",
+    sbp = "mysbp",
+    treat = "mytreat",
+    smoking = "mysmoking",
+    diabetes = "mydiabetes",
+    totalchol = "mytotalchol",
+    hdl = "myhdl"
+  )
+  df_updated$frs.30y = f$frs_orig
+  df_updated$frs.recal = f$frs_recali
   ### return matrix of smoothed coefficeints
   #library(purrr)
   
@@ -395,18 +471,18 @@ for (z in 1:length(enrollments)) {
                               1,
                               0)
   #d = df_updated[round(phenos.enrollment, 0) == age, ]
-  d=df_updated
+  d = df_updated
   
   #d=d[!is.na(d$ascvd_10y_accaha),]
   aucmat[z, 1] = roc(d$outcome ~ d$ms)$auc
-  semat[z,1]=sqrt(var(roc(d$outcome ~ d$ms)))
+  semat[z, 1] = sqrt(var(roc(d$outcome ~ d$ms)))
   aucmat[z, 2] = roc(d$outcome ~ d$frs.30y)$auc
   semat[z, 2] = sqrt(var(roc(d$outcome ~ d$frs.30y)))
   aucmat[z, 3] = roc(d$outcome ~ d$frs.recal)$auc
   semat[z, 3] = sqrt(var(roc(d$outcome ~ d$frs.recal)))
   aucmat[z, 4] = roc(d$outcome ~ d$cad.prs)$auc
   semat[z, 4] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
-
+  
   
   require(PRROC)
   fg <- d$ms[d$outcome == 1]
@@ -425,7 +501,7 @@ for (z in 1:length(enrollments)) {
   bg <- na.omit(d$cad.prs[d$outcome == 0])
   prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
   
-    fg <- na.omit(d$frs.recal[d$outcome == 1])
+  fg <- na.omit(d$frs.recal[d$outcome == 1])
   bg <- na.omit(d$frs.recal[d$outcome == 0])
   prcmat[z, 4] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
   
@@ -436,7 +512,8 @@ for (z in 1:length(enrollments)) {
   
 }
 
-
+saveRDS(aucmat,file = "../output/auc.rds")
+saveRDS(prcmat,file = "../output/prc.rds")
 improv = mean(aucmat[, 1] - aucmat[, 2]) * 100
 mprov = mean(aucmat[, 1] - aucmat[, 3]) * 100
 rownames(aucmat) = enrollments
@@ -456,9 +533,9 @@ aucplot <-
   geom_line(aes(group = Model, color = Model), linewidth = 3) +
   geom_pointrange() +
   ylim(0.5, 0.8) +
- theme_classic() + ggtitle(paste0("30-year risk predictionk, ROC AUC"))
+ theme_classic() + ggtitle(paste0("30-year risk prediction, ROC AUC"))
 
-
+library(pROC)
 rownames(prcmat) = enrollments
 m = melt(prcmat, id.vars = "Age")
 names(m) = c("Age", "Model", "AUC")
@@ -479,7 +556,8 @@ prplot <-
  theme_classic() + ggtitle(paste0("30-year risk prediction, Precision Recall"))
 
 
-ggarrange(aucplot,prplot,common.legend = T)
+ggarrange(aucplot,prplot,common.legend = T,legend = "right")
+saveRDS(ggarrange(aucplot,prplot,common.legend = T,legend = "right"),"../output/jointaucprc.rds")
 ```
 
 
@@ -566,13 +644,23 @@ atrisk=atrisk[atrisk$Var4==0&atrisk$Var5==0,]
 #atrisk=atrisk[atrisk$Var4==0,]
 tenlifeplotting(start = "Health",stop = "Cad",modelfit = modelfit,agesmooth = c(40:80),agesint = c(40:70),atrisk = data.frame(atrisk),window_width = 20,span = 0.75,degree = 2,prs_quants = cad.prs)
 
+start="Health"
+stop="Cad"
 c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
 b=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = 40:80,coefmat = c$custom_smooth)
 a=apply(data.frame(b$Survival),1,function(x){(1-cumprod(x))})
+
 a2=a
 colnames(a2)=c(paste0(rep("F:",6),c(-3:2)),paste0(rep("M:",6),c(-3:2)))
 rownames(a2)=ages
 m=melt(a2)
 ggplot(m,aes(Var1,value,col=Var2))+geom_smooth()+theme_classic()+labs(y="Hazard Starting from 40",x="Ages")
+
+a=apply(data.frame(b$Survival),1,function(x){(1-cumprod(x))})
+a2=a
+colnames(a2)=c(paste0(rep("F:",6),c(-3:2)),paste0(rep("M:",6),c(-3:2)))
+rownames(a2)=ages
+m=melt(a2)
+ggplot(m,aes(Var1,value,col=Var2))+geom_smooth()+theme_classic()+labs(y="Survival Starting from 40",x="Ages")
 
 

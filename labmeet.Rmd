@@ -350,9 +350,9 @@ mat=return_smoothedmatrix(start = "Health",stop = "Cad",
 ages = ages,modelfit = fixedsmoke)$coefmat
 rownames(mat)=mat$age
 mat=mat[,-1]
-atrisk=readRDS("atrisk.rds")
+atrisk=readRDS("../output/atrisk.rds")
 compute_prediction_product_matrix(atrisk = atrisk,
-agepredinterval = c(40:80),coefmat = mat)$c$PredictedIntervalrisk
+agepredinterval = c(40:80),coefmat = mat)$PredictedIntervalrisk
 
 ```
 
@@ -362,7 +362,8 @@ agepredinterval = c(40:80),coefmat = mat)$c$PredictedIntervalrisk
 
 ```{r}
 intercept=1
-cad.prs=prs_quants
+cad.prs=qnorm(c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9))
+
 sex=c(0,1)
 smoke=c(0,1)
 library(reshape2)
@@ -378,7 +379,7 @@ ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmoo
 ## But a lifetime?
 
 ```{r}
-ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$lifeplot)+theme_classic()
+ggplotly(tenlifeplotting(start="Health",stop="Cad",modelfit = fixedsmoke,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = atrisk,window_width = 20,span = 0.75,degree = 2)$lifeplot+theme_classic())
 ```
 
 
@@ -491,7 +492,7 @@ ggplotly(readRDS("~/Library/CloudStorage/Dropbox-Personal/multistate/nri.rds"))
 ## Life ... using earliest values
 
 
-```{r, out.width=700, echo=FALSE}
+```{r, out.width=500, echo=FALSE}
 knitr::include_graphics("skew.png")
 ```
 
@@ -547,16 +548,165 @@ ggplotly(readRDS("fosrmse.rds"))
 knitr::include_graphics("lpp.png")
 ```
 
+## Smoothing
+
+* Coefficients across ages, $W_{loess}  \propto 1/d^3 \times 1/e^2$
+* mean across expanded grid by span
+
+```{r}
+modelfit=readRDS("output/prs_sex_smooke_antihtn.rds")
+a=coefplotsmooth(ages,"Health","Cad",modelfit = modelfit)
+ggplotly(a$plot+theme_classic())
+```
+
+## Smoothing 2
+
+* Coefficients across ages, $W_{loess}  \propto 1/d^3 \times 1/e^2$
+* Flexible window with edge expansion
+
+```{r,eval=T,echo=T}
+a=coefplotsmooth2(ages,"Health","Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ggplotly(a$plot)
+```
+
+## FRS: how can we compare more clearly?
+
+* Enter: FRS 30y
+* The excel file to end all excel files
+
+```{r, out.width= "500px", echo=FALSE}
+knitr::include_graphics("frsshot.png",error = FALSE)
+```
+
+## FRS: borrom from their methods
+
+```{bash,eval=FALSE}
+Comparison With Alternative Approaches for 30-Year Risk Prediction
+Combined. This approach utilized an application of 10-year CVD risk calculators. For fairness of comparison, we estimated 10-year probabilities of survival based on our data. Three probabilities were calculated for each person: the first using baseline age, second using baseline age plus 10 years, and third using baseline age plus 20 years, with all other risk factors based on the baseline values. The 30-year risk was calculated as the difference of 1 minus the product of these three 10-year probabilities.
+```
+
+
+## Augment age at each step 
+```{r eval=F,echo=T}
+for (z in 1:length(enrollments)) {
+  age = enrollments[z]
+  start = age
+  stop = 80
+  df_frame = test
+  atrisk = df_frame[age < Cad_0_censor_age &
+                      age < Ht_0_censor_age &
+                      age < HyperLip_0_censor_age &
+                      age < Dm_0_censor_age & smoke == 0 ,]
+  
+  df_updated = data.frame(atrisk)
+  ar = data.frame(
+    "intercept" = 1,
+    "cad.prs" = atrisk$cad.prs,
+    "sex" = atrisk$f.31.0.0,
+    "smoke" = atrisk$smoke,
+    "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                             atrisk$htn_age < age, 1, 0)
+  )
+  dat = data.frame(
+    "id" = atrisk$identifier,
+    "mysex" = as.factor(atrisk$sex),
+    "myage" = rep(age, nrow(atrisk)),
+    "mysbp" = atrisk$sbp,
+    "mytreat" = ifelse(atrisk$antihtn == 1 &
+                       atrisk$htn_age < age, 1, 0),
+    "mysmoking" = atrisk$smoke,
+    "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                          atrisk$Dm_0_censor_age < age, 1, 0),
+    "mytotalchol" = atrisk$choladj,
+    "myhdl" = atrisk$hdladj,
+    "Race" = atrisk$Race,
+    "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+  )
+
+  mso=compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+df_updated$ms = mso$PredictedIntervalrisk
+ f=fun.frs_30y(dat,id = "id",sex = "mysex",age = "myage",sbp ="mysbp",treat = "mytreat",smoking = "mysmoking",diabetes = "mydiabetes",totalchol = "mytotalchol",hdl = "myhdl")
+ df_updated$frs.30y=f$frs_orig
+ df_updated$frs.recal=f$frs_recali
+```
+
+## True lifetime comparison!!
+
+Calibrated ...
+```{r}
+s=readRDS("output/sharedrmse.rds")
+```
+
+## True lifetime comparison!!
+
+Powerful and precise
+```{r}
+(readRDS("output/jointaucprc.rds"))
+```
+
+
+## What about survival for a given age...
+
+```{r}
+intercept=1
+cad.prs=c(-3,-2,-1,0,1,2)
+sex=c(0,1)
+smoke=c(0,1)
+antihtn_now=c(0,1)
+
+atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now)
+atrisk=atrisk[atrisk$Var4==0&atrisk$Var5==0,]
+
+start="Health"
+stop="Cad"
+c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+b=compute_prediction_product_matrix(atrisk = atrisk,agepredinterval = 40:80,coefmat = c$custom_smooth)
+a=apply(data.frame(b$Survival),1,function(x){(1-cumprod(x))})
+
+a2=a
+colnames(a2)=c(paste0(rep("F:",6),c(-3:2)),paste0(rep("M:",6),c(-3:2)))
+rownames(a2)=ages
+m=melt(a2)
+ggplotly(ggplot(m,aes(Var1,value,col=Var2))+geom_smooth()+theme_classic()+labs(y="Hazard Starting from 40",x="Ages"))
+```
+
+## What about Hazard for a given age...
+
+```{r}
+a=apply(data.frame(b$Survival),1,function(x){(cumprod(x))})
+a2=a
+colnames(a2)=c(paste0(rep("F:",6),c(-3:2)),paste0(rep("M:",6),c(-3:2)))
+rownames(a2)=ages
+m=melt(a2)
+ggplotly(ggplot(m,aes(Var1,value,col=Var2))+geom_smooth()+theme_classic()+labs(y="Survival Starting from 40",x="Ages"))
+```
+
+## Model comparison
+
+```{r}
+ggplotly(readRDS("output/rmsemodelten.rds"))
+```
+
+## Model comparison
+
+```{r}
+ggplotly(readRDS("output/rmsemodellife.rds"))
+```
 
 ## Thank you!
-* ALL the members of the NL Lab! and ...
-* Sasha Gusev, PhD
+* ALL the members of the Gusev Lab! and..
 * Giovanni Parmigiani, PhD
 
 
 ```{r, out.width= "500px", echo=FALSE}
 knitr::include_graphics("bayespic.png")
 ```
+
+
 
 
 
