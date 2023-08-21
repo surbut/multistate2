@@ -1,7 +1,7 @@
 ---
 title: "MSGene"
 author: Sarah Urbut, MD PhD
-date: August 3 2023
+date: August 21 2023
 output:
   ioslides_presentation:
     widescreen: true
@@ -350,7 +350,7 @@ mat=return_smoothedmatrix(start = "Health",stop = "Cad",
 ages = ages,modelfit = fixedsmoke)$coefmat
 rownames(mat)=mat$age
 mat=mat[,-1]
-atrisk=readRDS("../output/atrisk.rds")
+atrisk=readRDS("output/atrisk.rds")
 compute_prediction_product_matrix(atrisk = atrisk,
 agepredinterval = c(40:80),coefmat = mat)$PredictedIntervalrisk
 
@@ -564,7 +564,7 @@ ggplotly(a$plot+theme_classic())
 * Coefficients across ages, $W_{loess}  \propto 1/d^3 \times 1/e^2$
 * Flexible window with edge expansion
 
-```{r,eval=T,echo=T}
+```{r,eval=T,echo=F}
 a=coefplotsmooth2(ages,"Health","Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
 ggplotly(a$plot)
 ```
@@ -574,16 +574,21 @@ ggplotly(a$plot)
 * Enter: FRS 30y
 * The excel file to end all excel files
 
-```{r, out.width= "500px", echo=FALSE}
-knitr::include_graphics("frsshot.png",error = FALSE)
+```{r, out.width= "700px", echo=FALSE}
+knitr::include_graphics("frsexcel.png",error = FALSE)
 ```
 
 ## FRS: borrom from their methods
 
-```{bash,eval=FALSE}
-Comparison With Alternative Approaches for 30-Year Risk Prediction
-Combined. This approach utilized an application of 10-year CVD risk calculators. For fairness of comparison, we estimated 10-year probabilities of survival based on our data. Three probabilities were calculated for each person: the first using baseline age, second using baseline age plus 10 years, and third using baseline age plus 20 years, with all other risk factors based on the baseline values. The 30-year risk was calculated as the difference of 1 minus the product of these three 10-year probabilities.
-```
+>Comparison With Alternative Approaches for 30-Year Risk Prediction
+Combined. 
+* This approach utilized an application of 10-year CVD risk calculators. For fairness of comparison, we estimated 10-year probabilities of survival based on our data. 
+>
+* Three probabilities were calculated for each person: the first using baseline age, second using baseline age plus 10 years, and third using baseline age plus 20 years, with all other risk factors based on the baseline values. 
+>
+* The 30-year risk was calculated as the difference of 1 minus the product of these three 10-year probabilities
+>
+
 
 
 ## Augment age at each step 
@@ -636,14 +641,15 @@ df_updated$ms = mso$PredictedIntervalrisk
 
 ## True lifetime comparison!!
 
-Calibrated ...
+* Calibrated ...
+
 ```{r}
-s=readRDS("output/sharedrmse.rds")
+(readRDS("output/sharedrmse.rds"))
 ```
 
 ## True lifetime comparison!!
 
-Powerful and precise
+* Powerful and precise
 ```{r}
 (readRDS("output/jointaucprc.rds"))
 ```
@@ -698,8 +704,9 @@ ggplotly(readRDS("output/rmsemodellife.rds"))
 ```
 
 ## Thank you!
-* ALL the members of the Gusev Lab! and..
+* ALL the members of the Gusev Lab!
 * Giovanni Parmigiani, PhD
+* and ...
 
 
 ```{r, out.width= "500px", echo=FALSE}
