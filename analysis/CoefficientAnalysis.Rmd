@@ -199,8 +199,8 @@ plotfuncrmse(ascvd.ten.year = ascvd.ten.year,emp.ten.year = emp.ten.year,mstate.
 Now try with a fuller model:
 
 ```{r}
-
-modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now") 
+# 
+# modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
 
 #pcten 0.679
 
@@ -208,17 +208,18 @@ modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomi
 #pcten 0.592
 
 
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
 
-#modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke") 0.611
+0.611
 #modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="f.31.0.0") 2.162 pcten
 
-####
-#ten.year.new=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
-#lifetime.new=matrix(NA,nrow = length(agesint),ncol=length(prs_quants)*2)
-b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
+
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
 ggplotly(b$plot)
 coefs=b$custom_smooth
 agesint=seq(40,70,by=5)
+test=testold
 prs_quants=c(data.frame(test%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 
 ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
@@ -232,21 +233,31 @@ for(i in 1:length(agesint)) {
                     age < Ht_0_censor_age &
                     age < HyperLip_0_censor_age &
                     age < Dm_0_censor_age & int == cat, ]
-    ar = data.frame(
-      "intercept" = 1,
-      "cad.prs" = atrisk$cad.prs,
-      "sex" = atrisk$f.31.0.0,
-      "smoke" = atrisk$smoke,
-      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
-                               atrisk$htn_age < age, 1, 0)
-    )
-    
     # ar = data.frame(
     #   "intercept" = 1,
     #   "cad.prs" = atrisk$cad.prs,
     #   "sex" = atrisk$f.31.0.0,
-    #   "smoke" = atrisk$smoke
+    #   "smoke" = atrisk$smoke,
+    #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    #                            atrisk$htn_age < age, 1, 0)
     # )
+     # ar = data.frame(
+     #  "intercept" = 1,
+     #  "cad.prs" = atrisk$cad.prs,
+     #  "sex" = atrisk$f.31.0.0,
+     #  "smoke" = atrisk$smoke,
+     #  "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+     #                          atrisk$htn_age < age, 1, 0),
+     #  "statin_now" = ifelse(atrisk$statin == 1 &
+     #                           atrisk$statin_age < age, 1, 0)
+     #  )
+
+    ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke
+    )
     #   ar = data.frame(
     #   "intercept" = 1,
     #   #"cad.prs" = atrisk$cad.prs,
@@ -273,10 +284,10 @@ for(i in 1:length(agesint)) {
                                                atrisk = atrisk)
     emp.lifetime[i, j] = compute_empiricalrisk(age = age,
                                                age2 = 80,
-                                               atrisk = atrisk)
-    
+                                       atrisk = atrisk)
+    # 
     ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
-    
+
     dat = data.frame(
       "id" = atrisk$identifier,
       "mysex" = as.factor(atrisk$sex),
@@ -352,20 +363,34 @@ a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,ms
 library(ggpubr)
 saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "sharedrmse.rds")
 
-#sex only 5.341 and 2.162
+#sex only
+# ten 5.341
+# lifetime 2.162
 
 ##with antihtn
-# 0.679 for ten year, 0.593 for life
+# 0.679 for ten year
+# 0.593 for life
+
+# with satin 
+# ten  0.688
+# life 0.656
+
+#with both statin and antihtn
+# ten 0.866
+# lifetime 0.981
+
+#with sex + prs + smoke
+#0.611 for ten year
+# 2.23 for life
+
+# with sex + prs
+# 0.592 for ten
+# 2.10 for life
 
 
-#wihout antihtn
-#0.611 for ten year, 2.23 for life
-
-#without smoke and antithn
-#0.592 for ten, 2.1 for life
 
 
-df=data.frame("sex.only"=2.1,"sex.genetics"=0.592,"sex.genetics.smoking"=0.611,"sex.genetics.smoking.antihtn"=0.679,"pce.all"=pcten2,"pce.enroll"=pcten)
+df=data.frame("sex.only"=2.1,"sex.genetics"=0.592,"sex.genetics.smoking"=0.611,"sex.genetics.smoking.antihtn"=0.679,"sex.genetics.smoking.statin"=0.688,"sex.genetics.smoking.antihtn.statin"=0.866, "pce.all"=pcten2,"pce.enroll"=pcten)
 
 r=melt(df)
 
@@ -373,7 +398,7 @@ g1=ggplot(r,aes(variable,value,fill=variable))+geom_bar(stat="identity")+labs(x=
 
 saveRDS(g1,file = "../output/rmsemodelten.rds")
 
-dflife=data.frame("sex.only"=5.341,"sex.genetics"=2.1,"sex.genetics.smoking"=2.23,"sex.genetics.smoking.antihtn"=0.593,"frs.all"=pclife,"frs.recal"=pclife2)
+dflife=data.frame("sex.only"=5.341,"sex.genetics"=2.1,"sex.genetics.smoking"=2.23,"sex.genetics.smoking.antihtn"=0.593,"sex.genetics.smoking.statin"=0.656,"sex.genetics.smoking.antihtn.statin"=0.981,"frs.all"=pclife,"frs.recal"=pclife2)
 
 r=melt(dflife)
 

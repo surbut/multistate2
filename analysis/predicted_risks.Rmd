@@ -1,0 +1,122 @@
+---
+title: "compute_at_risk_overtime"
+output: html_document
+date: "2023-08-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+ages = 40:80
+```
+
+```{r}
+## return a matrix of coefficients over all ages for a given state to state transition
+a=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+healthy_coefs=a$custom_smooth
+
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ht_coefs=b$custom_smooth
+
+c=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+hyperlip_coefs=c$custom_smooth
+
+d=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+dm_coefs=d$custom_smooth
+
+
+e=coefplotsmooth2(ages = ages,start = "Ht&HyperLip",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+HH_coefs=e$custom_smooth
+
+f=coefplotsmooth2(ages = ages,start = "HyperLip&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+HD_coefs=f$custom_smooth
+
+g=coefplotsmooth2(ages = ages,start = "Ht&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+TD_coefs=g$custom_smooth
+
+h=coefplotsmooth2(ages = ages,start = "Ht&HyperLip&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
+HHD_coefs=h$custom_smooth
+
+coeflist=list(healthy_coefs,ht_coefs,hyperlip_coefs,dm_coefs,HH_coefs,HD_coefs,TD_coefs,HHD_coefs)
+
+# intercept=1
+# cad.prs=c(-2,-1,0,1,2)
+# sex=c(0,1)
+# smoke=c(0,1)
+# antihtn_now=c(0,1)
+# 
+# atrisk=expand.grid(intercept,cad.prs,sex,smoke)
+# 
+# test=atrisk
+agesint=seq(40,70,by=1)
+predicted_risks=array(NA,dim=c(nrow(test),length(agesint),8))
+dimnames(predicted_risks)=list(rownames(test),agesint,c("Health","Ht","HyperLip","Dm","Ht&HyperLip","HyperLip&DM","Ht&Dm","Ht&HyperLip&Dm"))
+
+for(j in 1:length(coeflist)){
+  coefs=coeflist[[j]]
+  
+  for(i in 1:length(agesint)){
+    age=agesint[i]
+    start=age
+    stop=80
+    atrisk=test
+      ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                               atrisk$htn_age < age, 1, 0),
+      "statin_now" = ifelse(atrisk$statin == 1 &
+                               atrisk$statin_age < age, 1, 0)
+
+    )
+    
+    #ar=atrisk
+    
+    #  
+  mso = compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+  
+  predicted_risks[,i,j] = mso$PredictedIntervalrisk
+  }
+  
+}
+
+
+
+ipf=function(i){
+m=melt(predicted_risks[i,,])
+ atrisk=test
+      ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1,
+                               atrisk$htn_age, 0),
+      "statin_now" = ifelse(atrisk$statin == 1,
+                               atrisk$statin_age, 0)
+
+    )
+g=ggplot(m,aes(Var1,value,col=Var2))+geom_point()+
+  labs(x="Age of consideration",y="Lifetime Risk",col="Starting State")+
+  theme_classic()+ggtitle(paste0("PRS:",round(ar[i,2],0),",Sex:",ar[i,3],",Smoke:",ar[i,4],",AH:",round(ar[i,5],0),"Stat:",round(ar[i,6],0)))
+ 
+ggplotly(g)}
+
+
+ipf(i=10)

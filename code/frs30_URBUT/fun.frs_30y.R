@@ -117,7 +117,7 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   auxi<- c(col2[-1],NA)
   columnG <- log(col2)-log(auxi)
   
-  columnG_orig <- scan(file = "../code/frs30_URBUT/columnG_orig.csv")
+  columnG_orig <- scan(file = "~/multistate2/code/frs30_URBUT/columnG_orig.csv")
   #write.csv(columnG, file = "columnG_recali.csv", row.names = FALSE)
   
   
