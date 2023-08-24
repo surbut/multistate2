@@ -77,7 +77,7 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   #::::::::::::::::::::::::::::
   # original ----
   #::::::::::::::::::::::::::::
-  message("calculation original version....")
+  #message("calculation original version....")
   
   
   # CVD
@@ -160,7 +160,7 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   #::::::::::::::::::::::::::::
   # recalibrated ----
   #::::::::::::::::::::::::::::
-  message("calculation recalibrated version....")
+  #message("calculation recalibrated version....")
   
   
   # xbeta
