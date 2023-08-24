@@ -200,11 +200,13 @@ Now try with a fuller model:
 
 ```{r}
 # 
-# modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+                  
+                  +statin_now") 
 
 #pcten 0.679
 
-# modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
 #pcten 0.592
 
 
@@ -219,7 +221,6 @@ b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = modelfit,wind
 ggplotly(b$plot)
 coefs=b$custom_smooth
 agesint=seq(40,70,by=5)
-test=testold
 prs_quants=c(data.frame(test%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 
 ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
@@ -233,10 +234,10 @@ for(i in 1:length(agesint)) {
                     age < Ht_0_censor_age &
                     age < HyperLip_0_censor_age &
                     age < Dm_0_censor_age & int == cat, ]
-    # ar = data.frame(
-    #   "intercept" = 1,
-    #   "cad.prs" = atrisk$cad.prs,
-    #   "sex" = atrisk$f.31.0.0,
+     ar = data.frame(
+      "intercept" = 1,
+       "cad.prs" = atrisk$cad.prs,
+       "sex" = atrisk$f.31.0.0)
     #   "smoke" = atrisk$smoke,
     #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
     #                            atrisk$htn_age < age, 1, 0)
@@ -252,12 +253,12 @@ for(i in 1:length(agesint)) {
      #                           atrisk$statin_age < age, 1, 0)
      #  )
 
-    ar = data.frame(
-      "intercept" = 1,
-      "cad.prs" = atrisk$cad.prs,
-      "sex" = atrisk$f.31.0.0,
-      "smoke" = atrisk$smoke
-    )
+    # ar = data.frame(
+    #   "intercept" = 1,
+    #   "cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0,
+    #   "smoke" = atrisk$smoke
+    # )
     #   ar = data.frame(
     #   "intercept" = 1,
     #   #"cad.prs" = atrisk$cad.prs,
@@ -356,12 +357,12 @@ mslife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(lifeti
 pclife2=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),]))
 
 
-a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")
+a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")+labs(y="RMSE %")+ylim(c(0,0.60))
 
-a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")
+a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")+labs("RMSE %")+ylim(c(0,0.60))
 
 library(ggpubr)
-saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "sharedrmse.rds")
+saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "output/sharedrmse.rds")
 
 #sex only
 # ten 5.341
@@ -371,7 +372,7 @@ saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "sharedrms
 # 0.679 for ten year
 # 0.593 for life
 
-# with satin 
+# with statin 
 # ten  0.688
 # life 0.656
 
@@ -410,6 +411,7 @@ saveRDS(g2,file = "../output/rmsemodellife.rds")
 NOw ROC
 
 ```{r}
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
 
 set.seed(456)
 enrollments = c(41:70)
@@ -426,7 +428,7 @@ coefs=b$custom_smooth
 
 
 
-for (z in 16:length(enrollments)) {
+for (z in 1:length(enrollments)) {
   age = enrollments[z]
   start = age
   stop = 80
@@ -522,14 +524,16 @@ for (z in 16:length(enrollments)) {
   bg <- na.omit(d$frs.30y[d$outcome == 0])
   prcmat[z, 2] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
   
-  fg <- na.omit(d$cad.prs[d$outcome == 1])
-  bg <- na.omit(d$cad.prs[d$outcome == 0])
-  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
   
   fg <- na.omit(d$frs.recal[d$outcome == 1])
   bg <- na.omit(d$frs.recal[d$outcome == 0])
+  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  fg <- na.omit(d$cad.prs[d$outcome == 1])
+  bg <- na.omit(d$cad.prs[d$outcome == 0])
   prcmat[z, 4] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
   
+ 
   
   print(paste0("Completedforage", age))
   
@@ -562,14 +566,17 @@ aucplot <-
 
 library(pROC)
 rownames(prcmat) = enrollments
+colnames(prcmat)=c("MSGene","FRS30y","PRSonly","FRS30.recal")
+prcmat=prcmat[,c("MSGene","FRS30y","FRS30.recal","PRSonly")]
 m = melt(prcmat, id.vars = "Age")
+
 names(m) = c("Age", "Model", "AUC")
 m$Model = as.factor(m$Model)
 
 levels(m$Model)[1] = "MSGene"
 levels(m$Model)[2] = "FRS30y"
 levels(m$Model)[3] = "FRS30.recal"
-levels(m$Model)[3] = "PRSonly"
+levels(m$Model)[4] = "PRSonly"
 m$se=as.vector(semat[,c(1,2,3,4)])/2
 #m = m[m$Model %in% c("MSGene", "FRS30y", "PRS only"), ]
 prplot <-
