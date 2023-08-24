@@ -5,62 +5,263 @@ date: "2023-08-21"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
 ```
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+We show the risk for various starting points over time using the model which achieved minimal RMSE
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r modelfit}
+source("~/dynamichr/code/utils.R")
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
+source("~/multistate2/code/fitarray.R")
+library("reshape2")
 
-```{r cars}
-modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) <- c(1,2,3,4,5,6)
+
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source("~/multistate2/code/frs30_URBUT/fun.frs_30y.R")
+library(CVrisk)
+ages=c(40:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+modelfit = fitfunc2(
+  data.table(train),
+  ages = ages,
+  nstates = nstates,
+  mode = "binomial",
+  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
+)
 ages = 40:80
 ```
 
+
+## First we plot for some sample individuals
+
 ```{r}
 ## return a matrix of coefficients over all ages for a given state to state transition
-a=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-healthy_coefs=a$custom_smooth
+a = coefplotsmooth2(
+  ages = ages,
+  start = "Health",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+healthy_coefs = a$custom_smooth
 
-b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-ht_coefs=b$custom_smooth
+b = coefplotsmooth2(
+  ages = ages,
+  start = "Ht",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+ht_coefs = b$custom_smooth
 
-c=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-hyperlip_coefs=c$custom_smooth
+c = coefplotsmooth2(
+  ages = ages,
+  start = "HyperLip",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+hyperlip_coefs = c$custom_smooth
 
-d=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-dm_coefs=d$custom_smooth
+d = coefplotsmooth2(
+  ages = ages,
+  start = "Dm",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+dm_coefs = d$custom_smooth
 
 
-e=coefplotsmooth2(ages = ages,start = "Ht&HyperLip",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-HH_coefs=e$custom_smooth
+e = coefplotsmooth2(
+  ages = ages,
+  start = "Ht&HyperLip",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+HH_coefs = e$custom_smooth
 
-f=coefplotsmooth2(ages = ages,start = "HyperLip&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-HD_coefs=f$custom_smooth
+f = coefplotsmooth2(
+  ages = ages,
+  start = "HyperLip&Dm",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+HD_coefs = f$custom_smooth
 
-g=coefplotsmooth2(ages = ages,start = "Ht&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
-TD_coefs=g$custom_smooth
+g = coefplotsmooth2(
+  ages = ages,
+  start = "Ht&Dm",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
+TD_coefs = g$custom_smooth
 
-h=coefplotsmooth2(ages = ages,start = "Ht&HyperLip&Dm",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+h = coefplotsmooth2(
+  ages = ages,
+  start = "Ht&HyperLip&Dm",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 20,
+  span = 0.75,
+  degree = 2
+)
 
-HHD_coefs=h$custom_smooth
+HHD_coefs = h$custom_smooth
 
-coeflist=list(healthy_coefs,ht_coefs,hyperlip_coefs,dm_coefs,HH_coefs,HD_coefs,TD_coefs,HHD_coefs)
+coeflist = list(
+  healthy_coefs,
+  ht_coefs,
+  hyperlip_coefs,
+  dm_coefs,
+  HH_coefs,
+  HD_coefs,
+  TD_coefs,
+  HHD_coefs
+)
 
-# intercept=1
-# cad.prs=c(-2,-1,0,1,2)
-# sex=c(0,1)
-# smoke=c(0,1)
-# antihtn_now=c(0,1)
-# 
-# atrisk=expand.grid(intercept,cad.prs,sex,smoke)
-# 
-# test=atrisk
+agesint = seq(40, 70, by = 1)
+predicted_risks = array(NA, dim = c(nrow(test), length(agesint), 8))
+dimnames(predicted_risks) = list(
+  rownames(test),
+  agesint,
+  c(
+    "Health",
+    "Ht",
+    "HyperLip",
+    "Dm",
+    "Ht&HyperLip",
+    "HyperLip&DM",
+    "Ht&Dm",
+    "Ht&HyperLip&Dm"
+  )
+)
+
+for (j in 1:length(coeflist)) {
+  coefs = coeflist[[j]]
+  
+  for (i in 1:length(agesint)) {
+    age = agesint[i]
+    start = age
+    stop = 80
+    atrisk = test
+    ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                               atrisk$htn_age < age, 1, 0),
+      "statin_now" = ifelse(atrisk$statin == 1 &
+                              atrisk$statin_age < age, 1, 0)
+      
+    )
+    
+    
+    mso = compute_prediction_product_matrix(
+      coefmat = coefs,
+      atrisk = ar,
+      agepredinterval = c(start:stop)
+    )
+    
+    predicted_risks[, i, j] = mso$PredictedIntervalrisk
+  }
+  
+}
+
+
+
+ipf = function(i) {
+  m = melt(predicted_risks[i, , ])
+  atrisk = test
+  ar = data.frame(
+    "intercept" = 1,
+    "cad.prs" = atrisk$cad.prs,
+    "sex" = atrisk$f.31.0.0,
+    "smoke" = atrisk$smoke,
+    "antihtn_now" = ifelse(atrisk$antihtn == 1,
+                           atrisk$htn_age, 0),
+    "statin_now" = ifelse(atrisk$statin == 1,
+                          atrisk$statin_age, 0)
+    
+  )
+  g = ggplot(m, aes(Var1, value, col = Var2)) + geom_point() +
+    labs(x = "Age of consideration", y = "Lifetime Risk", col = "Starting State") +
+    theme_classic() + ggtitle(paste0(
+      "PRS:",
+      round(ar[i, 2], 0),
+      ",Sex:",
+      ar[i, 3],
+      ",Smoke:",
+      ar[i, 4],
+      ",AH:",
+      round(ar[i, 5], 0),
+      "Stat:",
+      round(ar[i, 6], 0)
+    ))
+  
+  ggplotly(g)
+}
+
+ipf(1)
+ipf(18)
+ipf(23)
+ipf(30)
+
+```
+
+For Fixed at risk matrix
+
+```{R}
+intercept=1
+cad.prs=c(-2,-1,0,1,2)
+sex=c(0,1)
+smoke=c(0,1)
+antihtn_now=c(0,1)
+statin_now=c(0,1)
+
+atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now,statin_now)
+
+
+
 agesint=seq(40,70,by=1)
-predicted_risks=array(NA,dim=c(nrow(test),length(agesint),8))
-dimnames(predicted_risks)=list(rownames(test),agesint,c("Health","Ht","HyperLip","Dm","Ht&HyperLip","HyperLip&DM","Ht&Dm","Ht&HyperLip&Dm"))
+predicted_risks2=array(NA,dim=c(nrow(atrisk),length(agesint),8))
+dimnames(predicted_risks2)=list(rownames(atrisk),agesint,c("Health","Ht","HyperLip","Dm","Ht&HyperLip","HyperLip&DM","Ht&Dm","Ht&HyperLip&Dm"))
 
 for(j in 1:length(coeflist)){
   coefs=coeflist[[j]]
@@ -69,54 +270,124 @@ for(j in 1:length(coeflist)){
     age=agesint[i]
     start=age
     stop=80
-    atrisk=test
-      ar = data.frame(
-      "intercept" = 1,
-      "cad.prs" = atrisk$cad.prs,
-      "sex" = atrisk$f.31.0.0,
-      "smoke" = atrisk$smoke,
-      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
-                               atrisk$htn_age < age, 1, 0),
-      "statin_now" = ifelse(atrisk$statin == 1 &
-                               atrisk$statin_age < age, 1, 0)
+    ar=atrisk
+    
 
-    )
-    
-    #ar=atrisk
-    
-    #  
   mso = compute_prediction_product_matrix(
     coefmat = coefs,
     atrisk = ar,
     agepredinterval = c(start:stop)
   )
   
-  predicted_risks[,i,j] = mso$PredictedIntervalrisk
+  predicted_risks2[,i,j] = mso$PredictedIntervalrisk
   }
   
 }
 
 
 
-ipf=function(i){
-m=melt(predicted_risks[i,,])
- atrisk=test
-      ar = data.frame(
-      "intercept" = 1,
-      "cad.prs" = atrisk$cad.prs,
-      "sex" = atrisk$f.31.0.0,
-      "smoke" = atrisk$smoke,
-      "antihtn_now" = ifelse(atrisk$antihtn == 1,
-                               atrisk$htn_age, 0),
-      "statin_now" = ifelse(atrisk$statin == 1,
-                               atrisk$statin_age, 0)
-
-    )
+ipf2=function(i){
+m=melt(predicted_risks2[i,,])
+ar=atrisk
 g=ggplot(m,aes(Var1,value,col=Var2))+geom_point()+
   labs(x="Age of consideration",y="Lifetime Risk",col="Starting State")+
   theme_classic()+ggtitle(paste0("PRS:",round(ar[i,2],0),",Sex:",ar[i,3],",Smoke:",ar[i,4],",AH:",round(ar[i,5],0),"Stat:",round(ar[i,6],0)))
  
 ggplotly(g)}
 
+## fix, new PRS
+ipf(i=1)
+ipf2(i=5)
 
-ipf(i=10)
+## fix pRS, new sex
+ipf(i=1)
+ipf2(i=6)
+
+## fix pRS, new smoke
+ipf(i=1)
+ipf2(i=11)
+
+## fix pRS, new AH
+ipf(i=1)
+ipf2(i=21)
+
+
+## fix pRS, new stat
+ipf(i=1)
+ipf2(i=41)
+```
+
+Investigate overlap:
+
+
+```{r}
+#install.packages("VennDiagram")   # Install & load VennDiagram package
+library("VennDiagram")
+
+ht=fread("~/Desktop/output_gp/Hypertension.tab.tsv.gz")
+hyperlip=fread("~/Desktop/output_gp/Hypercholesterolemia.tab.tsv.gz")
+cad=fread("~/Desktop/output_gp/Coronary_Artery_Disease_INTERMEDIATE.tab.tsv.gz")
+g=merge(dfh[c("identifier","Ht_0_Any","HyperLip_0_Any","Cad_0_Any","antihtn","statin")],ht[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g2=merge(g,hyperlip[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g3=merge(g2,cad[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+
+
+plot(euler(list("UkbPheno"=which(g2$Ht_0_Any==2),"Lab"=which(g2$has_disease.x==1),"AntiHtn"=which(g2$antihtn==1))),main="Hypertenson",quantities = T)
+
+
+
+plot(euler(list("UkbPheno"=which(g2$HyperLip_0_Any==2),"Lab"=which(g2$has_disease.y==1),"Statin"=which(g2$statin==1))),main="HyperLipidemia",quantities = T)
+
+
+plot(euler(list("UkbPheno"=which(g3$Cad_0_Any==2),"Lab"=which(g3$has_disease==1),"Statin"=which(g3$statin==1))),main="CAD",quantities = T)
+```
+
+
+```{r}
+
+get_risk_profile <- function(data_array, 
+                             start_cov_profile, change_age_cov = NULL, new_cov_profile = NULL, 
+                             start_model, change_ages_model = NULL, new_models = NULL) {
+  
+  # Validate if the provided input values are within the range
+  if(start_cov_profile < 1 || start_cov_profile > 50) stop("Invalid starting covariate profile.")
+  if(!is.null(new_cov_profile) && (new_cov_profile < 1 || new_cov_profile > 50)) stop("Invalid new covariate profile.")
+  if(start_model < 1 || start_model > 8) stop("Invalid starting model.")
+  
+  # Placeholder to store the extracted risk values
+  risk_profile <- numeric(length(40:70))
+  
+  age_range <- 40:70
+  for(i in 1:length(age_range)) {
+    age <- age_range[i]
+    current_cov <- start_cov_profile
+    current_model <- start_model
+    
+    # Check if we need to change the covariate profile based on the age
+    if(!is.null(change_age_cov) && age >= change_age_cov) {
+      current_cov <- new_cov_profile
+    }
+    
+    # Check if we need to change the model based on the age
+    if(!is.null(change_ages_model)) {
+      # Assuming change_ages_model and new_models are vectors of the same length
+      change_idxs <- which(age >= change_ages_model)
+      if(length(change_idxs) > 0) {
+        current_model <- new_models[max(change_idxs)]
+      }
+    }
+    
+    # Extract risk value from the data array
+    risk_profile[i] <- data_array[current_cov, i, current_model]
+    #print(i)
+  }
+  
+  return(risk_profile)
+}
+
+# Example usage
+# Let's assume your 3D array is named data_array
+risk_values <- get_risk_profile(data_array, start_cov_profile = 5,
+change_age_cov = 55, new_cov_profile = 10,
+start_model = 2, change_ages_model = c(50, 60), new_models = c(5, 6))
+```

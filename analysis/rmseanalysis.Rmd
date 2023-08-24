@@ -904,3 +904,13 @@ print(c(msten,mslife))
 proc.time()-t
 
 ```
+
+
+```{r}
+tenyearlt=fread("~/Library/CloudStorage/Dropbox-Personal/tenyearlt.csv")
+health=tenyearlt[c(1:7),]
+ht=tenyearlt[c(8:14),]
+dm=tenyearlt[c(14:21),]
+hyperlip=tenyearlt[c(21:28),]
+m=melt(tenyearlt,id.vars = c("V1","start"))
+ggplot(m,aes(V1,value,fill=interaction(variable,as.factor(V1))))+geom_bar(stat="identity",position="dodge")+facet_wrap(~start,scales = "free")+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+theme_classic()
