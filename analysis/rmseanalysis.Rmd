@@ -908,9 +908,11 @@ proc.time()-t
 
 ```{r}
 tenyearlt=fread("~/Library/CloudStorage/Dropbox-Personal/tenyearlt.csv")
+tenyearlt$V1=rep(c("Sex+PRS","Sex+PRS+Smoke","Sex+PRS+Smoke+AH","Sex+PRS+Smoke+Statin","Sex+PRS+Smoke+AH/stat","FRS","FRS.recal"),4)
 health=tenyearlt[c(1:7),]
 ht=tenyearlt[c(8:14),]
 dm=tenyearlt[c(14:21),]
 hyperlip=tenyearlt[c(21:28),]
+tenyearlt$start=c(rep("Health",7),rep("Ht",7),rep("Dm",7),rep("HyperLip",7))
 m=melt(tenyearlt,id.vars = c("V1","start"))
-ggplot(m,aes(V1,value,fill=interaction(variable,as.factor(V1))))+geom_bar(stat="identity",position="dodge")+facet_wrap(~start,scales = "free")+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+theme_classic()
+ggplot(m,aes(V1,value,fill=interaction(variable,as.factor(V1))))+geom_bar(stat="identity",position="dodge")+facet_wrap(~start,scales = "free")+theme_classic()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),)
