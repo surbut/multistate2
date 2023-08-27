@@ -371,7 +371,7 @@ coefinput=function(start,stop,ages,modelfit){
   return(mat)
 }
 
-compute_prediction_product_matrix=function(atrisk,agepredinterval,coefmat){
+compute_prediction_product_matrix=function(atrisk,agepredinterval,coefmat,RR=0.80){
 #require(dplyr) 
 atrisk_for_regression=data.frame(atrisk)
 ## ensure that every column is numeric
@@ -390,7 +390,13 @@ prediction_not=1-prediction
 # Compute the product of the predictions which is over the colums since XB is NY
 prediction_product <- apply(prediction_not,1,prod)
 risk=1-prediction_product
-return(list("PredictedIntervalrisk"=risk,"Survival"=prediction_not,"Yearly Risk"=prediction))}
+
+
+prediction_not_treated=1-(RR)*prediction
+# Compute the product of the predictions which is over the colums since XB is NY
+prediction_product_treated <- apply(prediction_not_treated,1,prod)
+risk_treat=1-prediction_product_treated
+return(list("PredictedIntervalrisk"=risk,"Survival"=prediction_not,"Yearly Risk"=prediction,"Survival_treated"=prediction_not_treated,"Hazard_treated"=risk_treat))}
 
 
 ## return smoothedmatrix

@@ -1174,6 +1174,15 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
       
       
     }
+    
+    ##Dead
+    
+    atrisk = df_frame[Death_Censor_Age < age &
+                        Death_censor_Any == 2,]
+    
+    nar[i,"death","death"]=nrow(atrisk)
+    
+    
    # print(i)
     
   }

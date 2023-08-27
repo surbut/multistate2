@@ -40,11 +40,20 @@ ages=c(40:80)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
 
 modelfit = fitfunc2(
+  data.table(train[train$cad.prs>0.6,]),
+  ages = ages,
+  nstates = nstates,
+  mode = "binomial",
+  covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now+statin_now"
+)
+
+
+modelfit = fitfunc2(
   data.table(train),
   ages = ages,
   nstates = nstates,
   mode = "binomial",
-  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
+  covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now"
 )
 ages = 40:80
 ```
@@ -65,15 +74,15 @@ a = coefplotsmooth2(
 )
 healthy_coefs = a$custom_smooth
 
-b = coefplotsmooth2(
-  ages = ages,
-  start = "Ht",
-  stop = "Cad",
-  modelfit = modelfit,
-  window_width = 20,
-  span = 0.75,
-  degree = 2
-)
+# b = coefplotsmooth2(
+#   ages = ages,
+#   start = "Ht",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 30,
+#   span = 0.75,
+#   degree = 2
+# )
 ht_coefs = b$custom_smooth
 
 c = coefplotsmooth2(
@@ -261,6 +270,7 @@ atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now,statin_now)
 
 agesint=seq(40,70,by=1)
 predicted_risks2=array(NA,dim=c(nrow(atrisk),length(agesint),8))
+predicted_risks_treat=array(NA,dim=c(nrow(atrisk),length(agesint),8))
 dimnames(predicted_risks2)=list(rownames(atrisk),agesint,c("Health","Ht","HyperLip","Dm","Ht&HyperLip","HyperLip&DM","Ht&Dm","Ht&HyperLip&Dm"))
 
 for(j in 1:length(coeflist)){
@@ -280,6 +290,7 @@ for(j in 1:length(coeflist)){
   )
   
   predicted_risks2[,i,j] = mso$PredictedIntervalrisk
+  predicted_risks_treat[,i,j] = mso$Hazard_treated
   }
   
 }

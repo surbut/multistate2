@@ -90,10 +90,17 @@ label(dat$Birthdate) <- "Birth year"
 table1(~ f.31.0.0 + f.21001.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any|cad.prs.lev, data=dat)
 
 
+for(i in 1:41){mat[i,]=apply(modelfit$AR[i,,],2,function(x){x[!is.na(x)][1]})}
 
 
-sd(na.omit(rb$agereg[year(rb$reg_date)>1940])
-+ )
+for(i in 1:41){mat[i,]=apply(modelfit$events[i,,],1,function(x){
+  x[!is.na(x)][1]})}
+
+
+
+
+
+sd(na.omit(rb$agereg[year(rb$reg_date)>1940]))
 rb=merge(reg,mpce[,c("identifier","Birthdate")],by.x
          ="eid",by.y="identifier")
 rb$reg_date=as.Date(rb$reg_date, "%d/%m/%Y")
