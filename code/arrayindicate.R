@@ -1,10 +1,10 @@
 statusarray = function(df_frame, ages, nstates) {
   ar = array(
     data = 0,
-    dim = c(length(ages), nrow(df_frame), length(nstates)),
+    dim = c(length(ages), nrow(df_frame), length(nstates)+1),
     dimnames = list(ages, as.numeric(as.character(
       df_frame$identifier
-    )), nstates)
+    )), c(nstates,"out"))
   )
   
   df_frame$cad.prs = scale(df_frame$cad.prs)
@@ -143,6 +143,12 @@ statusarray = function(df_frame, ages, nstates) {
     
     if(nrow(atrisk)>0){ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "death"] =1}
     rm(atrisk)
+    
+  
+    ### if you
+    atrisk = df_frame[age > Death_Censor_Age & Death_censor_Any ==1,]
+    
+    ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "out"] =1
   }
   return(ar)
 }
