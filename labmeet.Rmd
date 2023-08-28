@@ -34,10 +34,11 @@ library(plotly)
 library(knitr)
 ```
 
-## The Cardiologist Who Mistook her Stethoscope for a Probability Distirbution 
+## The Cardiologist Who Mistook her Stethoscope for a Probability Distribution 
+
 
 ```{r, out.width= "800px", echo=FALSE}
-knitr::include_graphics("stethoscope.png")
+knitr::include_graphics("stethoscope.png",error=FALSE)
 ```
 
 ## Life transitions
@@ -704,7 +705,7 @@ ggplotly(readRDS("output/rmsemodellife.rds"))
 ```
 
 ## Thank you!
-* ALL the members of the Gusev Lab!
+* ALL the members of the Natarajan and Gusev Lab!
 * Giovanni Parmigiani, PhD
 * and ...
 
