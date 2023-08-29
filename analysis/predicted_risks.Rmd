@@ -44,17 +44,17 @@ modelfit = fitfunc2(
   ages = ages,
   nstates = nstates,
   mode = "binomial",
-  covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now+statin_now"
+  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
 )
 
 
-modelfit = fitfunc2(
-  data.table(train),
-  ages = ages,
-  nstates = nstates,
-  mode = "binomial",
-  covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now"
-)
+# modelfit = fitfunc2(
+#   data.table(train),
+#   ages = ages,
+#   nstates = nstates,
+#   mode = "binomial",
+#   covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now"
+# )
 ages = 40:80
 ```
 
@@ -74,15 +74,15 @@ a = coefplotsmooth2(
 )
 healthy_coefs = a$custom_smooth
 
-# b = coefplotsmooth2(
-#   ages = ages,
-#   start = "Ht",
-#   stop = "Cad",
-#   modelfit = modelfit,
-#   window_width = 30,
-#   span = 0.75,
-#   degree = 2
-# )
+b = coefplotsmooth2(
+  ages = ages,
+  start = "Ht",
+  stop = "Cad",
+  modelfit = modelfit,
+  window_width = 30,
+  span = 0.75,
+  degree = 2
+)
 ht_coefs = b$custom_smooth
 
 c = coefplotsmooth2(
@@ -164,10 +164,10 @@ coeflist = list(
   HHD_coefs
 )
 
-agesint = seq(40, 70, by = 1)
+agesint = seq(40, 79, by = 1)
 predicted_risks = array(NA, dim = c(nrow(test), length(agesint), 8))
 dimnames(predicted_risks) = list(
-  rownames(test),
+  as.numeric(as.character(test$identifier)),
   agesint,
   c(
     "Health",
@@ -175,7 +175,7 @@ dimnames(predicted_risks) = list(
     "HyperLip",
     "Dm",
     "Ht&HyperLip",
-    "HyperLip&DM",
+    "HyperLip&Dm",
     "Ht&Dm",
     "Ht&HyperLip&Dm"
   )
@@ -401,4 +401,36 @@ get_risk_profile <- function(data_array,
 risk_values <- get_risk_profile(data_array, start_cov_profile = 5,
 change_age_cov = 55, new_cov_profile = 10,
 start_model = 2, change_ages_model = c(50, 60), new_models = c(5, 6))
+
+
+s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
+s2=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
+
+
+# Get dimensions
+num_individuals <- length(rownames(predicted_risks))
+num_ages <- length(ages) - 1
+
+# Initialize the result matrix with zeroes
+cr <- matrix(0, nrow=num_individuals, ncol=num_ages)
+
+# Iterate over individuals and ages
+for(i in 1:num_individuals){
+  individual <- as.character(rownames(predicted_risks)[i])
+  
+  for(j in 1:num_ages){
+    agename <- as.character(ages[j])
+    
+    status <- which(s2[agename, individual,] == 1)
+    
+    if(length(status) > 0) {
+      cr[i,j] <- as.numeric(as.character(predicted_risks[individual, agename, status]))
+    } else {
+      # This will help you debug if there's an issue with particular combinations
+      cr[i,j] =0
+      #cat(sprintf("No status found for individual %s at age %s\n", individual, agename))
+    }
+  }
+}
+
 ```
