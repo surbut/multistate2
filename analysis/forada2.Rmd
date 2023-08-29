@@ -1,0 +1,233 @@
+---
+title: "RCA Analysis"
+output:
+  html_document: default
+  pdf_document: default
+date: '2023-08-29'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,eval = T,tidy = T,warning = FALSE,message = FALSE)
+```
+
+## Congenital RCA Anomalous Coronaries
+
+Here we analyse the age/sex matched controls with the 187 cases provided.
+We remove select cases and produce three compariosns:
+
+* Treated versus untreated RCA cases have no difference in mortality
+* When comparing among unroofing, CABG, cath or no treatment, no differences in mortality
+* when comparing to healthy age and sex matched controls no difference
+
+```{r cars}
+library('data.table')
+library(lubridate)
+library(MatchIt)
+library(survival)
+library(survminer)
+library(dplyr)
+
+ada=fread("~/Library/CloudStorage/Dropbox-Personal/AnomalousCoronaryArt_DATA_2023-08-29_0921.csv")
+ada=ada[ada$type_of_anomaly==3,]
+
+ada$censor.age=as.numeric(difftime(ada$date_of_death,ada$dob,units = "days")/365.25)
+##match on white
+
+alive=which(ada$alive==1)
+## get age of censor for those that live
+ada$censor.age[alive]=difftime(ada$last_date_of_follow_up[alive],ada$dob[alive],units = "days")/365.25
+
+## there are a few without censorship times
+ada=ada[-which(is.na(ada$censor.age)),]
+ada=ada[-which(is.na(ada$race)),]
+
+
+```
+
+
+Now let's answer our questions:
+
+#1) survival between surgical unroofing or reimplantation vs. cabg vs. cath vs. no intervention.
+
+First, check if any intervention is useful:
+
+```{r}
+
+ada$death=ifelse(ada$alive==1,0,1)
+
+
+fit=survfit(Surv(time = censor.age,event = death)~intervention,data=ada)
+
+
+fit
+
+ggsurvplot(
+  fit,
+  data = ada,
+  size = 1,                 # change line size
+  palette =
+    c("#E7B800", "#2E9FDF"),# custom color palettes
+  conf.int = TRUE,          # Add confidence interval
+  pval = TRUE,              # Add p-value
+  risk.table = TRUE,        # Add risk table
+  risk.table.col = "strata",# Risk table color by groups
+  legend.labs =
+    c("Not","Intervention"),    # Change legend labels
+  risk.table.height = 0.25, # Useful to change when you have multiple groups
+  ggtheme = theme_bw()      # Change ggplot2 theme
+)
+```
+
+
+### Now let's do for the different types of intervention versus none:
+
+
+
+```{r}
+ada$treat=NULL
+ada$treat[ada$intervention_list==2|ada$intervention_list==3]="U"
+ada$treat[ada$intervention_list==1]="B"
+ada$treat[ada$the_type_of_intervention==1]="C"
+ada$treat[ada$intervention==0]="none"
+ada$treat=factor(ada$treat,levels=c("U","B","C","none"),labels=c("unroofing_implant","bypass","cath","none"))
+ada=ada[-which(is.na(ada$treat)),]
+fit=survfit(Surv(time = censor.age,event = death)~treat,data=ada)
+
+
+fit
+
+ggsurvplot(
+  fit,
+  data = ada,
+  size = 1,                 # change line size
+    conf.int = TRUE,          # Add confidence interval
+  pval = TRUE,              # Add p-value
+  risk.table = TRUE,        # Add risk table
+  risk.table.col = "strata",# Risk table color by groups
+  risk.table.height = 0.25, # Useful to change when you have multiple groups
+  ggtheme = theme_bw()      # Change ggplot2 theme
+)
+
+```
+
+However, when we break by intervention, we see that there is a difference among the 4 categories of patients:
+
+```{r}
+ada$race=ifelse(ada$race==3,1,0)
+ada$sex=ifelse(ada$sex==2,1,0)
+## all.equal(which(is.na(ada$censor.age)),which(ada$alive==1))
+ada$dm=ifelse(ada$comorbidities___1==1,1,0)
+ada$smoke=ifelse(ada$comorbidities___2==1,1,0)
+ada$hyperlip=ifelse(ada$comorbidities___3==1,1,0)
+ada$hypertension=ifelse(ada$comorbidities___4==1,1,0)
+ada$stroke=ifelse(ada$comorbidities___5==1,1,0)
+
+ada_subset=ada[,c("record_id","sex","dob","alive","censor.age","hyperlip","hypertension","stroke","dm","smoke","race","treat")]
+
+ada_subset%>%group_by(treat)%>%summarise("Per_female"=mean(sex),"hyperlip"=mean(hyperlip),"stroke"=mean(stroke),"dm"=mean(dm),"smoke"=mean(smoke),"race"=mean(race),"birthyear"=mean(year(dob)))
+```
+
+
+### Now:
+
+And then a comparison of the low surgical risk (who do not have slit-like, and do not have intramural course) vs healthy controls?
+
+```{r}
+
+ada_subset=ada[,c("record_id","sex","dob","alive","censor.age","hyperlip","hypertension","stroke","dm","smoke","race","intervention")]
+
+f=fread("~/Library/CloudStorage/Dropbox-PartnersHealthCare/MGBB (1)/Phenotypes/Manual Curated/MGBB_Phenos_2CODE 2022-06-21.csv")
+
+f$hyperlip=ifelse(f$Has_hyperlipidemia==1,1,0)
+f$stroke=ifelse(f$Has_all_stroke_noTIA==1,1,0)
+f$hypertension=ifelse(f$Has_htn==1,1,0)
+
+cov=fread("~/Library/CloudStorage/Dropbox-PartnersHealthCare/cathproject/mgbb_pce_collection_date.csv")
+f=merge(f,cov,by="EMPI")
+f$smoke=ifelse(f$current_smoking_imputed=="yes",1,0)
+f$dm=ifelse(f$dm=="yes",1,0)
+f$race=ifelse(f$race_imputed=="white",1,0)
+
+## remove those without a date of death
+f2=f[!which(f$Vital_Status=="Deceased"&is.na(f$Date_of_Death)),]
+
+f2$censor.age=as.numeric(difftime(f2$Date_of_Death,f2$Date_of_Birth,units = "days")/365.25)
+
+# w=which(f2$Vital_Status=="Living")
+# n=which(is.na(f2$censor.age))
+# all.equal(w,n)
+alive=which(f2$Vital_Status=="Living")
+f2$censor.age[alive]=difftime(f2$Censor_Date[alive],f2$Date_of_Birth[alive],units = "days")/365.25
+
+#########
+
+f2$treat=rep(2,nrow(f2))
+f2$Sex=ifelse(f2$sex_imputed=="female",1,0)
+f2$Vital_Status=ifelse(f2$Vital_Status=="Living",1,0)
+
+f2_subset=f2[,c("Biobank_Subject_ID","Sex","Date_of_Birth","Vital_Status","censor.age","hyperlip","hypertension","stroke","dm","smoke","race","treat")]
+
+
+
+names(f2_subset)=names(ada_subset)
+
+df=rbind(ada_subset,f2_subset)
+df$age.today=as.numeric(difftime(as.Date("2023-08-26"),as.Date(df$dob),units = "days")/365.25)
+df$death=ifelse(df$alive==0,1,0)
+df$case_control=ifelse(df$intervention==2,0,1)
+m.out0 <- matchit(case_control ~ age.today + sex, data = df,
+                 method = NULL, distance = "glm")
+
+summary(m.out0)
+```
+
+
+
+##  Now do nearest neighbor propensity score matching:
+
+Here we display info about the matching after controlling for DOB, sex matching all those in the RCA group (both treated and untreated) with health controls:
+
+```{r pressure, echo=FALSE}
+m.out1 <- matchit(case_control ~ age.today+sex, data = df,method = "nearest", distance = "glm")
+
+m.out1
+summary(m.out1, un = FALSE)
+
+#check the balance
+plot(m.out1, type = "density", interactive = FALSE,
+     which.xs = ~age.today+sex)
+
+```
+
+
+Now let's generate the survival model:
+
+```{r}
+library(survival)
+library(survminer)
+
+m=match.data(m.out1)
+m$intervention=factor(m$intervention,levels = c(0,1,2),labels=c("untreated","treated","control"))
+fit=survfit(Surv(time = censor.age,event = death)~intervention,data=m)
+fit
+
+g=ggsurvplot(
+  fit,
+  data = m,
+  size = 1,                 # change line size
+# custom color palettes
+  conf.int = TRUE,          # Add confidence interval
+  pval = TRUE,              # Add p-value
+  risk.table = TRUE,        # Add risk table
+  risk.table.col = "strata",# Risk table color by groups
+ 
+  risk.table.height = 0.25, # Useful to change when you have multiple groups
+  ggtheme = theme_bw()      # Change ggplot2 theme
+)
+
+g
+
+
+```
+
+
