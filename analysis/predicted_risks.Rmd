@@ -18,6 +18,7 @@ source("~/multistate2//code/smoothtest.R")
 source("~/multistate2//code/newsmooth.R")
 source("~/multistate2/code/fitarray.R")
 library("reshape2")
+source("~/multistate2/code/arrayindicate.R")
 
 load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
 dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
@@ -38,23 +39,29 @@ source("~/multistate2/code/frs30_URBUT/fun.frs_30y.R")
 library(CVrisk)
 ages=c(40:80)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
-
-modelfit = fitfunc2(
-  data.table(train[train$cad.prs>0.6,]),
-  ages = ages,
-  nstates = nstates,
-  mode = "binomial",
-  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
-)
-
-
+# 
 # modelfit = fitfunc2(
-#   data.table(train),
+#   data.table(train[train$cad.prs>0.6,]),
 #   ages = ages,
 #   nstates = nstates,
 #   mode = "binomial",
-#   covariates = "cad.prs:statin_now+f.31.0.0+smoke+antihtn_now"
+#   covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
 # )
+
+B=20
+
+for(i in 1:B){
+  
+row=sample(nrow(train),size = nrow(train),replace = T)
+modelfit = fitfunc2(
+  data.table(train[row,]),
+  ages = ages,
+  nstates = nstates,
+  mode = "binomial",
+  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+
+saveRDS(object = modelfit,file = paste0("~/multistate2/output/bootstrap",i,".rds"))
+}
 ages = 40:80
 ```
 
@@ -354,7 +361,7 @@ plot(euler(list("UkbPheno"=which(g3$Cad_0_Any==2),"Lab"=which(g3$has_disease==1)
 ```
 
 
-```{r}
+```{r,eval=T}
 
 get_risk_profile <- function(data_array, 
                              start_cov_profile, change_age_cov = NULL, new_cov_profile = NULL, 
@@ -398,15 +405,17 @@ get_risk_profile <- function(data_array,
 
 # Example usage
 # Let's assume your 3D array is named data_array
-risk_values <- get_risk_profile(data_array, start_cov_profile = 5,
-change_age_cov = 55, new_cov_profile = 10,
-start_model = 2, change_ages_model = c(50, 60), new_models = c(5, 6))
+# risk_values <- get_risk_profile(data_array, start_cov_profile = 5,
+# change_age_cov = 55, new_cov_profile = 10,
+# start_model = 2, change_ages_model = c(50, 60), new_models = c(5, 6))
 
 
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 s2=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
 
+```
 
+```{r,eval=F}
 # Get dimensions
 num_individuals <- length(rownames(predicted_risks))
 num_ages <- length(ages) - 1
@@ -433,4 +442,37 @@ for(i in 1:num_individuals){
   }
 }
 
+
+saveRDS(cr,"~/multistate2/output/cr2.rds")
 ```
+
+```{r,echo=F}
+plotfunc=function(patientriskmat,patient,ages){
+  riskvec=patientriskmat[patient,]
+  
+  mat=data.frame(ages=ages,lifetimerisk=100*riskvec)
+  
+  mat=mat[mat$lifetimerisk>0,]
+  mat$risklev=cut(mat$lifetimerisk,breaks = c(0,10,15,20,25,30,35,40,50,100))
+  ggplot(mat[mat$lifetimerisk>0,],aes(ages,lifetimerisk,col=risklev))+geom_point()+labs(x="Ages",y="Lifetime Risk",col="Lifetime Risk Level")
+}
+
+```
+
+```{r}
+cr=readRDS("~/multistate2/output/cr2.rds")
+h=apply(s[,,c(1:10)],3,function(x){colSums(t(x))})
+h=apply(h,1,function(x){x/sum(x)})
+h=t(h)
+melt=melt(h)
+g=ggplot(melt[!(melt$Var2 %in% "out"),],aes(Var1,value,fill=Var2))+geom_bar(stat="identity")+
+  labs(x="Age",y="Proportional Occupancy",fill="Current State")+scale_fill_d3()
+saveRDS(g,file="~/multistate2/output/proportionaloccupancy.rds")
+
+plotfunc(patientriskmat = cr,patient = which(test$identifier%in%"5021941"),ages = c(40:79))
+```
+
+
+```{r}
+test$sta_lev=cut(as.numeric(test$statin_age,breaks = c(0,40,50,60,70,100))
+
