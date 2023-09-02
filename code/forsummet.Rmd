@@ -1,0 +1,52 @@
+---
+title: "forSumeet"
+output: html_document
+date: "2023-09-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r cars}
+OR=1.62 
+logOR=log(1.62)
+p=0.05/8
+Z=qnorm(1-p/2)
+
+logse=logOR/Z
+```
+
+
+## Frequency of nonischemic cardiomyopathy (NICM) in UKBB participants who underwent cMRI and WGS stratified by carriers of PPARGC1A loss-of-function + deleterious missense variants vs non carriers  
+
+
+```{r}
+library(ggplot2)
+
+# Data
+data <- data.frame(
+  Factor = "Given Factor",
+  OR = 1.62,
+  lower = exp(log(1.62) - 1.96 * 0.17),
+  upper = exp(log(1.62) + 1.96 * 0.17)
+)
+
+# Plot
+ggplot(data, aes(x = Factor, y = OR)) +
+ geom_bar(stat = "identity", fill = "skyblue") +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+  geom_text(aes(label = "p < 0.05/8", y = upper + 0.1), vjust = 0) +
+
+  labs(
+    title = "Odds Ratio with 95% CI for Frequency of NICM in UKBB",
+    y = "Odds Ratio",
+    x = NULL
+  ) +
+  theme_minimal() + labs()
+  coord_cartesian(ylim = c(0, max(data$upper + 0.5)))
+```
+

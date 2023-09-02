@@ -48,7 +48,8 @@ nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&D
 #   covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
 # )
 
-B=20
+B=50
+## increase bootstrap
 
 for(i in 1:B){
   
