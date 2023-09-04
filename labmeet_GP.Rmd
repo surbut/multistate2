@@ -711,9 +711,9 @@ ggplotly(readRDS("output/rmsemodellife.rds"))
 ```
 
 ## Thank you!
-* ALL the members of the Natarajan and Gusev Lab!
+* Sasha Gusev, PhD
 * Giovanni Parmigiani, PhD
-* and ...
+* Ludovic Trinquart, PhD
 
 
 ```{r, out.width= "500px", echo=FALSE}
