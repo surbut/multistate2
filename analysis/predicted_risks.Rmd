@@ -477,7 +477,7 @@ plotfunc(patientriskmat = cr,patient = which(oldtest$identifier%in%"5021941"),ag
 ```{r}
 test$sta_lev=cut(as.numeric(test$statin_age,breaks = c(0,40,50,60,70,100))
 
-                 library(dplyr)
+library(dplyr)
 library(ggplot2)
 
 library(dplyr)
@@ -535,6 +535,97 @@ get_person_summary_plot(pm, s2, "5021941")
 
 
 
+get_person_cross_threshold <- function(pm, s2, person_idx) {
+  # Convert the risk array for the given person to a data frame
+  risk_df <- as.data.frame(as.table(pm[, person_idx, , ]))
+  colnames(risk_df) <- c("Bootstrap", "Age", "State", "Risk")
+
+  # Convert the state indicator array for the given person to a data frame
+  state_df <- as.data.frame(as.table(s2[, person_idx, ]))
+  colnames(state_df) <- c("Age", "State", "Indicator")
+
+  # Extract the state info for the given person
+  current_state_df <- state_df %>%
+    filter(Indicator == 1) %>%
+    select(-Indicator)
+  
+  # Merge the data to get risks based on the state the person is in
+  merged_df <- risk_df %>%
+    inner_join(current_state_df, by = c("Age", "State"))
+  
+  # Compute mean and SE for the person across ages
+  summary_df <- merged_df %>%
+    group_by(Age) %>%
+    summarise(
+      mean_risk = mean(Risk),
+      se_risk = sd(Risk) / sqrt(n()),
+      #lower_95 = mean_risk - 1.96 * se_risk,  # For 95% CI
+      #upper_95 = mean_risk + 1.96 * se_risk,  # For 95% CI
+      lower_95 = quantile(Risk,0.025),  # For 95% CI
+      upper_95 = quantile(Risk,0.975),  # For 95% CI
+    
+      .groups = "drop"
+    )
+
+return(list(mean_risk=summary_df$mean_risk,se=summary_df$se_risk))}
+
+states=sapply(c(1:nrow(test)),function(x){get_person_cross_threshold(pm,s2,as.character(test$identifier[x]))$mean_risk})
+
+saveRDS(states,"~/multistate2/output/state_occupancy_risk.rds")
+
+##
+
+
+thresh=0.20;
+t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),0)})
+
+library(ggplot2)
+
+# Assuming t is your data vector...
+data <- data.frame(t_val = t[t > 0])
+
+# Create the ggplot histogram
+p <- ggplot(data, aes(x = t_val)) +
+  geom_histogram(bins = length(ages) - 1, fill = "blue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+  labs(title = "Histogram of Age Exceeding Risk",
+       x = "Value of t",
+       y = "Density")+theme_classic()
+
+# Display the plot
+print(p)
+
+# Sample data (replace this with your matrix or data frame)
+
+data=test
+data$statin_age=as.numeric(data$statin_age)
+# Categorize the ages
+data$age_category <- case_when(
+  is.na(data$statin_age) ~ "Never",
+  data$statin_age < 45 ~ "<45",
+  data$statin_age >= 45 & data$statin_age < 55 ~ "45-55",
+  data$statin_age >= 55 & data$statin_age < 65 ~ "55-65",
+  data$statin_age >= 65 ~ ">65",
+  TRUE ~ as.character(data$statin_age) # catch-all for unexpected values
+)
+
+# Order the levels of the age_category factor
+data$age_category <- factor(data$age_category, levels = c("Never", "<45", "45-55", "55-65", ">65"))
+
+
+# Prepare data for plotting
+plot_data <- data %>%
+  group_by(age_category) %>%
+  arrange(cad.prs) %>%
+  mutate(ecdf_val = ecdf(cad.prs)(cad.prs))
 
 
 
+# Plot the ECDF
+ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
+  geom_step() +
+  labs(title = "ECDF of PRS by Statin Start Age",
+       x = "PRS",
+       y = "ECDF",
+       color="Statin Start Age") + scale_color_aaas()+
+  theme_classic()
+```

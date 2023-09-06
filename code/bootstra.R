@@ -27,6 +27,7 @@ nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&D
 
 
 B=50
+
 ## increase bootstrap
 
 # for(i in 1:B){
@@ -216,6 +217,7 @@ pm=predicted_risks[c((1:4),(6:50)),,,]
 saveRDS(pm,"../output/predictedrsiskboot.rds")
 
 oldtest=test
+
 ## now do for a fixed matrix
 test=data.frame(atrisk)
 rownames(test)=c(1:nrow(test))
@@ -441,6 +443,7 @@ plot_risk_for_person <- function(pm, person_idx) {
     theme_classic()
 }
 
+
 plot_risk2_for_person <- function(pm, person_idx) {
   person_df <- person_to_df(pm, person_idx)
   summary_df <- get_summary2(person_df)
@@ -453,97 +456,12 @@ plot_risk2_for_person <- function(pm, person_idx) {
 }
 
 # Plot for the first person as an example
-plot_risk_for_person(pm, 1)
+plot_risk_for_person(pm, "5021941")
 # Plot for the first person as an example
-plot_risk2_for_person(pm, 1)
+plot_risk2_for_person(pm, "5021941")
+
+get_person_summary_plot(pm, s2, "5021941")
 
 
-
-
-a=pm[,,,"Health"]
-a=data.frame(t(a))
-
-colnames(a)[1:49]=paste0("bootstrap_",c(1:49))
-a$age=rownames(a)
-
-library(tidyverse)
-
-
-data_long <- a %>%
-pivot_longer(cols = starts_with("bootstrap"),
-names_to = "bootstrap",
-values_to = "prediction")
-head(data_long)
-
-data_stats <- data_long %>%
-group_by(age) %>%
-summarise(mean_pred = mean(prediction),
-se_pred = sd(prediction) / sqrt(n())) %>%
-ungroup()
-data_stats <- data_long %>%
-group_by(age) %>%
-summarise(mean_pred = mean(prediction),
-se_pred = sd(prediction) / sqrt(n())) %>%
-ungroup()
-
-library(ggplot2)
-
-ggplot(data_stats, aes(x = age, y = mean_pred)) +
-geom_line(color = "blue") +  # Average prediction
-geom_ribbon(aes(ymin = mean_pred - se_pred, ymax = mean_pred + se_pred), alpha = 0.4) +  # Ribbon for standard errors
-theme_minimal() +
-labs(title = "Bootstrapped Predictions with Standard Errors for Person 1",
-x = "Age",
-y = "Prediction")
-
-ggplotly(ggplot(data, aes(x = age)) +
-           geom_ribbon(data = sum_stats, aes(ymin = lower, ymax = upper), alpha = 0.3,color="blue") +
-           geom_line(data = sum_stats, aes(y = median, group = 1)) +
-           geom_smooth(data = sum_stats, aes(y = median, group = 1), method = "loess", se = FALSE, color = "red") +
-           labs(
-             title = "Loess smoothing with bootstrap prediction range",
-             x = "Year",
-             y = "Predictions"
-           ) +
-           theme_minimal())
-
-ggplot(data_stats, aes(x = age, y = mean_pred)) +
-geom_line(aes(group = person), color = "blue") +  # Each person's average prediction
-geom_ribbon(aes(ymin = mean_pred - se_pred, ymax = mean_pred + se_pred, fill = person), alpha = 0.4) +  # Ribbon for standard errors
-theme_minimal() +
-labs(title = "Bootstrapped Predictions with Standard Errors",
-x = "Age",
-y = "Prediction")
-
-data_long <- a %>%
-pivot_longer(cols = starts_with("bootstrap"),
-names_to = "bootstrap",
-values_to = "prediction")
-specific_person=data_long
-data_variance <- data_long %>%
-group_by(age) %>%
-summarise(mean_pred = mean(prediction),
-se_pred = sd(prediction) / sqrt(n())) %>%
-ungroup()
-
-ggplot(specific_person, aes(x = age, y = prediction)) +
-geom_point(aes(color = bootstrap), alpha = 0.6, size = 1.5) +
-stat_smooth(method = "loess", se = FALSE, color = "black", size = 1) +  # LOESS smoother without default SE
-geom_ribbon(data = data_variance, aes(ymin = mean_pred - se_pred, ymax = mean_pred + se_pred), alpha = 0.3, inherit.aes = FALSE) +  # Ribbon based on SE
-theme_minimal() +
-labs(title = "Bootstrapped Predictions with LOESS Smoother and Variance-based Ribbon for Person 1",
-x = "Age",
-y = "Prediction") +
-guides(color = FALSE)
-
-ggplot(specific_person, aes(x = age, y = prediction)) +
-geom_point(aes(color = bootstrap), alpha = 0.6, size = 1.5) +
-stat_smooth(method = "loess", se = FALSE, color = "black", size = 1) + geom_ribbon(data = data_variance, aes(ymin = mean_pred - se_pred, ymax = mean_pred + se_pred), alpha = 0.3, inherit.aes = FALSE) +  # Ribbon based on SE
-theme_minimal() +
-labs(title = "Bootstrapped Predictions with LOESS Smoother and Variance-based Ribbon for Person 1",
-x = "Age",
-y = "Prediction") +
-guides(color = FALSE)
- # LOESS smoother without default SE
 
 
