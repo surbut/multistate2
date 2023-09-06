@@ -34,7 +34,8 @@ statusarray = function(df_frame, ages, nstates) {
                         age > Ht_0_censor_age &
                         Ht_0_Any == 2 &
                         age < HyperLip_0_censor_age &
-                        age < Dm_0_censor_age,]
+                        age < Dm_0_censor_age &
+                      age < Death_Censor_Age,]
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "Ht"] = 1
     
@@ -44,7 +45,8 @@ statusarray = function(df_frame, ages, nstates) {
                         age > HyperLip_0_censor_age &
                         HyperLip_0_Any == 2 &
                         age < Ht_0_censor_age &
-                        age < Dm_0_censor_age,]
+                        age < Dm_0_censor_age
+                        & age < Death_Censor_Age,]
     
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "HyperLip"] =
@@ -61,7 +63,8 @@ statusarray = function(df_frame, ages, nstates) {
                         age > Dm_0_censor_age &
                         Dm_0_Any == 2 &
                         age < Ht_0_censor_age &
-                        age < HyperLip_0_censor_age,]
+                        age < HyperLip_0_censor_age &
+                        age < Death_Censor_Age,]
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "Dm"] = 1
     
@@ -81,7 +84,7 @@ statusarray = function(df_frame, ages, nstates) {
     atrisk = df_frame[age < Cad_0_censor_age &
                         age > Dm_0_censor_age & Dm_0_Any == 2 &
                         age > Ht_0_censor_age & Ht_0_Any == 2
-                      & age < HyperLip_0_censor_age,]
+                      & age < HyperLip_0_censor_age&age < Death_Censor_Age,]
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "Ht&Dm"] = 1
     
@@ -95,7 +98,7 @@ statusarray = function(df_frame, ages, nstates) {
                         Dm_0_Any == 2 &
                         age > HyperLip_0_censor_age &
                         HyperLip_0_Any == 2 &
-                        age < Ht_0_censor_age,]
+                        age < Ht_0_censor_age &age < Death_Censor_Age,]
     
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "HyperLip&Dm"] =
@@ -110,7 +113,7 @@ statusarray = function(df_frame, ages, nstates) {
                         Ht_0_Any == 2 &
                         age > HyperLip_0_censor_age &
                         HyperLip_0_Any == 2
-                      & age < Dm_0_censor_age, ]
+                      & age < Dm_0_censor_age&age < Death_Censor_Age, ]
     
                       
    ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "Ht&HyperLip"] =
@@ -127,7 +130,7 @@ statusarray = function(df_frame, ages, nstates) {
                         Ht_0_Any == 2 &
                         age > HyperLip_0_censor_age &
                         HyperLip_0_Any == 2
-                      & age > Dm_0_censor_age & Dm_0_Any == 2,]
+                      & age > Dm_0_censor_age & Dm_0_Any == 2&age < Death_Censor_Age,]
     
     ar[agename, rownames(ar[i, , ]) %in% atrisk$identifier, "Ht&HyperLip&Dm"] =
       1

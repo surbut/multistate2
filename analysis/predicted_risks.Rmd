@@ -39,30 +39,30 @@ source("~/multistate2/code/frs30_URBUT/fun.frs_30y.R")
 library(CVrisk)
 ages=c(40:80)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+ modelfit = fitfunc2(
+   data.table(train),
+   ages = ages,
+    nstates = nstates,
+ mode = "binomial",
+   covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
+ )
+
+# B=50
+# ## increase bootstrap
 # 
+# for(i in 1:B){
+#   
+# row=sample(nrow(train),size = nrow(train),replace = T)
 # modelfit = fitfunc2(
-#   data.table(train[train$cad.prs>0.6,]),
+#   data.table(train[row,]),
 #   ages = ages,
 #   nstates = nstates,
 #   mode = "binomial",
-#   covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now"
-# )
-
-B=50
-## increase bootstrap
-
-for(i in 1:B){
-  
-row=sample(nrow(train),size = nrow(train),replace = T)
-modelfit = fitfunc2(
-  data.table(train[row,]),
-  ages = ages,
-  nstates = nstates,
-  mode = "binomial",
-  covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
-
-saveRDS(object = modelfit,file = paste0("~/multistate2/output/bootstrap",i,".rds"))
-}
+#   covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+# 
+# saveRDS(object = modelfit,file = paste0("~/multistate2/output/bootstrap",i,".rds"))
+# }
 ages = 40:80
 ```
 
@@ -444,7 +444,7 @@ for(i in 1:num_individuals){
 }
 
 
-saveRDS(cr,"~/multistate2/output/cr2.rds")
+saveRDS(cr,"~/multistate2/output/cr3.rds")
 ```
 
 ```{r,echo=F}
@@ -470,10 +470,71 @@ g=ggplot(melt[!(melt$Var2 %in% "out"),],aes(Var1,value,fill=Var2))+geom_bar(stat
   labs(x="Age",y="Proportional Occupancy",fill="Current State")+scale_fill_d3()
 saveRDS(g,file="~/multistate2/output/proportionaloccupancy.rds")
 
-plotfunc(patientriskmat = cr,patient = which(test$identifier%in%"5021941"),ages = c(40:79))
+plotfunc(patientriskmat = cr,patient = which(oldtest$identifier%in%"5021941"),ages = c(40:79))
 ```
 
 
 ```{r}
 test$sta_lev=cut(as.numeric(test$statin_age,breaks = c(0,40,50,60,70,100))
+
+                 library(dplyr)
+library(ggplot2)
+
+library(dplyr)
+library(ggplot2)
+
+get_person_summary_plot <- function(pm, s2, person_idx) {
+  # Convert the risk array for the given person to a data frame
+  risk_df <- as.data.frame(as.table(pm[, person_idx, , ]))
+  colnames(risk_df) <- c("Bootstrap", "Age", "State", "Risk")
+
+  # Convert the state indicator array for the given person to a data frame
+  state_df <- as.data.frame(as.table(s2[, person_idx, ]))
+  colnames(state_df) <- c("Age", "State", "Indicator")
+
+  # Extract the state info for the given person
+  current_state_df <- state_df %>%
+    filter(Indicator == 1) %>%
+    select(-Indicator)
+  
+  # Merge the data to get risks based on the state the person is in
+  merged_df <- risk_df %>%
+    inner_join(current_state_df, by = c("Age", "State"))
+  
+  # Compute mean and SE for the person across ages
+  summary_df <- merged_df %>%
+    group_by(Age) %>%
+    summarise(
+      mean_risk = mean(Risk),
+      se_risk = sd(Risk) / sqrt(n()),
+      #lower_95 = mean_risk - 1.96 * se_risk,  # For 95% CI
+      #upper_95 = mean_risk + 1.96 * se_risk,  # For 95% CI
+      lower_95 = quantile(Risk,0.025),  # For 95% CI
+      upper_95 = quantile(Risk,0.975),  # For 95% CI
+    
+      .groups = "drop"
+    )
+
+  # Add a risk level column to the data frame
+  summary_df$risk_level <- cut(summary_df$mean_risk*100, breaks = c(-Inf, 20, 30, Inf), labels = c("<20", "20-30", ">30"))
+  summary_df$risk_level=as.factor(summary_df$risk_level)
+  # Create ggplot
+  plot <- ggplot(summary_df, aes(x = Age, y = mean_risk*100,color=as.factor(risk_level))) +
+    geom_point(aes(color = as.factor(risk_level)), size = 3) +
+    geom_errorbar(aes(ymin = lower_95*100, ymax = upper_95*100), width = 0.3) +
+    
+    labs(title = paste("Predicted Risk by Ages for Person", person_idx),
+         y = "Predicted Risk", x = "Age") +
+    theme_classic()
+
+  return(list(plot,summary_df))
+}
+
+# Call the function for the first person and display the plot:
+get_person_summary_plot(pm, s2, "5021941")
+
+
+
+
+
 
