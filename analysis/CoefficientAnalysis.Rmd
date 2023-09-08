@@ -202,7 +202,6 @@ Now try with a fuller model:
 # 
 modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
                   
-                  +statin_now") 
 
 #pcten 0.679
 
@@ -224,6 +223,7 @@ agesint=seq(40,70,by=5)
 prs_quants=c(data.frame(test%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 
 ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
 
 for(i in 1:length(agesint)) {
   age = agesint[i]

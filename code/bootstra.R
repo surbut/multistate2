@@ -354,7 +354,7 @@ for (j in 1:length(coeflist)) {
   for (i in 1:length(agesint)) {
     age = agesint[i]
     start = age
-    stop = 80
+    stop = 80 ## here we use lifetime
    age=agesint[i]
     start=age
     stop=80

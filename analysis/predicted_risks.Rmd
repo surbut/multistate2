@@ -563,20 +563,21 @@ get_person_cross_threshold <- function(pm, s2, person_idx) {
       #upper_95 = mean_risk + 1.96 * se_risk,  # For 95% CI
       lower_95 = quantile(Risk,0.025),  # For 95% CI
       upper_95 = quantile(Risk,0.975),  # For 95% CI
+      num_exceeded=sum(Risk>thresh),
     
       .groups = "drop"
     )
 
-return(list(mean_risk=summary_df$mean_risk,se=summary_df$se_risk))}
+return(list(mean_risk=summary_df$mean_risk,se=summary_df$se_risk,num_exceeded=summary_df$num_exceeded))}
 
-states=sapply(c(1:nrow(test)),function(x){get_person_cross_threshold(pm,s2,as.character(test$identifier[x]))$mean_risk})
+states=sapply(c(1:nrow(test)),function(x){get_person_cross_threshold(pm,s2,as.character(test$identifier[x]))$mean_risk}
 
 saveRDS(states,"~/multistate2/output/state_occupancy_risk.rds")
 
 ##
 
 
-thresh=0.20;
+thresh=0.10;
 t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),0)})
 
 library(ggplot2)
@@ -587,8 +588,8 @@ data <- data.frame(t_val = t[t > 0])
 # Create the ggplot histogram
 p <- ggplot(data, aes(x = t_val)) +
   geom_histogram(bins = length(ages) - 1, fill = "blue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
-  labs(title = "Histogram of Age Exceeding Risk",
-       x = "Value of t",
+  labs(title = "Histogram of First Age Exceeding Risk",
+       x = "Minimum Age Exceeded",
        y = "Density")+theme_classic()
 
 # Display the plot
@@ -621,11 +622,170 @@ plot_data <- data %>%
 
 
 # Plot the ECDF
-ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
+statage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
   geom_step() +
   labs(title = "ECDF of PRS by Statin Start Age",
        x = "PRS",
        y = "ECDF",
-       color="Statin Start Age") + scale_color_aaas()+
+       color="First Age (prescription or diagnosis)") + scale_color_aaas()+
   theme_classic()
-```
+
+
+###
+
+# Sample data (replace this with your matrix or data frame)
+
+data=test
+data$Cad_0_censor_age=as.numeric(data$Cad_0_censor_age)
+# Categorize the ages
+sickdata=data[data$Cad_0_Any==2,]
+sickdata$age_category<- case_when(
+  #is.na(data$statin_age) ~ "Never",
+  sickdata$Cad_0_censor_age < 45 ~ "<45",
+  sickdata$Cad_0_censor_age >= 45 & sickdata$Cad_0_censor_age  < 55 ~ "45-55",
+  sickdata$Cad_0_censor_age >= 55 & sickdata$Cad_0_censor_age  < 65 ~ "55-65",
+  sickdata$Cad_0_censor_age >= 65 ~ ">65",
+  TRUE ~ as.character(sickdata$Cad_0_censor_age) # catch-all for unexpected values
+)
+
+# Order the levels of the age_category factor
+sickdata$age_category <- factor(sickdata$age_category, levels = c("<45", "45-55", "55-65", ">65"))
+
+health_data=test[Cad_0_Any==1,]
+health_data$age_category="Never"
+
+d2=rbind(health_data,sickdata)
+# Prepare data for plotting
+plot_data <- d2 %>%
+  group_by(age_category) %>%
+  arrange(cad.prs) %>%
+  mutate(ecdf_val = ecdf(cad.prs)(cad.prs))
+
+
+
+# Plot the ECDF
+cadage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
+  geom_step() +
+  labs(title = "empirical CDF of PRS by Age of 1st CAD Diagnosis",
+       x = "CAD-PRS",
+       y = "eCDF",
+       color="CAD Age") + scale_color_aaas()+
+  theme_classic()
+
+
+ggarrange(statage,cadage,common.legend = T)
+
+library(dplyr)
+
+
+get_person_exceedance_count <- function(person_index, pm, s2, threshold) {
+  person_risks <- pm[, person_index, , ]
+  person_states <- s2[, person_index, ]
+
+  age_count <- dim(pm)[3]
+  
+  # Placeholder for results
+  result <- data.frame(Age = as.numeric(dimnames(pm)[3][[1]]), Count_Exceedances = integer(age_count))
+  
+  for(age in 1:age_count) {
+    current_state <- which(person_states[age, ] == 1)
+    exceedances <- sum(person_risks[, age, current_state] > threshold)
+    result$Count_Exceedances[age] <- exceedances
+  }
+  
+  return(result)
+}
+
+# Test for a single person
+threshold <- 0.1  # set to your desired threshold
+person_index = 1  # example person
+result <- get_person_exceedance_count(person_index, pm, s2, threshold)
+print(result)
+
+threshold <- 0.1 
+
+temp=proc.time()
+# Set to your desired threshold
+all_results=lapply(1:dim(pm)[2], function(i) {
+  df <- get_person_exceedance_count(i, pm, s2, threshold)
+  df$Individual <- i
+  return(df)
+}))
+
+proc.time()-temp
+
+s=t(sapply(1:length(l),function(x){l[[x]]$Count_Exceedances}))
+
+result_df <- as.data.frame(s)
+result_df$Individual <- 1:nrow(s)
+long_result_df <- result_df %>%
+  gather(Age, Count_Exceedances, -Individual)
+
+
+long_result_df$NumericAge <- as.numeric(gsub("V", "", long_result_df$Age))
+
+# Compute mean exceedances per age
+age_summary <- long_result_df %>%
+  group_by(NumericAge) %>%
+  summarise(MeanExceedances = sum(Count_Exceedances), .groups = 'drop')
+
+# Ensure all ages are represented
+all_ages <- data.frame(NumericAge = 40:79)
+age_summary <- merge(all_ages, age_summary, by = "NumericAge", all.x = TRUE)
+age_summary$MeanExceedances[is.na(age_summary$MeanExceedances)] <- 0
+
+# Plot
+ggplot(age_summary, aes(x = NumericAge, y = MeanExceedances)) +
+  geom_col(fill = "dodgerblue", color = "black") +
+  labs(title = "Mean Number of Simulations Exceeding Threshold by Age",
+       x = "Age", 
+       y = "Mean Number of Simulations Exceeding Threshold") +
+  theme_minimal()
+
+
+
+
+threshold=0.10
+# Create an array to store the exceedance data (1 if exceeded, 0 otherwise)
+
+# Create an array to store the exceedance data (1 if exceeded, 0 otherwise)
+exceedance_array <- array(0, dim = c(dim(s2)[1:2]))
+
+threshold=0.20
+# Check for exceedance in each bootstrap, for each patient's state at each age
+for(b in 1:dim(pm)[1]){
+  for(i in 1:dim(pm)[2]){
+    for(a in 1:dim(pm)[3]){
+      state_at_age <- which(s2[a, i, ] == 1)
+      if (length(state_at_age) > 0) {
+        if(pm[b, i, a, state_at_age] > threshold){
+          exceedance_array[a, i] <- 1
+        }
+      }
+    }
+  }
+}
+
+dimnames(exceedance_array)[1][[1]]=c(40:79)
+
+agenames=c(40:79)
+# Extract the minimum age of exceedance for each patient
+min_age_exceedance <- apply(exceedance_array, 2, function(x) {
+  if(sum(x) > 0){
+    return(agenames[which(x == 1)[1]])
+  } else {
+    return(NA)
+  }
+})
+
+# Convert the result into a dataframe for plotting
+df <- data.frame(MinAgeExceedance = min_age_exceedance)
+
+
+
+ggplot(df, aes(x = MinAgeExceedance)) +
+  geom_histogram(binwidth = 1, fill = "dodgerblue", color = "black") +
+  labs(title = "Distribution of Minimum Age of Risk Exceedance",
+       x = "Minimum Age of Exceedance (with boostrapping)", 
+       y = "Number of Patients") +
+  theme_minimal()

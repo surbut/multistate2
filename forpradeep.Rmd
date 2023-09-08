@@ -1,0 +1,82 @@
+---
+title: "Pradeep_grant_lipid"
+output: html_document
+date: "2023-09-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library("dplyr")
+```
+
+## R Markdown
+
+```{r}
+hdl=readRDS("~/Library/CloudStorage/Dropbox-Personal/denaxasvalues/hdl.rds")
+tc=readRDS("~/Library/CloudStorage/Dropbox-Personal/denaxasvalues/tc.rds")
+ldl=readRDS("~/Library/CloudStorage/Dropbox-Personal/ldlgp.rds")
+load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+df_Ukb = dfh
+colnames(df_Ukb)[1]="eid"
+```
+
+Unique people
+
+```{r}
+
+analyze_lipid_data <- function(lipid_data, lipid_name) {
+
+combined_data <- left_join(lipid_data, df_Ukb, by="eid")
+  
+  # Number of unique individuals with measurements
+  n_individuals <- length(unique(combined_data$eid))
+  
+  # Proportion female
+ unique_females <- combined_data %>% filter(f.31.0.0 == 0) %>% select(eid) %>% distinct()
+  n_female <- nrow(unique_females)
+  prop_female <- n_female / n_individuals
+  
+  
+  # Median age and IQR
+  combined_data$birthdate <- as.Date(combined_data$Birthdate, format="%Y-%m-%d")
+  combined_data$event_dt <- as.Date(combined_data$event_dt, format="%Y-%m-%d")
+  combined_data$age_at_event <- as.numeric(difftime(combined_data$event_dt, combined_data$birthdate, units="days") / 365.25)
+  median_age <- median(combined_data$age_at_event, na.rm=TRUE)
+  iqr_age <- IQR(combined_data$age_at_event, na.rm=TRUE)
+  
+  # Median [IQR] longest sampling interval
+  sampling_interval <- combined_data %>%
+    group_by(eid) %>%
+    arrange(event_dt) %>%
+    summarise(longest_interval = ifelse(length(event_dt) > 1, max(diff(event_dt), na.rm=TRUE), NA))
+
+  # For those with only one event, their longest interval is NA. Depending on the desired approach, 
+  # you might choose to filter these out or consider them as zero. For this example, I'm leaving them as NA.
+  
+  median_interval <-median(sampling_interval$longest_interval, na.rm=TRUE)/365
+  iqr_interval <- IQR(sampling_interval$longest_interval, na.rm=TRUE)/365
+  
+  
+   # Print results for the lipid
+  cat("Analysis for", lipid_name, ":\n")
+  cat("Number of individuals with measurements:", n_individuals, "\n")
+  cat("Proportion female:", prop_female, "\n")
+  cat("Median age [IQR]:", median_age, "[", median_age - iqr_age/2, ",", median_age + iqr_age/2, "]\n")
+  cat("Median longest sampling interval [IQR]:", median_interval, "[", median_interval - iqr_interval/2, ",", median_interval + iqr_interval/2, "]\n")
+  cat("----------------------------\n")
+}
+
+```
+
+```{r}
+
+analyze_lipid_data(lipid_data = hdl,lipid_name = "Hdl") 
+
+analyze_lipid_data(lipid_data = tc,lipid_name = "Total Cholesterol") 
+
+analyze_lipid_data(lipid_data = ldl,lipid_name = "LDL- Cholesterol") 
+```
+
+
+
+  
