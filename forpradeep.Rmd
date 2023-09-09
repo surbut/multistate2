@@ -1,15 +1,21 @@
 ---
-title: "Pradeep_grant_lipid"
-output: html_document
-date: "2023-09-08"
+title: "Longitudinal Lipid Summary"
+author: smurf
+output: 
+  html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library("dplyr")
+library(ggplot2)
+library(knitr)
+library(gt)
+
 ```
 
-## R Markdown
+
 
 ```{r}
 hdl=readRDS("~/Library/CloudStorage/Dropbox-Personal/denaxasvalues/hdl.rds")
@@ -20,13 +26,13 @@ df_Ukb = dfh
 colnames(df_Ukb)[1]="eid"
 ```
 
-Unique people
+Here we describe the lipid distribution for unique indidviduals contributinglipid measurements in the ukb ehr data base. You can find more details about the ukb ehr [here](https://biobank.ctsu.ox.ac.uk/showcase/showcase/docs/DataLinkageProcess.pdf).  Here is a guide to how we defined the lipid phenotypes according to [Denaxas et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7717266/) using semi-supervised and physician validated coding definitions.
 
 ```{r}
 
 analyze_lipid_data <- function(lipid_data, lipid_name) {
 
-combined_data <- left_join(lipid_data, df_Ukb, by="eid")
+combined_data <- left_join(lipid_data, df_Ukb[,c("eid","Birthdate","f.31.0.0")], by="eid")
   
   # Number of unique individuals with measurements
   n_individuals <- length(unique(combined_data$eid))
@@ -48,14 +54,21 @@ combined_data <- left_join(lipid_data, df_Ukb, by="eid")
   sampling_interval <- combined_data %>%
     group_by(eid) %>%
     arrange(event_dt) %>%
-    summarise(longest_interval = ifelse(length(event_dt) > 1, max(diff(event_dt), na.rm=TRUE), NA))
+      summarise(year_difference = as.numeric(difftime(max(event_dt), min(event_dt), units="days")) / 365.25,
+                year_d2 = as.numeric(difftime(time1 ="2021-03-31", min(event_dt), units="days")) / 365.25)
+
 
   # For those with only one event, their longest interval is NA. Depending on the desired approach, 
   # you might choose to filter these out or consider them as zero. For this example, I'm leaving them as NA.
   
-  median_interval <-median(sampling_interval$longest_interval, na.rm=TRUE)/365
-  iqr_interval <- IQR(sampling_interval$longest_interval, na.rm=TRUE)/365
+  median_interval <-median(sampling_interval$year_difference, na.rm=TRUE)
+  iqr_interval <- IQR(sampling_interval$year_difference, na.rm=TRUE)
   
+  median_interval2 <-median(sampling_interval$year_d2, na.rm=TRUE)
+  iqr_interval2 <- IQR(sampling_interval$year_d2, na.rm=TRUE)
+  
+  
+  plot=ggplot(sampling_interval,aes(x=year_difference))+geom_histogram(bins = 50)+labs(x=paste0("Range of Years of Measurements for ",lipid_name),y="Number of Individuals")+theme_classic()
   
    # Print results for the lipid
   cat("Analysis for", lipid_name, ":\n")
@@ -63,20 +76,121 @@ combined_data <- left_join(lipid_data, df_Ukb, by="eid")
   cat("Proportion female:", prop_female, "\n")
   cat("Median age [IQR]:", median_age, "[", median_age - iqr_age/2, ",", median_age + iqr_age/2, "]\n")
   cat("Median longest sampling interval [IQR]:", median_interval, "[", median_interval - iqr_interval/2, ",", median_interval + iqr_interval/2, "]\n")
+  
+    cat("Median longest since measured [IQR]:", median_interval2, "[", median_interval2 - iqr_interval2/2, ",", median_interval2 + iqr_interval2/2, "]\n")
   cat("----------------------------\n")
+  print(plot)
 }
 
 ```
 
 ```{r}
 
-analyze_lipid_data(lipid_data = hdl,lipid_name = "Hdl") 
+analyze_lipid_data(lipid_data = hdl,lipid_name = "HDL-Cholesterol") 
 
 analyze_lipid_data(lipid_data = tc,lipid_name = "Total Cholesterol") 
 
-analyze_lipid_data(lipid_data = ldl,lipid_name = "LDL- Cholesterol") 
+analyze_lipid_data(lipid_data = ldl,lipid_name = "LDL-Cholesterol") 
 ```
 
 
+```{R}
+sta=readRDS("~/Library/CloudStorage/Dropbox-Personal/sta_gp.rds")
+msta=merge(sta,df_Ukb[,c("eid","f.31.0.0","Birthdate")],all.x = T)
 
+  # Number of unique individuals with measurements
+n_individuals <- length(unique(msta$eid))
+  
+  # Proportion female
+ unique_females <- msta %>% filter(f.31.0.0 == 0) %>% select(eid) %>% distinct()
+n_female <- nrow(unique_females)
+  prop_female <- n_female / n_individuals
+  
+  
+  median_age <- median(sta$mage, na.rm=TRUE)
+  iqr_age <- IQR(sta$mage, na.rm=TRUE)
+ # Median [IQR] longest sampling interval
+  sampling_interval <- msta %>%
+    group_by(eid) %>%
+    arrange(from) %>%
+      summarise(year_difference = as.numeric(difftime(time1 ="2021-03-31", min(from), units="days")) / 365.25)
+  
+  
+  median_interval <-median(sampling_interval$year_difference, na.rm=TRUE)
+  iqr_interval <- IQR(sampling_interval$year_difference, na.rm=TRUE)
+  
+  ggplot(sampling_interval,aes(x=year_difference))+geom_histogram(bins = 50)+labs(x="Years Since Starting Statin",y="Number of Individuals")+theme_classic()
+
+  lipid_name="statins"
+    # Print results for the lipid
+  cat("Analysis for", lipid_name, ":\n")
+  cat("Number of individuals with measurements:", n_individuals, "\n")
+  cat("Proportion female:", prop_female, "\n")
+  
+  
+  cat("Median age started medications [IQR]:", median_age, "[", median_age - iqr_age/2, ",", median_age + iqr_age/2, "]\n")
+  cat("Median time since starting med [IQR]:", median_interval, "[", median_interval - iqr_interval/2, ",", median_interval + iqr_interval/2, "]\n")
+  
+  cat("----------------------------\n")
+  
+```
+
+
+```{r}
+
+analyze_lipid_data <- function(lipid_data, lipid_name) {
+  combined_data <- merge(lipid_data, df_Ukb[,c("eid","f.31.0.0","Birthdate")], by="eid",all.x = T)
+  # Number of unique individuals with measurements
+  n_individuals <- length(unique(combined_data$eid))
+  
+  # Proportion female
+ unique_females <- combined_data %>% filter(f.31.0.0 == 0) %>% select(eid) %>% distinct()
+  n_female <- nrow(unique_females)
+  prop_female <- n_female / n_individuals
+
+  combined_data$birthdate <- as.Date(combined_data$Birthdate, format="%Y-%m-%d")
+  combined_data$event_dt <- as.Date(combined_data$event_dt, format="%Y-%m-%d")
+  combined_data$age_at_event <- as.numeric(difftime(combined_data$event_dt, combined_data$birthdate, units="days") / 365.25)
+  
+    median_age <- median(combined_data$age_at_event, na.rm=TRUE)
+  iqr_age <- IQR(combined_data$age_at_event, na.rm=TRUE)
+   
+  year_difference_data <- combined_data %>%
+    group_by(eid) %>% arrange(event_dt) %>%
+    summarise(year_difference = as.numeric(difftime(max(event_dt), min(event_dt), units="days")) / 365.25) 
+  
+  median_year_diff <- median(year_difference_data$year_difference, na.rm = TRUE)
+  iqr_year_diff <- IQR(year_difference_data$year_difference, na.rm = TRUE)
+  min_year_diff <- min(year_difference_data$year_difference, na.rm = TRUE)
+  max_year_diff <- max(year_difference_data$year_difference, na.rm = TRUE)
+  
+  summary_data <- data.frame(
+    Lipid = lipid_name,
+    Number_of_Individuals = n_individuals,
+    Proportion_Female = round(prop_female,2),
+    Median_Age = round(median_age,2),
+    Age_IQR = round(iqr_age,2),
+    Median_Year_Difference = round(median_year_diff,2),
+    Year_Difference_IQR = round(iqr_year_diff,2)
+    #Min_Year_Difference = round(min_year_diff,2),
+    #Max_Year_Difference = round(max_year_diff,2)
+  )
+  
+  return(summary_data)
+}
+
+# Create summary for LDL and then kable
+ldl_summary <- analyze_lipid_data(ldl, "LDL")
+gt(ldl_summary, caption = "Summary for LDL Dataset")
+
+# Create summary for HDL and then kable
+hdl_summary <- analyze_lipid_data(hdl, "HDL")
+gt(hdl_summary, caption = "Summary for HDL Dataset")
+
+# Create summary for TC and then kable
+tc_summary <- analyze_lipid_data(tc, "TC")
+gt(tc_summary, caption = "Summary for TC Dataset")
+  
+```
+  
   
