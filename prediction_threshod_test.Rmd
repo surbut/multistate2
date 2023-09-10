@@ -1,0 +1,222 @@
+---
+title: "scoretest"
+output: html_document
+date: "2023-09-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+test=readRDS("~/multistate2/output/test.rds")
+pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
+ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rc.rds")
+
+head(pce.reverse.tenyear)
+
+thresh=10;
+ten=apply(pce.reverse.tenyear,1,function(x){min(agesint[x>thresh])})
+thirty=apply(ascvd.30.year.rc,1,function(x){min(agesint[x>thresh])})
+
+
+states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+
+thresh=0.10;
+t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),100)})
+
+df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"=test$Cad_0_censor_age,"sex"=test$f.31.0.0,"prs"=test$cad.prs,"ten"=ten,"thirty"=thirty,"ms"=t)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+df_expanded <- data.frame(
+  id = integer(), 
+  start = numeric(), 
+  stop = numeric(), 
+  event = integer(), 
+  score1 = integer(), 
+  score2 = integer()
+)
+
+
+library(data.table)
+
+# Convert df to data.table
+# Convert df to data.table
+setDT(df)
+
+expand_data <- function(id, cad_status, censor_age, score1_age, score2_age) {
+  ages <- sort(c(0, score1_age, score2_age, censor_age))
+  result <- list()
+  
+  for(j in 1:(length(ages) - 1)) {
+    start_age <- ages[j]
+    stop_age <- ages[j+1]
+    
+    if(start_age == stop_age) next # skip if they are the same
+    
+    s1 <- ifelse(start_age >= score1_age, 1, 0)
+    s2 <- ifelse(start_age >= score2_age, 1, 0)
+    
+    event_at_stop <- ifelse(stop_age == censor_age && cad_status == 2, 1, 0)
+    
+    result[[length(result) + 1]] <- list(id = id, start = start_age, stop = stop_age, event = event_at_stop, score1 = s1, score2 = s2)
+  }
+  
+  return(result)
+}
+
+list_dt <- lapply(1:nrow(df), function(i) {
+  row <- df[i,]
+  expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$thirty, row$ms)
+})
+
+df_expanded <- rbindlist(unlist(list_dt, recursive = FALSE))
+
+
+
+
+library(survival)
+
+# Bootstrap function for C-index
+bootstrap_cindex <- function(fit_function, data, n_iter=20) {
+  cindices <- numeric(n_iter)
+  
+  for(i in 1:n_iter) {
+    sample_rows <- sample(1:nrow(data), replace = TRUE)
+    sample_data <- data[sample_rows, ]
+    
+    fit <- fit_function(sample_data)
+    cindices[i] <- summary(fit)$concordance[1]
+  }
+  
+  return(list(mean = mean(cindices), se = sd(cindices)))
+}
+
+# Fit functions for score1 and score2
+fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
+fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
+
+# Bootstrap C-index
+results_score1 <- bootstrap_cindex(fit_function_score1, df_expanded)
+results_score2 <- bootstrap_cindex(fit_function_score2, df_expanded)
+
+# Confidence intervals (95%)
+ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
+ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean + 1.96*results_score2$se)
+
+# Plot using ggplot2
+library(ggplot2)
+
+df_cindex <- data.frame(
+  Score = c("Dynamic PCE", "MSGene"),
+  Cindex = c(results_score1$mean, results_score2$mean),
+  ymin = c(ci_score1[1], ci_score2[1]),
+  ymax = c(ci_score1[2], ci_score2[2])
+)
+
+p <- ggplot(df_cindex, aes(x = Score, y = Cindex)) +
+  geom_bar(stat = "identity", fill = "steelblue", position = position_dodge()) +
+  geom_errorbar(aes(ymin=ymin, ymax=ymax), width=0.1, position=position_dodge(0.9)) +
+  ylim(0,0.8 ) +
+  labs(
+    title = "Comparison of Predictive Performance",
+    subtitle = "Using Bootstrap 95% CI for C-index (Concordance Index)",
+    y = "C-index Value",
+    x = ""
+  ) +
+  theme_minimal()
+
+print(p)
+
+# Comparing models based on AIC
+aic1 <- AIC(fit1)
+aic2 <- AIC(fit2)
+
+cat("AIC for Score 1:", aic1, "\n")
+cat("AIC for Score 2:", aic2, "\n")
+```
+
+
+Now check brier score:
+
+```{r}
+# Set a specific time point
+time_point <- 50  # for example, change it to your desired time
+
+# Fitting a Cox model for score1
+fit1 <- coxph(Surv(start, stop, event) ~ score1, data = df_expanded)
+summary(fit1)
+
+# Fitting a Cox model for score2
+fit2 <- coxph(Surv(start, stop, event) ~ score2, data = df_expanded)
+summary(fit2)
+
+approx_survival_prob <- function(cox_fit, newdata, time_point) {
+  base_surv <- survfit(cox_fit, conf.int=FALSE)
+  linear_predictors <- as.numeric(model.matrix(cox_fit) %*% coef(cox_fit))
+  s0 <- approx(base_surv$time, base_surv$surv, xout=time_point)$y
+  exp_lp <- exp(linear_predictors)
+  s0 ^ exp_lp
+}
+time_point <- 55  # adjust to your specific time point
+
+
+brier.score=data.frame()
+
+for(i in 1:length(ages)){
+# Actual event status at time_point
+  
+time_point=ages[i]
+event_status <- ifelse(df_expanded$stop <= time_point & df_expanded$event == 1, 1, 0)
+
+# Approximate survival probabilities
+s_hat1 <- approx_survival_prob(fit1, df_expanded, time_point)
+s_hat2 <- approx_survival_prob(fit2, df_expanded, time_point)
+
+# Brier scores
+brier1 <- mean((s_hat1 - event_status)^2)
+brier2 <- mean((s_hat2 - event_status)^2)
+
+brier.score[i,1]=brier1
+brier.score[i,2]=brier2
+cat("Brier Score at time", time_point, "for Score 1:", brier1, "\n")
+cat("Brier Score at time", time_point, "for Score 2:", brier2, "\n")
+
+
+}
+
+brier.score$ages=ages
+
+ggplot(m,aes(x=ages,y=value,col=variable))+geom_point()+labs(y="Brier Score on predicted survival",x="Time point Considered (age)")+theme_classic(
+  
+)
+# Predict survival probabilities for Score 1 model
+surv_probs1 <- survfit(fit1, newdata = df_expanded)
+
+# Actual event status at time_point
+event_status <- ifelse(df_expanded$stop <= time_point & df_expanded$event == 1, 1, 0)
+
+# Brier score for Score 1 model
+brier1 <- mean((1 - surv_probs1$surv[match(df_expanded$id, surv_probs1$strata)] - event_status)^2)
+
+# Repeat for Score 2 model
+surv_probs2 <- survfit(fit2, newdata = df_expanded)
+brier2 <- mean((1 - surv_probs2$surv[match(df_expanded$id, surv_probs2$strata)] - event_status)^2)
+
+cat("Brier Score at time", time_point, "for Score 1:", brier1, "\n")
+cat("Brier Score at time", time_point, "for Score 2:", brier2, "\n")}
+

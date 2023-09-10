@@ -461,7 +461,7 @@ plotfunc=function(patientriskmat,patient,ages){
 ```
 
 ```{r}
-cr=readRDS("~/multistate2/output/cr2.rds")
+cr=readRDS("~/multistate2/output/cr3.rds")
 h=apply(s[,,c(1:10)],3,function(x){colSums(t(x))})
 h=apply(h,1,function(x){x/sum(x)})
 h=t(h)
@@ -624,9 +624,9 @@ plot_data <- data %>%
 # Plot the ECDF
 statage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
   geom_step() +
-  labs(title = "ECDF of PRS by Statin Start Age",
+  labs(title = "eCDF of PRS by Statin Start Age",
        x = "PRS",
-       y = "ECDF",
+       y = "eCDF",
        color="First Age (prescription or diagnosis)") + scale_color_aaas()+
   theme_classic()
 
@@ -673,8 +673,9 @@ cadage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
   theme_classic()
 
 
-ggarrange(statage,cadage,common.legend = T)
+g=ggarrange(statage,cadage,common.legend = T)
 
+save
 library(dplyr)
 
 
@@ -789,3 +790,6 @@ ggplot(df, aes(x = MinAgeExceedance)) +
        x = "Minimum Age of Exceedance (with boostrapping)", 
        y = "Number of Patients") +
   theme_minimal()
+
+
+```
