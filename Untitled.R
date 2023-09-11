@@ -10,7 +10,7 @@ nodes <- data.frame(
   level = c(1, 2, 2, 2, 3, 3, 3, 4, 5, 5),
   color = c("lightblue", "lightcoral", "lightcoral", "lightcoral", 
             "lightgreen", "lightgreen", "lightgreen", "lightyellow", "grey", "black"),
-  font.size = 16,
+  font.size = 25,
   size = 25
 )
 
@@ -37,7 +37,7 @@ edges <- data.frame(
 )
 
 # Plot
-visNetwork(nodes, edges, width = "100%", height = "600px") %>%
+visNetwork(nodes, edges, width = "100%", height = "1000px") %>%
   visLayout(hierarchical = list(enabled = TRUE, direction = "UD", levelSeparation = 300)) %>%
   visEdges(arrows = "to") %>%
   visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
