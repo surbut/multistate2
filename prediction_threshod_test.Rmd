@@ -29,7 +29,7 @@ thirty=apply(ascvd.30.year.rc,1,function(x){min(agesint[x>thresh])})
 
 ### this is the data frame with approportiate score
 states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
-
+ages=c(40:80)
 thresh=0.10;
 t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),100)})
 
@@ -111,9 +111,16 @@ bootstrap_cindex <- function(fit_function, data, n_iter=20) {
 fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
 fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
 
+
 # Bootstrap C-index
 results_score1 <- bootstrap_cindex(fit_function_score1, df_expanded)
 results_score2 <- bootstrap_cindex(fit_function_score2, df_expanded)
+
+
+
+# Bootstrap C-index
+results_score1 <- bootstrap_cindex(fit_function_score1, expanded_df)
+results_score2 <- bootstrap_cindex(fit_function_score2, expanded_df)
 
 # Confidence intervals (95%)
 ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
@@ -142,92 +149,20 @@ p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
   theme_classic()+scale_fill_aaas()
 
 print(p)
+fit1 <- coxph(Surv(start, stop, event) ~ score1, data = df_expanded)
+fit2 <- coxph(Surv(start, stop, event) ~ score2, data = df_expanded)
 
 # Comparing models based on AIC
 aic1 <- AIC(fit1)
 aic2 <- AIC(fit2)
 
-cat("AIC for Score 1:", aic1, "\n")
-cat("AIC for Score 2:", aic2, "\n")
+cat("AIC for FRS.30y:", aic1, "\n")
+cat("AIC for msGene:", aic2, "\n")
 ```
 
 
-Now check brier score:
 
-```{r}
-# # Set a specific time point
-# time_point <- 50  # for example, change it to your desired time
-#
-# # Fitting a Cox model for score1
-fit1 <- coxph(Surv(start, stop, event) ~ score1, data = df_expanded)
-summary(fit1)
-#
-# # Fitting a Cox model for score2
-fit2 <- coxph(Surv(start, stop, event) ~ score2, data = df_expanded)
-summary(fit2)
-#
-approx_survival_prob <- function(cox_fit, newdata, time_point) {
-base_haz <- basehaz(cox_fit, centered=FALSE)
-linear_predictors <- as.numeric(model.matrix(cox_fit) %*% coef(cox_fit))
-#
-# Interpolate the cumulative hazard for the desired time point
-h0 <- approx(base_haz$time, base_haz$hazard, xout=time_point)$y
-#
-cumulative_hazard <- h0 * exp(linear_predictors)
-#
- # Convert cumulative hazard to survival probabilities
-exp(-cumulative_hazard)
- }
-#
-
-
-# brier.score=data.frame()
-# 
-for(i in 1:length(ages)){
-# # Actual event status at time_point
-#   
-time_point=ages[i]
-event_status <- ifelse(df_expanded$stop <= time_point & df_expanded$event == 1, 1, 0)
-# 
-# # Approximate survival probabilities
-s_hat1 <- approx_survival_prob(fit1, df_expanded, time_point)
-s_hat2 <- approx_survival_prob(fit2, df_expanded, time_point)
-# 
-# # Brier scores
-brier1 <- mean((s_hat1 - event_status)^2)
-brier2 <- mean((s_hat2 - event_status)^2)
-# 
-brier.score[i,1]=brier1
-brier.score[i,2]=brier2
-
-}
-# 
-brier.score$ages=ages
-
-m=melt(brier.score,id.vars = "ages")
-
-ggplot(m,aes(x=ages,y=value,col=variable))+geom_point()+labs(y="Brier Score on predicted survival",x="Time point Considered (age)")+theme_classic()
-
-#   
-# 
-# # Predict survival probabilities for Score 1 model
-surv_probs1 <- survfit(fit1, newdata = df_expanded)
-# 
-# # Actual event status at time_point
-event_status <- ifelse(df_expanded$stop <= time_point & df_expanded$event == 1, 1, 0)
-# 
-# # Brier score for Score 1 model
-brier1 <- mean((1 - surv_probs1$surv[match(df_expanded$id, surv_probs1$strata)] - event_status)^2)
-# 
-# # Repeat for Score 2 model
-surv_probs2 <- survfit(fit2, newdata = df_expanded)
-brier2 <- mean((1 - surv_probs2$surv[match(df_expanded$id, surv_probs2$strata)] - event_status)^2)
-# 
-cat("Brier Score at time", time_point, "for Score 1:", brier1, "\n")
-cat("Brier Score at time", time_point, "for Score 2:", brier2, "\n")}
-```
-
-Now do for continous variable
+Now do for continous variable brier score:
 
 
 ```{r}
@@ -238,37 +173,122 @@ df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
 df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
 
-expanded_list <- lapply(1:nrow(df), function(i) {
+
+
+expanded_df <- data.frame()
+df=test
+score1_list=states
+names(states)=df$identifier
+score2=ascvd.30.year.rc
+rownames(score2)=df$identifier
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+
+bad_indices=which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1)
+
+# Removing the bad IDs from score1_list
+score1_list <- score1_list[-bad_indices]
+
+# Removing the bad IDs from score2 dataframe
+score2 <- score2[-bad_indices, ]
+
+
+df=df[-which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1),]
+dim(df)
+
+all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))
+# Initialize a list to store the results
+expanded_list <- vector("list", length = nrow(df))
+
+for(i in 1:nrow(df)) {
+  print(i)
   id <- df$id[i]
   max_age <- df$Cad_0_censor_age[i]
   event <- df$Cad_0_Any[i]
   
   # When max_age is less than 40 or length of score1_list[i] is 0
   if (max_age < 40 || length(score1_list[[i]]) == 0) {
-    return(data.frame(id = id, age = NA, score1 = NA, score2 = NA, event = NA))
+    next  # Skip this iteration and proceed to the next
   }
   
   age_range <- 40:(40 + length(score1_list[[i]]) - 1)
-  
   score1_values <- score1_list[[i]]
   score2_values <- score2[i, age_range - 39]
   
   # If there's an event and score1 is shorter than expected
   if (event == 1 && max(age_range) < max_age) {
-    extended_age_range <- (max(age_range) + 1):max_age  # Extend the age_range to the event age
-    score1_last_value <- rep(tail(score1_list[[i]], 1), times = length(extended_age_range)) # Replicate the last known score1 value
+    extended_age_range <- (max(age_range) + 1):max_age  
+    score1_last_value <- rep(tail(score1_list[[i]], 1), times = length(extended_age_range))
     score1_values <- c(score1_list[[i]], score1_last_value)
-    score2_last_value <- rep(tail(score2_values, 1), times = length(extended_age_range))
+    score2_last_value <- score2[i,(extended_age_range-39)]
     score2_values <- c(score2_values, score2_last_value)
     age_range <- c(age_range, extended_age_range)
   }
   
-  data.frame(id = id,
-             age = age_range,
-             score1 = score1_values,
-             score2 = score2_values,
-             event = ifelse(age_range == max_age, event, 0))
-})
+  # Store the resulting dataframe as a list element
+  expanded_list[[i]] <- data.frame(id = id,
+                                   age = age_range,
+                                   score1 = score1_values,
+                                   score2 = score2_values,
+                                   event = ifelse(age_range == max_age, event, 0))
+}
 
-# Convert expanded_list to a dataframe
-expanded_df <- do.call("rbind", expanded_list)
+# Combine all the dataframes in the list at once
+expanded_df <- do.call(rbind, expanded_list)
+
+print(dim(expanded_df))
+
+# Bootstrap C-index
+results_score1 <- bootstrap_cindex(fit_function_score1, expanded_df)
+results_score2 <- bootstrap_cindex(fit_function_score2, expanded_df)
+
+# Confidence intervals (95%)
+ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
+ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean + 1.96*results_score2$se)
+
+# Plot using ggplot2
+library(ggplot2)
+
+df_cindex <- data.frame(
+  Score = c( "MSGene","30 Year"),
+  Cindex = c(results_score1$mean, results_score2$mean),
+  ymin = c(ci_score1[1], ci_score2[1]),
+  ymax = c(ci_score1[2], ci_score2[2])
+)
+
+p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin=ymin, ymax=ymax), width=0.1, position=position_dodge(0.9)) +
+  ylim(0,0.8 ) +
+  labs(
+    title = "Comparison of Predictive Performance",
+    subtitle = "Using Bootstrap 95% CI for C-index (Concordance Index)",
+    y = "C-index Value",
+    x = ""
+  ) +
+  theme_classic()+scale_fill_aaas()
+
+print(p)
+
+
+
+ages <- c(40, 45, 50, 55, 60, 65, 70)
+
+compute_brier_score <- function(fit, data, age) {
+  # Predict survival probabilities
+  predicted_survival <- predict(fit, newdata = subset(data, age == age), type = "expected")
+  
+  # Observed survival outcomes
+  observed_survival <- ifelse(subset(data, age == age)$event == 0, 1, 0)
+  
+  # Brier score calculation
+  brier <- mean((observed_survival - predicted_survival)^2)
+  
+  return(brier)
+}
+
+brier_scores_score1 <- sapply(ages, function(age) compute_brier_score(fit1, expanded_df, age))
+
+brier_scores_score2 <- sapply(ages, function(age) compute_brier_score(fit2, expanded_df, age))
