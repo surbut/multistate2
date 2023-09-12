@@ -273,8 +273,32 @@ p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 print(p)
 
 
+####
+ages <- c(40:70)
 
-ages <- c(40, 45, 50, 55, 60, 65, 70)
+brier_score <- function(predictions, actual) {
+ mean((predictions - actual)^2)
+ }
+
+bs=data.frame()
+data=expanded_df
+
+
+for(i in 1:length(ages)){
+  
+dat=data[data$age==ages[i],]
+brier_score1 <- brier_score(dat$score1, dat$event)
+brier_score2 <- brier_score(dat$score2, dat$event)
+
+bs[i,1]=brier_score1*100
+bs[i,2]=brier_score2*100
+}
+
+bs$age=ages
+colnames(bs)=c("MSgene","FRS30y","ages")
+mat=melt(bs,id.vars = "ages")
+ggplot(mat,aes(x=ages,y = value,fill=variable))+geom_bar(stat="identity",position = "dodge")+theme_classic()+scale_fill_aaas()+labs(x="Age (years)",y="Mean Squared Prediction Error",fill="Score")
+
 
 compute_brier_score <- function(fit, data, age) {
   # Predict survival probabilities
@@ -292,3 +316,30 @@ compute_brier_score <- function(fit, data, age) {
 brier_scores_score1 <- sapply(ages, function(age) compute_brier_score(fit1, expanded_df, age))
 
 brier_scores_score2 <- sapply(ages, function(age) compute_brier_score(fit2, expanded_df, age))
+
+
+library(survival)
+library(rms)
+library(pec)
+data(pbc)
+
+Models <- list("Cox.X1"=coxph(Surv(time = start,time2 = stop,event = event)~score1,data=expanded_df,x=TRUE,y=TRUE),
+              "Cox.X2"=coxph(Surv(start,time2 = stop,event = event)~score2,data=expanded_df,x=TRUE,y=TRUE),
+              "Cox.X1.X2"=coxph(Surv(start,time2 = stop,event = event)~score2+score1,data=expanded_df,x=TRUE,y=TRUE))
+
+# compute the apparent prediction error 
+PredError <- pec(object=Models,
+                  formula=Surv(time = start,time2 = stop,event = event)~score1+score2,
+                  data=expanded_df,
+                  exact=TRUE,
+                  cens.model="marginal",
+                  splitMethod="none",
+                  B=0,
+                  verbose=TRUE)
+
+print(PredError,times=seq(40,50,60))
+summary(PredError)
+plot(PredError,xlim=c(0,30))
+
+
+

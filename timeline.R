@@ -9,7 +9,7 @@ timeline_data <- data.frame(
             "Chalk Thesis",
             "GTEx project",
             "PhD start",
-            "PRS published in Nature Genetics",
+            "PRS published by Khera et al",
             "Start residency",
             "Come to Boston!")
 )

@@ -284,7 +284,7 @@ But what about absolute risk??
 
 ```{r,echo=F}
 rm(abinom)
-load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+load(""~/Library/CloudStorage/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
 
 ages=c(20:80)
@@ -508,8 +508,8 @@ ggplotly(p)
  
 
 ```{r yearsinstateanddrugs}
-load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
-reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+load("~/Library/CloudStorage/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Library/CloudStorage/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
 pc=unique(reg$eid)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
 dfh=data.table(dfh)
@@ -697,8 +697,8 @@ grid.arrange(grobs=myplots,ncol=3)
 
 ```{r}
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
-load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
-reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+load("~/multistate2/output//merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Library/CloudStorage/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
 pc=unique(reg$eid)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
 dfh=data.table(dfh)
@@ -801,13 +801,13 @@ absrisk(age = 40,start = "Ht",stop="Cad",yearsinstate = 10,statin = 0,sex = 1,dm
 ```{r}
 
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
-load("~/Dropbox (Personal)//pheno_dir/output/merged_pheno_censor_final_withdrugs.rds")
-reg=fread("~/Dropbox (Personal)/ukb+gp/gp_registrations.txt")
+load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output//merged_pheno_censor_final_withdrugs.rds")
+reg=fread("~/Library/CloudStorage/Dropbox-Personal/ukb+gp/gp_registrations.txt")
 pc=unique(reg$eid)
 dfh=data.table(dfh)
 dfp=dfh[dfh$identifier%in%pc,]
 ages=c(20:80)
-ascvddf=readRDS("~/Dropbox/ascvdDF.rds")
+ascvddf=readRDS("~/Library/CloudStorage/Dropbox-Personal//ascvdDF.rds")
 mpce=merge(dfp,ascvddf,by.x="identifier",by.y="eid")
 saveRDS(mpce,"~/Dropbox/pheno_dir/output/mpce.rds")
 htrx=readRDS("~/Dropbox/pheno_dir/output/HtRxid.rds")
@@ -816,29 +816,29 @@ a=setdiff(htrx_small,mpce$identifier[mpce$Ht_0_Any==2])
 
 
 ## check out phenotyping 
-
+mpce=readRDS("~/multistate2/output/mpcecomplete.rds")
 mpce$HyperLip_0_Any=factor(mpce$HyperLip_0_Any,levels = c(1,2),labels = c("control","case"))
 mpce$Ht_0_Any=factor(mpce$Ht_0_Any,levels = c(1,2),labels = c("control","case"))
 
-ggplot(mpce,aes(ldladj,color=HyperLip_0_Any))+geom_density()+labs(x="LDL_base")
-ggplot(mpce,aes(sbp,color=Ht_0_Any))+geom_density()+labs(x="SBP_base")
+ggplot(mpce,aes(ldladj,fill=as.factor(HyperLip_0_Any)))+geom_density()+labs(fill="LDL at Baseline",x="LDL at baseline")
+ggplot(mpce,aes(sbp,fill=as.factor(Ht_0_Any)))+geom_density()+labs(fill="SBP at Baseline",x="SBP at baseline")
 
 ### but all
-sbp=readRDS("~/Dropbox/pheno_dir/output/sbp_gp.rds")
-ldl=readRDS("~/Dropbox/ldl_gp.rds")
+sbp=readRDS("~/Library/CloudStorage/Dropbox-Personal/denaxasvalues/sbp.rds")
+ldl=readRDS("~/Library/CloudStorage/Dropbox-Personal/ldl_gp.rds")
 
 hyperlips=mpce[mpce$HyperLip_0_Any=="case","identifier"]
 hts=mpce[mpce$Ht_0_Any=="case","identifier"]
 
-ldl$case=ifelse(ldl$eid%in%hyperlips,1,0)
-sbp$case=ifelse(sbp$eid%in%hts,1,0)
+ldl$case=ifelse(ldl$eid%in%hyperlips$identifier,1,0)
+sbp$case=ifelse(sbp$eid%in%hts$identifier,1,0)
 
 
 ggplot(g2,aes(event_dt))+geom_histogram(bins=80)+labs(x="First Encounter Year")
 
-ggplot(ldl,aes(value1,color=as.factor(case)))+geom_density()+labs(x="LDL_All",color="Case/Control")
+ggplot(ldl,aes(value1,fill=as.factor(case)))+geom_density()+labs(x="LDL_All",fill="Case/Control")
 
-ggplot(sbp,aes(value1,color=as.factor(case)))+geom_density()+labs(x="SBP_All",color="Case/Control")
+ggplot(sbp,aes(value1,fill=as.factor(case)))+geom_density()+labs(x="SBP_All",fill="Case/Control")
 
 lc=ldl%>%group_by(eid)%>%summarise(n=length(event_dt))
 sc=sbp%>%group_by(eid)%>%summarise(n=length(event_dt))
