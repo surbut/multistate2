@@ -200,7 +200,7 @@ Now try with a fuller model:
 
 ```{r}
 # 
-modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
                   
 
 #pcten 0.679
@@ -217,13 +217,19 @@ modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomi
 
 
 b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
 ggplotly(b$plot)
 coefs=b$custom_smooth
 agesint=seq(40,70,by=5)
-prs_quants=c(data.frame(test%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
+
+test=data.frame(test)
+prs_quants=c(data.frame(test%>%group_by(int)%>%summarise(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 
 ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
 
+test=data.table(test)
 
 for(i in 1:length(agesint)) {
   age = agesint[i]
@@ -234,24 +240,24 @@ for(i in 1:length(agesint)) {
                     age < Ht_0_censor_age &
                     age < HyperLip_0_censor_age &
                     age < Dm_0_censor_age & int == cat, ]
+    #  ar = data.frame(
+    #   "intercept" = 1,
+    #    "cad.prs" = atrisk$cad.prs,
+    #    "sex" = atrisk$f.31.0.0)
+    # #   "smoke" = atrisk$smoke,
+    # #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    # #                            atrisk$htn_age < age, 1, 0)
+    # # )
      ar = data.frame(
       "intercept" = 1,
-       "cad.prs" = atrisk$cad.prs,
-       "sex" = atrisk$f.31.0.0)
-    #   "smoke" = atrisk$smoke,
-    #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
-    #                            atrisk$htn_age < age, 1, 0)
-    # )
-     # ar = data.frame(
-     #  "intercept" = 1,
-     #  "cad.prs" = atrisk$cad.prs,
-     #  "sex" = atrisk$f.31.0.0,
-     #  "smoke" = atrisk$smoke,
-     #  "antihtn_now" = ifelse(atrisk$antihtn == 1 &
-     #                          atrisk$htn_age < age, 1, 0),
-     #  "statin_now" = ifelse(atrisk$statin == 1 &
-     #                           atrisk$statin_age < age, 1, 0)
-     #  )
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                              atrisk$htn_age < age, 1, 0),
+      "statin_now" = ifelse(atrisk$statin == 1 &
+                               atrisk$statin_age < age, 1, 0)
+      )
 
     # ar = data.frame(
     #   "intercept" = 1,
@@ -284,7 +290,7 @@ for(i in 1:length(agesint)) {
                                                age2 = age + 10,
                                                atrisk = atrisk)
     emp.lifetime[i, j] = compute_empiricalrisk(age = age,
-                                               age2 = 80,
+                                               age2 = min(age+30,80),
                                        atrisk = atrisk)
     # 
     ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
@@ -357,9 +363,19 @@ mslife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(lifeti
 pclife2=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),]))
 
 
-a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")+labs(y="RMSE %")+ylim(c(0,0.60))
+a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year")+labs(y="RMSE %, 30 year")+ylim(c(0,0.60))
 
-a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")+labs("RMSE %")+ylim(c(0,0.60))
+a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("RMSE 30 year,recalibrated")+ylim(c(0,0.60))+theme(axis.title.x=element_blank(),axis.title.y=element_blank())
+
+figure <- ggarrange(a1 + rremove("ylab") + rremove("xlab"), a2 + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+labels = NULL,
+ncol = 1, nrow = 2,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+annotate_figure(figure, left = textGrob("RMSE (30 year), %", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
 
 library(ggpubr)
 saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "output/sharedrmse.rds")
@@ -449,6 +465,17 @@ for (z in 1:length(enrollments)) {
     "antihtn_now" = ifelse(atrisk$antihtn == 1 &
                              atrisk$htn_age < age, 1, 0)
   )
+
+    # ar = data.frame(
+    #   "intercept" = 1,
+    #   "cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0,
+    #   "smoke" = atrisk$smoke,
+    #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    #                           atrisk$htn_age < age, 1, 0),
+    #   "statin_now" = ifelse(atrisk$statin == 1 &
+    #                            atrisk$statin_age < age, 1, 0)
+    #   )
   dat = data.frame(
     "id" = atrisk$identifier,
     "mysex" = as.factor(atrisk$sex),
@@ -589,6 +616,17 @@ prplot <-
 
 
 ggarrange(aucplot,prplot,common.legend = T,legend = "right")
+
+
+figure <- ggarrange(aucplot + rremove("ylab") + rremove("xlab"), prplot + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+labels = NULL,
+ncol = 1, nrow = 2,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+annotate_figure(figure, left = textGrob("AUC", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
 saveRDS(ggarrange(aucplot,prplot,common.legend = T,legend = "right"),"../output/jointaucprc.rds")
 ```
 

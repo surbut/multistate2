@@ -93,7 +93,7 @@ df_expanded <- rbindlist(unlist(list_dt, recursive = FALSE))
 library(survival)
 
 # Bootstrap function for C-index
-bootstrap_cindex <- function(fit_function, data, n_iter=20) {
+bootstrap_cindex <- function(fit_function, data, n_iter=10) {
   cindices <- numeric(n_iter)
   
   for(i in 1:n_iter) {
@@ -113,6 +113,8 @@ fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, d
 
 
 # Bootstrap C-index
+
+for(age in c(40,45,50,55,60,65,70,75))
 results_score1 <- bootstrap_cindex(fit_function_score1, df_expanded)
 results_score2 <- bootstrap_cindex(fit_function_score2, df_expanded)
 
@@ -274,72 +276,119 @@ print(p)
 
 
 ####
-ages <- c(40:70)
 
-brier_score <- function(predictions, actual) {
- mean((predictions - actual)^2)
- }
-
-bs=data.frame()
-data=expanded_df
-
-
-for(i in 1:length(ages)){
-  
-dat=data[data$age==ages[i],]
-brier_score1 <- brier_score(dat$score1, dat$event)
-brier_score2 <- brier_score(dat$score2, dat$event)
-
-bs[i,1]=brier_score1*100
-bs[i,2]=brier_score2*100
-}
-
-bs$age=ages
-colnames(bs)=c("MSgene","FRS30y","ages")
-mat=melt(bs,id.vars = "ages")
-ggplot(mat,aes(x=ages,y = value,fill=variable))+geom_bar(stat="identity",position = "dodge")+theme_classic()+scale_fill_aaas()+labs(x="Age (years)",y="Mean Squared Prediction Error",fill="Score")
-
-
-compute_brier_score <- function(fit, data, age) {
-  # Predict survival probabilities
-  predicted_survival <- predict(fit, newdata = subset(data, age == age), type = "expected")
-  
-  # Observed survival outcomes
-  observed_survival <- ifelse(subset(data, age == age)$event == 0, 1, 0)
-  
-  # Brier score calculation
-  brier <- mean((observed_survival - predicted_survival)^2)
-  
-  return(brier)
-}
-
-brier_scores_score1 <- sapply(ages, function(age) compute_brier_score(fit1, expanded_df, age))
-
-brier_scores_score2 <- sapply(ages, function(age) compute_brier_score(fit2, expanded_df, age))
+```
 
 
 library(survival)
-library(rms)
-library(pec)
-data(pbc)
+#ri=sample(unique(expanded_df$id),1000)
+#sub=expanded_df[expanded_df$id%in%ri,]
+cox_model <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df,x = T)
 
-Models <- list("Cox.X1"=coxph(Surv(time = start,time2 = stop,event = event)~score1,data=expanded_df,x=TRUE,y=TRUE),
-              "Cox.X2"=coxph(Surv(start,time2 = stop,event = event)~score2,data=expanded_df,x=TRUE,y=TRUE),
-              "Cox.X1.X2"=coxph(Surv(start,time2 = stop,event = event)~score2+score1,data=expanded_df,x=TRUE,y=TRUE))
+### create a vector of predicted survival for every individual based on their profile at that time
+time_points <- c(41:80)
+brier.score=matrix(NA,nrow=2,ncol=length(time_points))
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
 
-# compute the apparent prediction error 
-PredError <- pec(object=Models,
-                  formula=Surv(time = start,time2 = stop,event = event)~score1+score2,
-                  data=expanded_df,
-                  exact=TRUE,
-                  cens.model="marginal",
-                  splitMethod="none",
-                  B=0,
-                  verbose=TRUE)
+for(j in 1:length(time_points)){
+    dat=dgood[dgood$age==time_points[j],]
+    surv=ifelse(dat$event==0,1,0)
+    psurv=dat[,(j+7)]
+    print(mean((surv-psurv)^2))
+    brier.score[1,j]=mean((surv-psurv)^2)
+    
+    
+}
 
-print(PredError,times=seq(40,50,60))
-summary(PredError)
-plot(PredError,xlim=c(0,30))
+rm(cox_model)
+rm(surv_probs)
+rm(df)
+rm(dat)
+cox_model <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+
+
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+for(j in 1:length(time_points)){
+    dat=dgood[dgood$age==time_points[j],]
+    surv=ifelse(dat$event==0,1,0)
+    psurv=dat[,(j+7)]
+    print(mean((surv-psurv)^2))
+    brier.score[2,j]=mean((surv-psurv)^2)
+    
+}
+
+bs=data.frame(t(brier.score))
+bs$Age=time_points
+colnames(bs)=c("MSGene","FRS30y","Time")
+bs=melt(bs,id.vars = "Time")
+ggplot(bs,aes(x=Time,y=value,fill=variable))+geom_bar(stat = "identity",position = "dodge")+labs(x="Time Point",y="Brier Score",fill="Score")+theme_classic()
+
+
+###
+
+cox_model <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+dfevent=test[,c("identifier","Cad_0_Any","Cad_0_censor_age")]
+m=merge(dgood[,c("id","age","80")],dfevent,by.x="id",by.y="identifier",all.x =T)
+m$surv=ifelse(m$Cad_0_Any==1,1,0)
+
+for(j in 1:length(time_points)){
+    dat=m[m$age==time_points[j],]
+    surv=dat$surv
+    psurv=dat[,"80"]
+    print(mean((surv-psurv)^2))
+    brier.score[2,j]=mean((surv-psurv)^2)
+    
+}
+
+
+
+###
+
+
+cox_model <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+dfevent=test[,c("identifier","Cad_0_Any","Cad_0_censor_age")]
+m=merge(dgood[,c("id","age","80")],dfevent,by.x="id",by.y="identifier",all.x =T)
+m$surv=ifelse(m$Cad_0_Any==1,1,0)
+
+for(j in 1:length(time_points)){
+    dat=m[m$age==time_points[j],]
+    surv=dat$surv
+    psurv=dat[,"80"]
+    print(mean((surv-psurv)^2))
+    brier.score[1,j]=mean((surv-psurv)^2)
+    
+}
+
+
+bs=data.frame(t(brier.score))
+bs$Age=time_points
+colnames(bs)=c("MSGene","FRS30y","Time")
+bs=melt(bs,id.vars = "Time")
+ggplot(bs,aes(x=Time,y=value,fill=variable))+geom_bar(stat = "identity",position = "dodge")+labs(x="Time Point",y="Brier Score",fill="Score")+theme_classic()
 
 
 
