@@ -1,11 +1,12 @@
 ---
 title: "forroah"
 output: html_document
+code_folding: hide
 date: "2023-09-15"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = F)
+knitr::opts_chunk$set(echo=F,warning = FALSE,message = F)
 ```
 
 ## CAD PRS: sex specific
@@ -157,3 +158,29 @@ ggplot(df_long, aes(x = age, y = hazard_ratio, group = sex, fill =sex,color=sex)
 
 ```
 
+
+Now return the average OR and HR
+```{r}
+ormale=glm(Incd_cad~cardioprs+PC1+PC2+PC3+PC4+PC5+Age_Genotyping,data = m[m$Sex=="Male",],family = "binomial")
+exp(coef(ormale))
+exp(confint.default(ormale))
+
+orfemale=glm(Incd_cad~cardioprs+PC1+PC2+PC3+PC4+PC5+Age_Genotyping,data = m[m$Sex=="Female",],family = "binomial")
+
+exp(coef(orfemale))
+exp(confint.default(orfemale))
+
+```
+
+For the hazard analysis:
+
+```{r}
+hr.male=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~cardioprs+PC1+PC2+PC3+PC4+PC5,data = m[m$Sex=="Male",])
+
+summary(hr.male)
+
+hr.female=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~cardioprs+PC1+PC2+PC3+PC4+PC5,data = m[m$Sex=="Female",],)
+
+summary(hr.female)
+```
+  
