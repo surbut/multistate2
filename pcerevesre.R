@@ -20,7 +20,7 @@ test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med
 test$ascvd_10y_accaha=test$as2
 test$phenos.enrollment=test$f.21003.0.0
 test=data.table(test)
-source("~/multistate2/code/frs30_URBUT/fun.frs_30y.R")
+source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
 library(CVrisk)
 ages=c(40:80)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
@@ -51,7 +51,7 @@ for(i in 1:length(agesint)) {
       "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
     )
     #
-    frs = fun.frs_30y(
+    frs = fun.frs_30yn(
       dat,
       id = "id",
       sex = "mysex",
@@ -86,9 +86,9 @@ for(i in 1:length(agesint)) {
 }
 
 saveRDS(pce.reverse.tenyear,"multistate2/output/pce.reverse.tenyear.rds")
-saveRDS(ascvd.30.year.rc,"multistate2/output/ascvd.30year.rc.rds")
+#saveRDS(ascvd.30.year.rc,"multistate2/output/ascvd.30year.rc.rds")
 saveRDS(ascvd.30.year,"multistate2/output/ascvd.30year.rds")
-
+saveRDS(ascvd.30.year.rc,"~/multistate2/output/ascvd.30year.rcnew.rds")
 
 
 

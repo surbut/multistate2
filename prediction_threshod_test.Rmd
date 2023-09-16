@@ -15,15 +15,22 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
+library("ggsci")
+library(dplyr)
+library(tidyr)
+library(data.table)
+
 test=readRDS("~/multistate2/output/test.rds")
 pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
 ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
-ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rc.rds")
+#ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rc.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 
 head(pce.reverse.tenyear)
-
-thresh=10;
+agesint=c(40:80)
+thresh=5;
 ten=apply(pce.reverse.tenyear,1,function(x){min(agesint[x>thresh])})
+thresh=10;
 thirty=apply(ascvd.30.year.rc,1,function(x){min(agesint[x>thresh])})
 
 
@@ -34,6 +41,35 @@ thresh=0.10;
 t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),100)})
 
 df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"=test$Cad_0_censor_age,"sex"=test$f.31.0.0,"prs"=test$cad.prs,"ten"=ten,"thirty"=thirty,"ms"=t)
+
+data <- data.frame(t_val = t)
+# Create the ggplot histogram
+p <- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = "red", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = "Histogram of Age Exceeding Risk: MSGene LT",
+x = "Value of t",
+y = "Density")+theme_classic()+xlim(35,102)
+
+
+data <- data.frame(t_val = ten)
+# Create the ggplot histogram
+p2 <- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = "blue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = "Histogram of Age Exceeding Risk: Ten year",
+x = "Value of t",y = "Density")+theme_classic()+xlim(39,80)
+
+data <- data.frame(t_val = thirty)
+# Create the ggplot histogram
+p3 <- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = "green", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = "Histogram of Age Exceeding Risk: 30-year",
+x = "Value of t",y = "Density")+theme_classic()+xlim(39,80)
+
+ggarrange(p,p2,p3,nrow = 3)
+
+
+
+
 
 ```
 
@@ -60,7 +96,7 @@ library(data.table)
 setDT(df)
 
 expand_data <- function(id, cad_status, censor_age, score1_age, score2_age) {
-  ages <- sort(c(0, score1_age, score2_age, censor_age))
+  ages <- sort(c(40, score1_age, score2_age, censor_age))
   result <- list()
   
   for(j in 1:(length(ages) - 1)) {
@@ -114,15 +150,9 @@ fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, d
 
 # Bootstrap C-index
 
-for(age in c(40,45,50,55,60,65,70,75))
 results_score1 <- bootstrap_cindex(fit_function_score1, df_expanded)
 results_score2 <- bootstrap_cindex(fit_function_score2, df_expanded)
 
-
-
-# Bootstrap C-index
-results_score1 <- bootstrap_cindex(fit_function_score1, expanded_df)
-results_score2 <- bootstrap_cindex(fit_function_score2, expanded_df)
 
 # Confidence intervals (95%)
 ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
@@ -239,6 +269,10 @@ for(i in 1:nrow(df)) {
 
 # Combine all the dataframes in the list at once
 expanded_df <- do.call(rbind, expanded_list)
+expanded_df$score1=expanded_df$score1*100
+expanded_df$start <- expanded_df$age
+expanded_df$stop <- expanded_df$age + 1
+
 
 print(dim(expanded_df))
 
@@ -280,11 +314,13 @@ print(p)
 ```
 
 
+
+```{r}
 library(survival)
 #ri=sample(unique(expanded_df$id),1000)
 #sub=expanded_df[expanded_df$id%in%ri,]
 cox_model <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df,x = T)
-
+library(pec)
 ### create a vector of predicted survival for every individual based on their profile at that time
 time_points <- c(41:80)
 brier.score=matrix(NA,nrow=2,ncol=length(time_points))
@@ -390,5 +426,5 @@ colnames(bs)=c("MSGene","FRS30y","Time")
 bs=melt(bs,id.vars = "Time")
 ggplot(bs,aes(x=Time,y=value,fill=variable))+geom_bar(stat = "identity",position = "dodge")+labs(x="Time Point",y="Brier Score",fill="Score")+theme_classic()
 
-
+```
 

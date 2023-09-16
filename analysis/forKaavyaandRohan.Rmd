@@ -1,0 +1,159 @@
+---
+title: "forroah"
+output: html_document
+date: "2023-09-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = F)
+```
+
+## CAD PRS: sex specific
+
+```{r cars}
+library(data.table)
+library(survival)
+library(dplyr)
+library(ggplot2)
+
+df=fread("~/Library/CloudStorage/Dropbox-Personal/dataframe_main_sex_diff_prs.tsv")
+mg=fread("~/Library/CloudStorage/Dropbox-Personal/MGBB_Phenos_2CODE 2022-06-21.csv")
+
+```
+
+
+# Age distribution 
+
+Here we consider the distribution of ages. Please note that I replace all controls with age of death or the end of study period (6/21/22), whichever came first. For the hazard ratio analysis in part 2, you'll note we use age as the time scale and account for left censoring to eamine age specific effects with adjusted entry times.
+
+```{r pressure, echo=TRUE}
+
+m=merge(df[,c("Biobank_Subject_ID","IID_x","SUM_RESULT_cardiogram","SUM_RESULT_krishna_female","AGE","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9")], mg[,c("Biobank_Subject_ID","Sex","Incd_cad","Has_cad","Prev_cad","cad_Date","Age_Genotyping","Date_of_Birth","Date_of_Death")],by="Biobank_Subject_ID")
+
+##replace cad date if dead or never censored
+m$dead=ifelse(!is.na(m$Date_of_Death),1,0)
+
+i=intersect(which(m$Has_cad==0),which(m$dead==1))
+m[i,"cad_Date"]=m[i,"Date_of_Death"]
+i2=intersect(which(m$Has_cad==0),which(m$dead==0))
+m[i2,"cad_Date"]=rep(as.Date("2022-06-21"),length(i2))
+## exclude with prevalent CAD
+
+m=m[m$Prev_cad==0,]
+
+m$round.age=round(m$Age_Genotyping,0)
+m$cardioprs=scale(m$SUM_RESULT_cardiogram)
+m$cad.age=as.numeric(difftime(m$cad_Date,m$Date_of_Birth,units = "days")/365.25)
+
+hist(m$round.age,freq = T,xlab="Age",xlim=c(30,70),nclass=50,main="Hist of Age At Collection")
+```
+
+```{r}
+#OR_male:
+orm=data.frame()
+ages=c(40:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[(age-5)&m$round.age<(age+5)&m$Sex=="Male",]
+  out=glm(Incd_cad~cardioprs+PC1+PC2+PC3+PC4+PC5,data = dat,family = "binomial")
+  
+  orm[i,1]=exp(out$coefficients[[2]])
+  orm[i,2]=exp(confint.default(out))[2,1]
+  orm[i,3]=exp(confint.default(out))[2,2]
+  
+  
+  }
+  rownames(orm)=ages
+
+#OR_male:
+orf=data.frame()
+ages=c(40:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[m$round.age>(age-5)&m$round.age<(age+5)&m$Sex=="Female",]
+  out=glm(Incd_cad~cardioprs+PC1+PC2+PC3+PC4+PC5,data = dat,family = "binomial")
+  
+  orf[i,1]=exp(out$coefficients[[2]])
+  orf[i,2]=exp(confint.default(out))[2,1]
+  orf[i,3]=exp(confint.default(out))[2,2]
+  
+  
+  }
+  rownames(orf)=ages
+  
+  
+orm$sex <- "Male"
+orf$sex <- "Female"
+
+orm$age=rownames(orm)
+orf$age=rownames(orf)
+
+df_combined <- bind_rows(orm, orf)
+colnames(df_combined)=c("odds_ratio","lower_95","upper_95","sex","age")
+
+df_long=df_combined[,c(1,4,5)]
+ggplot(df_long, aes(x = age, y = odds_ratio, group = sex, fill = sex,color=sex)) +geom_smooth() +theme_classic()+labs(x="Age at Collection",y="OR (95% CI)",fill="Sex",col="Sex")+guides(fill=guide_legend(override.aes=list(fill=NA)))
+  
+
+```
+
+
+# Hazard Ratio Analysis.
+
+Here, we plot for individuals within 5 years of the age considered along the x axis. 
+We use an analysis that accounts for left censoring (i.e., individuals may have entered at different times and been followed) and will also give us the average hazard over a given period for individuals starting at different ages. Importantely, this corrects for censoring, such that individuals who die of other causes will drop out of the risk set, thus augmenting their cause-specific hazard. Furthermore, in the OR, living longer exposes one to a longer period of possible events, while a time to event analysis will adjust for this by providing the infinitesimal hazard conditional on survival. Thus if women have longer life spans, their OR over the life course might be higher than the comparable HR.
+
+```{r}
+#OR_male:
+orm=data.frame()
+ages=c(42:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[m$round.age>(age-5)&m$round.age<(age+5)&m$Sex=="Male",]
+  out=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~cardioprs+PC1+PC2+PC3+PC4+PC5,data = dat)
+  
+  orm[i,1]=exp(out$coef[1])
+  orm[i,2]=exp(confint.default(out))[1,1]
+  orm[i,3]=exp(confint.default(out))[1,2]
+  
+  
+  }
+rownames(orm)=ages
+
+#OR_male:
+orf=data.frame()
+ages=c(42:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[m$round.age>(age-5)&m$round.age<(age+5)&m$Sex=="Female",]
+  out=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~cardioprs+PC1+PC2+PC3+PC4+PC5,data = dat)
+  
+  orf[i,1]=exp(out$coef[1])
+  orf[i,2]=exp(confint.default(out))[1,1]
+  orf[i,3]=exp(confint.default(out))[1,2]
+  
+  
+  }
+  rownames(orf)=ages
+  
+  
+orm$sex <- "Male"
+orf$sex <- "Female"
+
+orm$age=rownames(orm)
+orf$age=rownames(orf)
+
+df_combined <- bind_rows(orm, orf)
+colnames(df_combined)=c("hazard_ratio","lower_95","upper_95","sex","age")
+
+
+
+df_long=df_combined[,c(1,4,5)]
+ggplot(df_long, aes(x = age, y = hazard_ratio, group = sex, fill =sex,color=sex)) +geom_smooth() +theme_classic()+labs(x="Age at Collection",y="HR (95% CI)",fill="Sex",col="Sex")+guides(fill=guide_legend(override.aes=list(fill=NA)))
+
+```
+

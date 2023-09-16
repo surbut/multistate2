@@ -5,6 +5,10 @@ nodes <- data.frame(id = c("Health", "HyperLip", "Hypertension", "Diabetes",
                     level = c(1, 2, 2, 2, 3, 3, 3, 4, 5, 6),
                     group = c(1, 2, 2, 2, 3, 3, 3, 4, 5, 5))
 
+
+
+
+
 # Edges (representing transitions)
 edges <- data.frame(from = c("Health", "Health", "Health", "Health", "Health",
                              "HyperLip", "HyperLip", "HyperLip", "HyperLip", "HyperLip",
@@ -27,9 +31,10 @@ edges <- data.frame(from = c("Health", "Health", "Health", "Health", "Health",
                       arrows = 'to')
 
 # Create the visualization
-visNetwork(nodes, edges, height = "600px", width = "100%") %>%
+visNetwork(nodes, edges, height = "1200px", width = "100%") %>%
   visLayout(randomSeed = 123, 
             hierarchical = list(enabled = TRUE, direction = "UD", 
-                                levelSeparation = 200, nodeSpacing = 150)) %>%
+                                levelSeparation = 200, nodeSpacing = 500)) %>%
   visOptions(highlightNearest = list(enabled = T, degree = 1, hover = T), nodesIdSelection = TRUE) %>%
   visLegend()
+

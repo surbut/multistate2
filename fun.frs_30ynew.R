@@ -10,23 +10,23 @@
 # recalibrated version
 # refitted version
 
- 
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 fun.frs_30y <- function(dat = dat, # data set containing the variables
-                         id = "id", # ID variable
-                         sex = "mysex", # must be a factor with two levels, named "male" and "female"
-                         age = "myage", 
-                         sbp = "mysbp",
-                         treat = "mytreat", # blood pressure treatment: must be logical! 
-                         smoking = "mysmoking", # must be a logical variable!!
-                         diabetes = "mydiabetes", # must be a logical variable!!
-                         totalchol = "mytotalchol",
-                         hdl = "myhdl"){
+                        id = "id", # ID variable
+                        sex = "mysex", # must be a factor with two levels, named "male" and "female"
+                        age = "myage", 
+                        sbp = "mysbp",
+                        treat = "mytreat", # blood pressure treatment: must be logical! 
+                        smoking = "mysmoking", # must be a logical variable!!
+                        diabetes = "mydiabetes", # must be a logical variable!!
+                        totalchol = "mytotalchol",
+                        hdl = "myhdl"){
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   library(survival)
- #source("~/multistate2/code/frs30_URBUT/create_values_30y.R")
+  #source("~/multistate2/code/frs30_URBUT/create_values_30y.R")
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   
@@ -62,7 +62,7 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   }
   
   
-    # prep : logaritmize
+  # prep : logaritmize
   dat$ln_age <- log(dat[, age])
   dat$ln_sysbp <- log(dat[,sbp])
   dat$ln_totalchol <- log(dat[, totalchol])
@@ -109,14 +109,10 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   linpredd <- t(apply(the_preds, 1, function(x){x*coeffs_compete_orig}))
   dxbeta <- rowSums(linpredd)
   
-
-  col2=scan(file = "~/multistate2/code/frs30_URBUT/col2_recali.csv")
-  col3=scan(file = "~/multistate2/code/frs30_URBUT/col3_recali.csv")
-
   
-  # col2=scan(file = "~/multistate2/code/frs30_URBUT/col2_recali_new.csv")
-  # col3=scan(file = "~/multistate2/code/frs30_URBUT/col3_recali_new.csv")
-  # 
+  col2=scan(file = "~/multistate2/code/frs30_URBUT/col2_recali_new.csv")
+  col3=scan(file = "~/multistate2/code/frs30_URBUT/col3_recali_new.csv")
+  
   # log (i-1)-log(i)
   auxi<- c(col2[-1],NA)
   columnG <- log(col2)-log(auxi)
@@ -128,7 +124,7 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   # these files have been manually created by copying from the excelsheet
   col2_orig <- scan(file = "~/multistate2/code/frs30_URBUT/col2_orig.csv")
   col3_orig <- scan(file = "~/multistate2/code/frs30_URBUT/col3_orig.csv")
-
+  
   
   #::::::::::::::::::::::::::::
   #  mxbeta and mdxbeta ----
@@ -155,10 +151,10 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   
   rm(linpred, linpredd, xbeta, dxbeta, W5, X5)
   
-
+  
   as.data.frame(cbind(id =dat[,id], frs_orig =frs_orig*100))
   
-
+  
   
   
   #::::::::::::::::::::::::::::
@@ -175,14 +171,10 @@ fun.frs_30y <- function(dat = dat, # data set containing the variables
   linpredd <- t(apply(the_preds, 1, function(x){x*coeffs_compete_orig}))
   dxbeta <- rowSums(linpredd)
   
-  mxbeta_recali <- 22.31
-
-  mdxbeta_recali <- 21.13
-
-
-  # mxbeta_recali <- 22.72
-  # 
-  # mdxbeta_recali <- 21.57
+  mxbeta_recali <- 22.72
+  
+  mdxbeta_recali <- 21.57
+  
   
   # diff and exp
   W5 <- exp(xbeta-mxbeta_recali)
