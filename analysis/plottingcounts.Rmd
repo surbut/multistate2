@@ -105,12 +105,21 @@ data_score3_and1 <- test[selected_3_and1, ]
   only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
   only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
   
+  only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==2))
+  only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==2))
+  
+  
+  both=intersect(selected_indices_score1,selected_indices_score3)
+  both_andsick=intersect(both,which(test$Cad_0_Any==2))
   # Counts
   counts <- list(
     only_score1 = length(only_score1),
+    only_score1_andsick=length(only_score1_andsick),
 
     only_score3 = length(only_score3),
-        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)))
+    only_score3_andsick=length(only_score3_andsick),
+        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+        both_andsick=length(both_andsick))
 
   
   
@@ -190,14 +199,18 @@ all_counts <- lapply(results_list, function(x) x$counts)
 # Convert this list to a data frame suitable for UpSetR
 df <- data.frame(do.call(rbind, all_counts))
 
+df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+colnames(df_c)=c("MSlife","PCETeny","Both")
 
-d=data.frame(t(apply(df,1,function(x){as.numeric(x)})))
-d=data.frame(t(apply(d,1,function(x){x/nrow(test)})))
+
+
+d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
 d$ages=ages[1:40]
-colnames(d)=c("MSGene LT>10%","PCE 10y>5%","both","ages")
+colnames(d)=c("MSGene LT>10% Only","PCE 10y>5% Only","Both","ages")
 m=melt(d,id.var="ages")
 
-ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Frequency")
+ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Cases Captured")
 
 
 
@@ -210,7 +223,7 @@ ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic(
 ```{R}
 rm(list=ls())
 test=readRDS("~/multistate2/output/test.rds")
-ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")/1.83
 
 
 ### this is the data frame with approportiate score
@@ -224,7 +237,7 @@ ages=c(40:80)
 results_list <- list()
 
 
-matrix2=ascvd.30.year.rc/1.83
+matrix2=ascvd.30.year.rc
 
 for(year in 1:(length(ages)-1)){
   
@@ -244,19 +257,7 @@ for(year in 1:(length(ages)-1)){
     mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
   )
   
-  # threshold2=10
-  # # Get individuals satisfying the criteria based on score2 from matrix1
-  # selected_indices_score2 <- which(matrix1[, year] > threshold2)
-  #  data_score2 <- test[selected_indices_score2, ]
-  #  stats_score2 <- c(
-  #   mean_genetics = mean(data_score2$cad.prs, na.rm = TRUE),
-  #   percent_female = mean(data_score2$sex == "female", na.rm = TRUE) * 100,
-  #   percent_smoker = mean(data_score2$smoke, na.rm = TRUE) * 100,
-  #   mean_labs = colMeans(data_score2[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  # )
-  #  
-  # Get individuals satisfying the criteria based on score3 from matrix2
-   threshold3=10
+     threshold3=10
   selected_indices_score3 <- which(matrix2[, year] > threshold3)
   data_score3 <- test[selected_indices_score3, ]
  
@@ -302,22 +303,28 @@ data_score3_and1 <- test[selected_3_and1, ]
   #score2_and_score3 <- intersect(selected_indices_score2, selected_indices_score3)
   #all_two_scores <- intersect(score1_and_score2, selected_indices_score3)
 
+
   # Unique to each score
   only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
-  #only_score2 <- setdiff(selected_indices_score2, union(selected_indices_score1, selected_indices_score3))
   only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
   
+  only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==2))
+  only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==2))
+  
+  
+  both=intersect(selected_indices_score1,selected_indices_score3)
+  both_andsick=intersect(both,which(test$Cad_0_Any==2))
   # Counts
   counts <- list(
     only_score1 = length(only_score1),
-    #only_score2 = length(only_score2),
+    only_score1_andsick=length(only_score1_andsick),
+
     only_score3 = length(only_score3),
-    #score1_and_score2 = length(setdiff(score1_and_score2, all_three_scores))
-    score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3))
-    #score2_and_score3 = length(setdiff(score2_and_score3, all_three_scores)),
-    #all_three_scores = length(all_three_scores)
-  )
-  
+    only_score3_andsick=length(only_score3_andsick),
+        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+        both_andsick=length(both_andsick))
+
+ 
   
   # Store results for this year
   results_list[[year]] <- list(
@@ -393,15 +400,20 @@ all_counts <- lapply(results_list, function(x) x$counts)
 # Convert this list to a data frame suitable for UpSetR
 df <- data.frame(do.call(rbind, all_counts))
 
+df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+colnames(df_c)=c("MSlife","PCETeny","Both")
 
-d=data.frame(t(apply(df,1,function(x){as.numeric(x)})))
-d=data.frame(t(apply(d,1,function(x){x/nrow(test)})))
+
+
+d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
 d$ages=ages[1:40]
-colnames(d)=c("MSGene LT>10%","FRS 30y>10%","both","ages")
+colnames(d)=c("MSGene LT>10% Only","FRS 30y>10% Only","Both","ages")
 m=melt(d,id.var="ages")
 
-ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Frequency")
+g1=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Proportion of Cases Captured")
 
+ggsave(g1,file="~/multistate2/output/proportioncasescaptured.pdf",dpi=600)
 ```
 
 

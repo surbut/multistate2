@@ -1,0 +1,420 @@
+---
+title: "rocacu"
+output: html_document
+date: "2023-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+NOw ROC
+
+```{r}
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now")
+```
+
+```{r}
+set.seed(456)
+enrollments = c(41:70)
+aucmat = matrix(NA, nrow = length(enrollments), ncol = 4)
+prcmat = matrix(NA, nrow = length(enrollments), ncol = 4)
+semat = matrix(NA, nrow = length(enrollments), ncol = 4)
+
+ages = 40:80
+enrollments = c(41:70)
+## return a matrix of coefficients over all ages for a given state to state transition
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ggplotly(b$plot)
+coefs=b$custom_smooth
+
+
+
+for (z in 1:length(enrollments)) {
+  age = enrollments[z]
+  start = age
+  stop = 80
+  
+  df_frame = test
+  atrisk = df_frame[age < Cad_0_censor_age &
+                      age < Ht_0_censor_age &
+                      age < HyperLip_0_censor_age &
+                      age < Dm_0_censor_age & smoke == 0 , ]
+  
+  
+  df_updated = data.frame(atrisk)
+  ar = data.frame(
+    "intercept" = 1,
+    "cad.prs" = atrisk$cad.prs,
+    "sex" = atrisk$f.31.0.0,
+    "smoke" = atrisk$smoke,
+    "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                             atrisk$htn_age < age, 1, 0)
+  )
+
+    # ar = data.frame(
+    #   "intercept" = 1,
+    #   "cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0,
+    #   "smoke" = atrisk$smoke,
+    #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    #                           atrisk$htn_age < age, 1, 0),
+    #   "statin_now" = ifelse(atrisk$statin == 1 &
+    #                            atrisk$statin_age < age, 1, 0)
+    #   )
+  dat = data.frame(
+    "id" = atrisk$identifier,
+    "mysex" = as.factor(atrisk$sex),
+    "myage" = rep(age, nrow(atrisk)),
+    "mysbp" = atrisk$sbp,
+    "mytreat" = ifelse(atrisk$antihtn == 1 &
+                         atrisk$htn_age < age, 1, 0),
+    "mysmoking" = atrisk$smoke,
+    "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                            atrisk$Dm_0_censor_age < age, 1, 0),
+    "mytotalchol" = atrisk$choladj,
+    "myhdl" = atrisk$hdladj,
+    "Race" = atrisk$Race,
+    "mystatnow" = ifelse(atrisk$statin == 1 &
+                           atrisk$statin_age < age, 1, 0)
+  )
+  
+  mso = compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+  
+  df_updated$ms = mso$PredictedIntervalrisk
+  f = fun.frs_30y(
+    dat,
+    id = "id",
+    sex = "mysex",
+    age = "myage",
+    sbp = "mysbp",
+    treat = "mytreat",
+    smoking = "mysmoking",
+    diabetes = "mydiabetes",
+    totalchol = "mytotalchol",
+    hdl = "myhdl"
+  )
+  df_updated$frs.30y = f$frs_orig
+  df_updated$frs.recal = f$frs_recali
+  ### return matrix of smoothed coefficeints
+  #library(purrr)
+  
+  rm(atrisk)
+  
+  #require(pROC)
+  df_updated$outcome = ifelse(df_updated$Cad_0_Any == 2 &
+                                df_updated$Cad_0_censor_age < stop,
+                              1,
+                              0)
+  #d = df_updated[round(phenos.enrollment, 0) == age, ]
+  d = df_updated
+  
+  #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  semat[z, 1] = sqrt(var(roc(d$outcome ~ d$ms)))
+  aucmat[z, 2] = roc(d$outcome ~ d$frs.30y)$auc
+  semat[z, 2] = sqrt(var(roc(d$outcome ~ d$frs.30y)))
+  aucmat[z, 3] = roc(d$outcome ~ d$frs.recal)$auc
+  semat[z, 3] = sqrt(var(roc(d$outcome ~ d$frs.recal)))
+  aucmat[z, 4] = roc(d$outcome ~ d$cad.prs)$auc
+  semat[z, 4] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
+  
+  
+  require(PRROC)
+  fg <- d$ms[d$outcome == 1]
+  bg <- d$ms[d$outcome == 0]
+  
+  prcmat[z, 1] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+  fg <- na.omit(d$frs.30y[d$outcome == 1])
+  bg <- na.omit(d$frs.30y[d$outcome == 0])
+  prcmat[z, 2] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  
+  fg <- na.omit(d$frs.recal[d$outcome == 1])
+  bg <- na.omit(d$frs.recal[d$outcome == 0])
+  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  fg <- na.omit(d$cad.prs[d$outcome == 1])
+  bg <- na.omit(d$cad.prs[d$outcome == 0])
+  prcmat[z, 4] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  
+  print(paste0("Completedforage", age))
+  
+  
+  
+}
+
+saveRDS(aucmat,file = "../output/auc_30year.rds")
+saveRDS(prcmat,file = "../output/prc_30year.rds")
+
+rownames(aucmat) = enrollments
+colnames(aucmat)=c("MSLT","FRS30","FRSRC","PRS")
+m = melt(aucmat, id.vars = "Age")
+names(m) = c("Age", "Model", "AUC")
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = "MSGene"
+levels(m$Model)[2] = "FRS30y"
+levels(m$Model)[3] = "FRS30recal"
+levels(m$Model)[4] = "PRS only"
+m$se=as.vector(semat)
+
+aucplot <-
+  ggplot(m[m$Age<55,], 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+  ylim(0.5, 0.8) +
+ theme_classic() + ggtitle(paste0("30-year risk prediction, ROC AUC"))
+
+library(pROC)
+rownames(prcmat) = enrollments
+colnames(prcmat)=c("MSGene","FRS30y","PRSonly","FRS30.recal")
+prcmat=prcmat[,c("MSGene","FRS30y","FRS30.recal","PRSonly")]
+m = melt(prcmat, id.vars = "Age")
+
+names(m) = c("Age", "Model", "AUC")
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = "MSGene"
+levels(m$Model)[2] = "FRS30y"
+levels(m$Model)[3] = "FRS30.recal"
+levels(m$Model)[4] = "PRSonly"
+m$se=as.vector(semat[,c(1,2,3,4)])/10
+#m = m[m$Model %in% c("MSGene", "FRS30y", "PRS only"), ]
+prplot <-
+  ggplot(m[m$Age<55,], 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+ 
+ theme_classic() + ggtitle(paste0("30-year risk prediction, Precision Recall"))
+
+
+ggarrange(aucplot,prplot,common.legend = T,legend = "right")
+
+
+figure <- ggarrange(aucplot + rremove("ylab") + rremove("xlab"), prplot + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+labels = NULL,
+ncol = 2, nrow = 1,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+fig=annotate_figure(figure, left = textGrob("AUC", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
+ggsave(fig,file="../output/jointaucprc_30.pdf",dpi=600,width=10,height=8,units = "in")
+```
+
+
+```{r}
+enrollments = c(41:70)
+aucmat = matrix(NA, nrow = length(enrollments), ncol = 3)
+prcmat = matrix(NA, nrow = length(enrollments), ncol = 3)
+semat = matrix(NA, nrow = length(enrollments), ncol = 3)
+
+
+## return a matrix of coefficients over all ages for a given state to state transition
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ggplotly(b$plot)
+coefs=b$custom_smooth
+
+
+
+for (z in 1:length(enrollments)) {
+  age = enrollments[z]
+  start = age
+  stop = min(age+10,80)
+  
+  df_frame = test
+  atrisk = df_frame[age < Cad_0_censor_age &
+                      age < Ht_0_censor_age &
+                      age < HyperLip_0_censor_age &
+                      age < Dm_0_censor_age & smoke == 0 , ]
+  
+  
+  df_updated = data.frame(atrisk)
+  ar = data.frame(
+    "intercept" = 1,
+    "cad.prs" = atrisk$cad.prs,
+    "sex" = atrisk$f.31.0.0,
+    "smoke" = atrisk$smoke,
+    "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                             atrisk$htn_age < age, 1, 0)
+  )
+
+    # ar = data.frame(
+    #   "intercept" = 1,
+    #   "cad.prs" = atrisk$cad.prs,
+    #   "sex" = atrisk$f.31.0.0,
+    #   "smoke" = atrisk$smoke,
+    #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    #                           atrisk$htn_age < age, 1, 0),
+    #   "statin_now" = ifelse(atrisk$statin == 1 &
+    #                            atrisk$statin_age < age, 1, 0)
+    #   )
+  dat = data.frame(
+    "id" = atrisk$identifier,
+    "mysex" = as.factor(atrisk$sex),
+    "myage" = rep(age, nrow(atrisk)),
+    "mysbp" = atrisk$sbp,
+    "mytreat" = ifelse(atrisk$antihtn == 1 &
+                         atrisk$htn_age < age, 1, 0),
+    "mysmoking" = atrisk$smoke,
+    "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                            atrisk$Dm_0_censor_age < age, 1, 0),
+    "mytotalchol" = atrisk$choladj,
+    "myhdl" = atrisk$hdladj,
+    "Race" = atrisk$Race,
+    "mystatnow" = ifelse(atrisk$statin == 1 &
+                           atrisk$statin_age < age, 1, 0)
+  )
+  
+  mso = compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+  
+  df_updated$ms = mso$PredictedIntervalrisk
+  
+  
+pce.reverse.tenyear = 
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    
+
+  df_updated$pceten = pce.reverse.tenyear
+ 
+  rm(atrisk)
+  
+  #require(pROC)
+  df_updated$outcome = ifelse(df_updated$Cad_0_Any == 2 &
+                                df_updated$Cad_0_censor_age < stop,
+                              1,
+                              0)
+  #d = df_updated[round(phenos.enrollment, 0) == age, ]
+  d = df_updated
+  
+  #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  semat[z, 1] = sqrt(var(roc(d$outcome ~ d$ms)))
+  aucmat[z, 2] = roc(d$outcome ~ d$pceten)$auc
+  semat[z, 2] = sqrt(var(roc(d$outcome ~ d$pceten)))
+  aucmat[z, 3] = roc(d$outcome ~ d$cad.prs)$auc
+  semat[z, 3] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
+  
+  
+  require(PRROC)
+  fg <- d$ms[d$outcome == 1]
+  bg <- d$ms[d$outcome == 0]
+  
+  prcmat[z, 1] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+  fg <- na.omit(d$pceten[d$outcome == 1])
+  bg <- na.omit(d$pceten[d$outcome == 0])
+  prcmat[z, 2] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  fg <- na.omit(d$cad.prs[d$outcome == 1])
+  bg <- na.omit(d$cad.prs[d$outcome == 0])
+  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  
+  print(paste0("Completedforage", age))
+  
+  
+  
+}
+
+saveRDS(aucmat,file = "../output/aucten.rds")
+saveRDS(prcmat,file = "../output/prcten.rds")
+
+rownames(aucmat) = enrollments
+m = melt(aucmat, id.vars = "Age")
+names(m) = c("Age", "Model", "AUC")
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = "MSGene"
+levels(m$Model)[2] = "PCETen"
+levels(m$Model)[3] = "PRS only"
+m$Age=enrollments
+m$se=as.vector(semat)
+#m = m[m$Model %in% c("MSGene", "FRS30y", "PRS only"), ]
+aucplot <-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+  ylim(0.5, 0.8) +
+ theme_classic() + ggtitle(paste0("10-year risk prediction, ROC AUC"))
+
+library(pROC)
+rownames(prcmat) = enrollments
+colnames(prcmat)=c("MSGene","PCE","PRSonly")
+
+m = melt(prcmat, id.vars = "Age")
+
+names(m) = c("Age", "Model", "AUC")
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = "MSGene"
+levels(m$Model)[2] = "PCE 10y"
+levels(m$Model)[3] = "PRSonly"
+m$se=as.vector(semat[,c(1,2,3)])/2
+
+prplot <-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+ 
+ theme_classic() + ggtitle(paste0("10-year risk prediction, Precision Recall"))
+
+
+ggarrange(aucplot,prplot,common.legend = T,legend = "right")
+
+
+figure <- ggarrange(aucplot + rremove("ylab") + rremove("xlab"), prplot + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+labels = NULL,
+ncol = 2, nrow = 1,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+fig=annotate_figure(figure, left = textGrob("AUC", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
+ggsave(fig,file="../output/auctenyear.pdf",dpi=600,width = 10,height=8)

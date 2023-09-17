@@ -1,0 +1,70 @@
+---
+title: "saturn"
+output: html_document
+date: "2023-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r livesaved}
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+coefs=b$custom_smooth
+
+prs_quants=qnorm(c(seq(0.1,0.9,by=0.1)))
+
+prs_quants=c(-2.5,prs_quants,2.5)
+
+sex=c(0,1)
+
+atrisk=expand.grid(intercept=1,prs_quants=prs_quants,sex=sex,smoke=c(0,1),ah=c(0,1),stat=c(0,1))
+
+ar=atrisk[atrisk$ah==0&atrisk$smoke==0&atrisk$stat==0,]
+agesint=seq(40,70,by=5)
+
+
+tenlifarray=array(NA,dim=c(length(agesint),nrow(ar),4))
+dimnames(tenlifarray)=list(agesint,levels(interaction(prs_quants,sex)),c("Ten","Lifetime","TenBenefit","LifetimeBenefit"))
+
+
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  
+  tenlifarray[g,,1]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:(age+10),coefmat = coefs,RR = 0.80)$PredictedIntervalrisk
+
+  tenlifarray[g,,2]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:80,coefmat = coefs,RR = 0.80)$PredictedIntervalrisk
+  
+  tenlifarray[g,,3]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:(age+10),coefmat = coefs,RR = 0.80)$Hazard_treated
+  
+  tenlifarray[g,,4]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:80,coefmat = coefs,RR = 0.80)$Hazard_treated
+  
+}
+
+netben=tenlifarray[,,"Lifetime"]-tenlifarray[,,"LifetimeBenefit"]
+ben=melt(netben)
+ben2=melt(tenlifarray[,c(12:22),"LifetimeBenefit"])
+ten=melt(tenlifarray[,c(12:22),"Ten"])
+l=melt(tenlifarray[,c(12:22),"Lifetime"])
+
+mer=merge(ten,l,by=c("Var1","Var2"))
+mer=merge(mer,ben,by=c("Var1","Var2"))
+
+colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+mer$`PRS Category`=factor(mer$`PRS Category`,labels = c(0.01,seq(0.1,0.9,by=0.1),0.99))
+mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
+## dot point
+
+g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.001,ymax=`Lifetime`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+
+ggsave(plot = g1,filename = "../output/MStenvsMslifesaturn.pdf",dpi=300,height = 4,width = 6)
+
+g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+
+ggsave(plot = g1,filename = "../output/MStenvsMslifebenefit.pdf",dpi=300,height = 4,width = 6)

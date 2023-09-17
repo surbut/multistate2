@@ -1,0 +1,234 @@
+---
+title: "rmse"
+output: html_document
+date: "2023-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+source("~/dynamichr/code/utils.R")
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
+source("~/multistate2/code/fitarray.R")
+library("reshape2")
+source("~/multistate2/code/arrayindicate.R")
+source("../code/frs30_URBUT/fun.frs_30ynew.R")
+
+load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) <- c(1,2,3,4,5,6)
+
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source("~/multistate2/code/frs30_URBUT/fun.frs_30y.R")
+library(CVrisk)
+ages=c(40:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
+
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+                  
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
+ggplotly(b$plot)
+coefs=b$custom_smooth
+agesint=seq(40,70,by=5)
+
+test=data.frame(test)
+prs_quants=c(data.frame(test%>%group_by(int)%>%summarise(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
+
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
+test=data.table(test)
+
+for(i in 1:length(agesint)) {
+  age = agesint[i]
+  for (j in 1:length(levels(test$int))) {
+    cat = levels(test$int)[j]
+    
+    atrisk = test[age < Cad_0_censor_age &
+                    age < Ht_0_censor_age &
+                    age < HyperLip_0_censor_age &
+                    age < Dm_0_censor_age & int == cat, ]
+    #  ar = data.frame(
+    #   "intercept" = 1,
+    #    "cad.prs" = atrisk$cad.prs,
+    #    "sex" = atrisk$f.31.0.0)
+    # #   "smoke" = atrisk$smoke,
+    # #   "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+    # #                            atrisk$htn_age < age, 1, 0)
+    # # )
+     ar = data.frame(
+      "intercept" = 1,
+      "cad.prs" = atrisk$cad.prs,
+      "sex" = atrisk$f.31.0.0,
+      "smoke" = atrisk$smoke,
+      "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                              atrisk$htn_age < age, 1, 0),
+      "statin_now" = ifelse(atrisk$statin == 1 &
+                               atrisk$statin_age < age, 1, 0)
+      )
+# 
+#     ar = data.frame(
+#       "intercept" = 1,
+#       "cad.prs" = atrisk$cad.prs,
+#       "sex" = atrisk$f.31.0.0,
+#       "smoke" = atrisk$smoke
+#     )
+#       ar = data.frame(
+#       "intercept" = 1,
+#       #"cad.prs" = atrisk$cad.prs,
+#       "sex" = atrisk$f.31.0.0
+#       #"smoke" = atrisk$smoke
+#     )
+#     ar=data.frame("intercept"=1,"cad.prs"=atrisk$cad.prs,"sex"=atrisk$f.31.0.0)
+    ten.year.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(age + 10)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    lifetime.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(80)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                       atrisk = atrisk)
+    # #
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+#
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+  }
+}
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ten.year.new=as.matrix(ten.year.new)
+lifetime.new=as.matrix(lifetime.new)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.new*100))
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+
+pclife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year[c(1:2),]))
+mslife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(lifetime.new[c(1:2),]*100))
+pclife2=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),]))
+
+
+a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("FRS 30 year")+labs(y="RMSE %, 30 year")+ylim(c(0,0.60))
+
+a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ylim(c(0,0.60))+ggtitle("FRS, RC")+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+a3=ascvd.30.year.rc/1.83
+
+a4=plotfuncrmse(ascvd.ten.year = a3,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle("FRS rc/div")+ylim(c(0,0.60))+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+figure <- ggarrange(a1 + rremove("ylab") + rremove("xlab"), a2 + rremove("ylab") + rremove("xlab"), a4 + rremove("ylab") + rremove("xlab"),
+labels = NULL,
+ncol = 3, nrow = 1,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+fig=annotate_figure(figure, left = textGrob("RMSE (30 year), %", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
+ggsave(plot = fig,file="~/multistate2/output/sharedrmse.pdf",dpi=300,width=12,heigh=10,units="in")
+library(ggpubr)
+saveRDS(ggarrange(a1,a2,common.legend = TRUE,legend = "right"),file = "~/multistate2/output/sharedrmse.rds")
+
+```
+
+```{r}
+a1=plotfuncrmse(ascvd.ten.year = pce.reverse.tenyear,emp.ten.year = emp.ten.year,mstate.ten.year = ten.year.new)$m+ylim(c(0,0.25))+labs(y="RMSE %, 10 year")
+
+a2=plotfuncrmse(ascvd.ten.year = ascvd.ten.year,emp.ten.year = emp.ten.year,mstate.ten.year =ten.year.new)$m+ylim(c(0,0.25))+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+
+figure <- ggarrange(a1 + rremove("ylab") + rremove("xlab"), a2 + rremove("ylab") + rremove("xlab"),
+labels = NULL,
+ncol = 2, nrow = 1,
+common.legend = TRUE, legend = "top",
+align = "hv",
+font.label = list(size = 10, color = "black", face = "bold", family = NULL, position = "top"))
+fig=annotate_figure(figure, left = textGrob("RMSE (10 year), %", rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob("Age at Calculation", gp = gpar(cex = 1.3)))
+
+ggsave(plot = fig,file="~/multistate2/output/sharedrmse_ten.pdf",dpi=600,width=12,height = 9,units="in")
+
+
+```
+
+
+

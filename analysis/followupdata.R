@@ -205,7 +205,7 @@ t=ggplot(s2, aes(AGEV, TCV, col = factor(shareid))) +
 
 ## plots
 ##How to use
-prs=fread("~/Dropbox/Fram_allchr_CAD_c1.profile")
+prs=fread("~/Library/CloudStorage/Dropbox-Personal/Fram_allchr_CAD_c1.profile")
 prs$score=scale(prs$V2)
 m3=merge(cframe,prs,by.x="shareid",by.y="V1")
 
@@ -812,23 +812,43 @@ hist(m3$followup[m3$followup>20],xlab="Years Follow up from first measurement in
 
 ###
 saveRDS(df_updated,"~/Dropbox/framinghamlookup.rds")
-dfu=readRDS("~/Dropbox/framinghamlookup.rds")
+dfu=readRDS("~/Library/CloudStorage/Dropbox-Personal/framinghamlookup.rds")
 
 ## only do predictions for those not on statins and non smokers
-dfu=dfu[dfu$LIPRXV==0&dfu$SMOKEV==0,]
+#dfu=dfu[dfu$LIPRXV==0&dfu$SMOKEV==0,]
 
-firstmeasure=data.frame(dfu%>%group_by(shareid)%>%summarise(min(AGEV),as2[1],score[1],SEX[1]))
-names(firstmeasure)=c("shareid","Age","ASCVD","cad.prs","sex")
+
+firstmeasure <- dfu %>%
+  group_by(shareid) %>%
+  arrange(AGEV) %>%
+  summarise(
+    min_age = min(AGEV, na.rm = TRUE), # Assuming you want to remove NAs
+    min_prs = score[1],
+    min_as2 = as2[1],
+    smoke=SMOKEV[1],
+    ah=dfu$HRXV[1],
+    stat=dfu$LIPRXV[1],
+    sex=SEX[1]
+  )
+# firstmeasure=data.frame(dfu%>%group_by(shareid)%>%summarise(min(AGEV),as2[1],score[1],SEX[1]))
+# names(firstmeasure)=c("shareid","Age","ASCVD","cad.prs","sex")
 firstmeasure=merge(firstmeasure,surv[,c("shareid","chd","chddate")],by="shareid")
 
 firstmeasure$SEX=ifelse(firstmeasure$sex=="male",1,0)
-firstmeasure$cad.prs.lec=cut(firstmeasure$cad.prs,breaks = c(-5.02,-0.84,0.84,5.02),labels = c("low","mid","high"))
+firstmeasure$cad.prs.lec=cut(firstmeasure$min_prs,breaks = c(-5.02,-0.84,0.84,5.02),labels = c("low","mid","high"))
 firstmeasure$int=interaction(firstmeasure$SEX,firstmeasure$cad.prs.lec)
 levels(firstmeasure$int) <- c(1,2,3,4,5,6)
 
 firstmeasure%>%group_by(int)%>%summarise(mean(cad.prs),median(cad.prs))
 ## grab means
-saveRDS(firstmeasure,file="~/Dropbox/firstmeasure.rds")
+saveRDS(firstmeasure,file="~/output/
+        firstmeasure.rds")
+
+
+# Merge by two columns
+merged_data <- cframe %>%
+  inner_join(firstmeasure, by = c("shareid", "AGEV"))
+
 
 prs_quants=c(data.frame(firstmeasure%>%group_by(int)%>%summarize(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
 prsprobs= pnorm(prs_quants)
