@@ -203,6 +203,7 @@ for (j in 1:length(coeflist)) {
     )
     
     predicted_risks[t,, i, j] = mso$PredictedIntervalrisk
+    #predicted_risks[t,, i, j] = mso$Hazard_treated
     print(paste0("completeboot",t,"age",age,"state",j))
     
   }
@@ -215,10 +216,44 @@ print(proc.time()-time)
 pm=predicted_risks[c((1:4),(6:50)),,,]
 
 saveRDS(pm,"../output/predictedrsiskboot.rds")
+saveRDS(pm,"../output/predictedrsiskboot_withtreat.rds")
+
+
+pm=readRDS("../output/predictedrsiskboot.rds")
+
+library(ggplot2)
+library(viridis)
+
+# Assuming `array1` is predicted risk and `array2` is risk under treatment
+diff_array <- pmuntreated - pm
+
+# Calculate mean and SD across bootstraps
+mean_diff <- apply(diff_array, c(2,3,4), mean)
+sd_diff <- apply(diff_array, c(2,3,4), sd)
+
+# Melt the array to a dataframe for ggplot2
+df <- as.data.frame(as.table(mean_diff))
+
+ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) + 
+  geom_tile() +
+  scale_fill_viridis() + 
+  theme_minimal() +
+  labs(x = "Years", y = "Risk States", fill = "Mean Difference")
+
 
 oldtest=test
 
 ## now do for a fixed matrix
+intercept=1
+cad.prs=c(-2,-1,0,1,2)
+sex=c(0,1)
+smoke=c(0,1)
+antihtn_now=c(0,1)
+statin_now=c(0,1)
+
+atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now,statin_now)
+
+
 test=data.frame(atrisk)
 rownames(test)=c(1:nrow(test))
 predicted_risks = array(NA, dim = c(B, nrow(test),length(agesint), 8))
@@ -368,7 +403,8 @@ for (j in 1:length(coeflist)) {
       agepredinterval = c(start:stop)
     )
     
-    predicted_risks[t,, i, j] = mso$PredictedIntervalrisk
+    #predicted_risks[t,, i, j] = mso$PredictedIntervalrisk
+    predicted_risks[t,, i, j] = mso$Hazard_treated
     print(paste0("completeboot",t,"age",age,"state",j))
 
 }
@@ -378,6 +414,25 @@ pm2=predicted_risks[c((1:4),(6:50)),,,]
 
 saveRDS(pm2,"../output/predictedrsiskboot_fixed.rds")
 
+saveRDS(pm2,"../output/predictedrsiskboot_fixed_benefit.rds")
+
+untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
+treated=pm2
+# Assuming `array1` is predicted risk and `array2` is risk under treatment
+diff_array <- untreated[,c(6:10),,] - treated[,c(6:10),,] 
+
+# Calculate mean and SD across bootstraps
+mean_diff <- apply(diff_array, c(2,3,4), mean)
+sd_diff <- apply(diff_array, c(2,3,4), sd)
+
+# Melt the array to a dataframe for ggplot2
+df <- as.data.frame(as.table(mean_diff))
+
+ggsave(ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) + 
+  geom_tile() +
+  scale_fill_viridis() + 
+  theme_minimal() +
+  labs(x = "Years", y = "Risk States", fill = "Mean Difference"),file="../output/benefit.pdf",dpi=600)
 
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 
@@ -456,12 +511,32 @@ plot_risk2_for_person <- function(pm, person_idx) {
 }
 
 # Plot for the first person as an example
-plot_risk_for_person(pm, "5021941")
+
+
+p1=plot_risk_for_person(pm, "5021941")
 # Plot for the first person as an example
-plot_risk2_for_person(pm, "5021941")
-
-get_person_summary_plot(pm, s2, "5021941")
 
 
+p2=plot_risk2_for_person(pm, "5021941")
 
+p3=get_person_summary_plot(pm, s2, "5021941")
+
+
+o=readRDS("../output/continuosums.rds")
+ga=ggarrange(p1,p3[[1]],o,common.legend = T,ncol =3,nrow =1)
+ggsave(ga,file="../output/predictedrisksfor5021941.pdf",width = 18,units = "in")
+
+
+
+pmidx="5021917"
+p1=plot_risk_for_person(pm,pmidx)
+# Plot for the first person as an example
+
+
+p2=plot_risk2_for_person(pm, pmidx)
+
+p3=get_person_summary_plot(pm, s2, pmidx)
+
+ga=ggarrange(p1,p3[[1]],common.legend = T,ncol =2,nrow = 1)
+ggsave(ga,file=paste0("../output/predictedrisksfor",pmidx,".pdf"))
 

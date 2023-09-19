@@ -304,6 +304,7 @@ for(j in 1:length(coeflist)){
 }
 
 
+saveRDS(predicted_risks2,"~/output/predictedrisk_forfixedmatrix.rds")
 
 ipf2=function(i){
 m=melt(predicted_risks2[i,,])
@@ -468,20 +469,17 @@ h=t(h)
 melt=melt(h)
 g=ggplot(melt[!(melt$Var2 %in% "out"),],aes(Var1,value,fill=Var2))+geom_bar(stat="identity")+
   labs(x="Age",y="Proportional Occupancy",fill="Current State")+scale_fill_d3()
+
 saveRDS(g,file="~/multistate2/output/proportionaloccupancy.rds")
 
-plotfunc(patientriskmat = cr,patient = which(oldtest$identifier%in%"5021941"),ages = c(40:79))
+plotfunc(patientriskmat = cr,patient = which(test$identifier%in%"5021941"),ages = c(40:79))
 ```
 
 
 ```{r}
-test$sta_lev=cut(as.numeric(test$statin_age,breaks = c(0,40,50,60,70,100))
+test$sta_lev=cut(as.numeric(test$statin_age,breaks = c(0,40,50,60,70,100)))
 
-library(dplyr)
-library(ggplot2)
 
-library(dplyr)
-library(ggplot2)
 
 get_person_summary_plot <- function(pm, s2, person_idx) {
   # Convert the risk array for the given person to a data frame
@@ -495,7 +493,7 @@ get_person_summary_plot <- function(pm, s2, person_idx) {
   # Extract the state info for the given person
   current_state_df <- state_df %>%
     filter(Indicator == 1) %>%
-    select(-Indicator)
+    dplyr::select(-Indicator)
   
   # Merge the data to get risks based on the state the person is in
   merged_df <- risk_df %>%
@@ -507,10 +505,10 @@ get_person_summary_plot <- function(pm, s2, person_idx) {
     summarise(
       mean_risk = mean(Risk),
       se_risk = sd(Risk) / sqrt(n()),
-      #lower_95 = mean_risk - 1.96 * se_risk,  # For 95% CI
-      #upper_95 = mean_risk + 1.96 * se_risk,  # For 95% CI
-      lower_95 = quantile(Risk,0.025),  # For 95% CI
-      upper_95 = quantile(Risk,0.975),  # For 95% CI
+      lower_95 = mean_risk - 1.96 * se_risk,  # For 95% CI
+      upper_95 = mean_risk + 1.96 * se_risk,  # For 95% CI
+      #lower_95 = quantile(Risk,0.025),  # For 95% CI
+      #upper_95 = quantile(Risk,0.975),  # For 95% CI
     
       .groups = "drop"
     )
@@ -570,7 +568,7 @@ get_person_cross_threshold <- function(pm, s2, person_idx) {
 
 return(list(mean_risk=summary_df$mean_risk,se=summary_df$se_risk,num_exceeded=summary_df$num_exceeded))}
 
-states=sapply(c(1:nrow(test)),function(x){get_person_cross_threshold(pm,s2,as.character(test$identifier[x]))$mean_risk}
+states=sapply(c(1:nrow(test)),function(x){get_person_cross_threshold(pm,s2,as.character(test$identifier[x]))$mean_risk})
 
 saveRDS(states,"~/multistate2/output/state_occupancy_risk.rds")
 
@@ -677,6 +675,9 @@ g=ggarrange(statage,cadage,common.legend = T)
 
 save
 library(dplyr)
+
+pm=readRDS("../output/predictedrsiskboot.rds")
+
 
 
 get_person_exceedance_count <- function(person_index, pm, s2, threshold) {

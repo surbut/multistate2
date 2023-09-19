@@ -1,7 +1,7 @@
 ---
-title: "scoretest"
+title: "tenyear"
 output: html_document
-date: "2023-09-09"
+date: "2023-09-19"
 ---
 
 ```{r setup, include=FALSE}
@@ -10,11 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
+```{r}
 library("ggsci")
 library(dplyr)
 library(tidyr)
@@ -39,8 +35,8 @@ ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 # colnames(ab)=c(ages,"score","metric")
 # 
 # t=melt(ab,id.vars = c("score","metric"))
-
-# Calculate mean values for each combination
+# 
+# # Calculate mean values for each combination
 # df_mean <- t %>%
 #   group_by(score, metric, variable) %>%
 #   summarise(mean_value = mean(value, na.rm = TRUE))
@@ -58,49 +54,21 @@ ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 #       TRUE ~ as.character(score)
 #     )
 #   )
-
-
+# 
+# 
 # gf=ggplot(df_mean, aes(x = as.numeric(variable), y = mean_value, col = as.factor(interaction(gender,score)),shape=metric)) +
 #   geom_point() +
 #   labs(x = "Age", y = "Predicted Lifetime Risk",col="Sex, PRS Percent",shape="FRS") +
 #   theme_classic()
-# 
-# ggsave(gf,file="../output/gf.pdf",dpi=600)
-# 
-# # ggplot(t,aes(variable,value,col=score,shape=metric))+geom_point()
-# 
-# plot(ages,colMeans(a[a[,41]==6,-41]),xlab="Age",ylab="30 year risk, FRS")
-# points(ages,colMeans(a[a[,41]==5,-41]))
-# points(ages,colMeans(a[a[,41]==4,-41]))
-# points(ages,colMeans(a[a[,41]==3,-41]))
-# points(ages,colMeans(a[a[,41]==2,-41]))
-# points(ages,colMeans(a[a[,41]==1,-41]))
-# 
-# 
-# let=sapply(states,function(x){length(x)})
-# tat=states[which(let==40)]
-# dc=do.call(rbind,tat)
-# dc=dc*100
-# 
-# b=cbind(dc,test$int)
-# 
-# ages=c(40:79)
-# plot(ages,colMeans(b[b[,41]==6,-41]))
-# points(ages,colMeans(b[b[,41]==5,-41]))
-# points(ages,colMeans(b[b[,41]==4,-41]))
-# points(ages,colMeans(b[b[,41]==3,-41]))
-# points(ages,colMeans(b[b[,41]==2,-41]))
-# points(ages,colMeans(b[b[,41]==1,-41]))
 
-             
+# ggsave(gf,file="../output/gf.pdf",dpi=600)
+#          
+
 head(pce.reverse.tenyear)
 agesint=c(40:80)
 thresh=5;
 ten=apply(pce.reverse.tenyear,1,function(x){min(agesint[x>thresh])})
 thresh=10;
-thirty=apply(ascvd.30.year.rc,1,function(x){
-  w=which(x>thresh)
-  ifelse(length(w)>0,min(agesint[w]),100)})
 
 
 ### this is the data frame with approportiate score
@@ -109,46 +77,7 @@ ages=c(40:80)
 thresh=0.10;
 t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),100)})
 
-df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"=test$Cad_0_censor_age,"sex"=test$f.31.0.0,"prs"=test$cad.prs,"ten"=ten,"thirty"=thirty,"ms"=t)
-
-data <- data.frame(t_val = t)
-# Create the ggplot histogram
-p <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "red", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
-labs(title = "Histogram of Age Exceeding Risk: MSGene LT",
-x = "Value of t",
-y = "Density")+theme_classic()+lims(y=c(0,0.30))
-
-
-data <- data.frame(t_val = ten)
-# Create the ggplot histogram
-p2 <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "blue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
-labs(title = "Histogram of Age Exceeding Risk: Ten year",
-x = "Value of t",y = "Density")+theme_classic()+xlim(39,80)+lims(y=c(0,0.30))
-
-data <- data.frame(t_val = thirty)
-# Create the ggplot histogram
-p3 <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "green", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
-labs(title = "Histogram of Age Exceeding Risk: 30-year",
-x = "Value of t",y = "Density")+theme_classic()+lims(y=c(0,0.30))
-
- gathresh=ggarrange(p,p2,p3,nrow = 3)
-# 
-# 
-# ggsave(gathresh,file="../output/threshold.pdf",dpi=600)
-
-
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-
-
+df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"=test$Cad_0_censor_age,"sex"=test$f.31.0.0,"prs"=test$cad.prs,"ten"=ten,"ms"=t)
 df_expanded <- data.frame(
   id = integer(), 
   start = numeric(), 
@@ -157,6 +86,7 @@ df_expanded <- data.frame(
   score1 = integer(), 
   score2 = integer()
 )
+
 
 library(data.table)
 
@@ -187,13 +117,8 @@ expand_data <- function(id, cad_status, censor_age, score1_age, score2_age) {
 
 list_dt <- lapply(1:nrow(df), function(i) {
   row <- df[i,]
-  expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$thirty, row$ms)
+  expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$ten, row$ms)
 })
-
-# list_dt <- lapply(1:nrow(df), function(i) {
-#   row <- df[i,]
-#   expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$ten, row$ms)
-# })
 
 df_expanded <- rbindlist(unlist(list_dt, recursive = FALSE))
 
@@ -236,17 +161,11 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 library(ggplot2)
 
 df_cindex <- data.frame(
-  Score = c("MSGene","30 Year"),
+  Score = c("MSGene","PCE 10 Year"),
   Cindex = c(results_score2$mean,results_score1$mean),
-  ymin = c(ci_score2[1], ci_score1[1]),
-  ymax = c(ci_score2[2], ci_score1[2])
+  ymin = c(ci_score2[1],ci_score1[1]),
+  ymax = c(ci_score2[2],ci_score1[1])
 )
-# df_cindex <- data.frame(
-#   Score = c("PCE 10", "MSGene"),
-#   Cindex = c(results_score1$mean, results_score2$mean),
-#   ymin = c(ci_score1[1], ci_score2[1]),
-#   ymax = c(ci_score1[2], ci_score2[2])
-# )
 
 cp <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
   geom_bar(stat = "identity", position = position_dodge()) +
@@ -271,7 +190,7 @@ aic2 <- AIC(fit2)
 cat("AIC for FRS.30y:", aic1, "\n")
 cat("AIC for msGene:", aic2, "\n")
 
-ggsave(ggarrange(p,p2,p3,cp,nrow=2,ncol=2),file="../output/thresholdexceeded.pdf")
+# ggsave(ggarrange(p,p2,p3,cp,nrow=2,ncol=2),file="../output/thresholdexceeded.pdf")
 ```
 
 
@@ -282,7 +201,7 @@ Now do for continous variable brier score:
 ```{r}
 df=test
 score1_list=states
-score2=ascvd.30.year.rc
+score2=pce.reverse.tenyear
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
 df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
@@ -370,7 +289,7 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 library(ggplot2)
 
 df_cindex <- data.frame(
-  Score = c( "MSGene","30 Year"),
+  Score = c( "MSGene","PCE 10 Year"),
   Cindex = c(results_score1$mean, results_score2$mean),
   ymin = c(ci_score1[1], ci_score2[1]),
   ymax = c(ci_score1[2], ci_score2[2])
@@ -390,7 +309,7 @@ p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 
 print(p)
 
-saveRDS(p,"../output/continuosums_lifetime.rds")
+saveRDS(p,"../output/continuosums_ten.rds")
 
 ####
 
@@ -398,5 +317,116 @@ saveRDS(p,"../output/continuosums_lifetime.rds")
 
 
 
+```{r}
+library(survival)
+#ri=sample(unique(expanded_df$id),1000)
+#sub=expanded_df[expanded_df$id%in%ri,]
+cox_model <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df,x = T)
+library(pec)
+### create a vector of predicted survival for every individual based on their profile at that time
+time_points <- c(41:80)
+brier.score=matrix(NA,nrow=2,ncol=length(time_points))
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
 
+for(j in 1:length(time_points)){
+    dat=dgood[dgood$age==time_points[j],]
+    surv=ifelse(dat$event==0,1,0)
+    psurv=dat[,(j+7)]
+    print(mean((surv-psurv)^2))
+    brier.score[1,j]=mean((surv-psurv)^2)
+    
+    
+}
+
+rm(cox_model)
+rm(surv_probs)
+rm(df)
+rm(dat)
+cox_model <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+
+
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+for(j in 1:length(time_points)){
+    dat=dgood[dgood$age==time_points[j],]
+    surv=ifelse(dat$event==0,1,0)
+    psurv=dat[,(j+7)]
+    print(mean((surv-psurv)^2))
+    brier.score[2,j]=mean((surv-psurv)^2)
+    
+}
+
+bs=data.frame(t(brier.score))
+bs$Age=time_points
+colnames(bs)=c("MSGene","FRS30y","Time")
+bs=melt(bs,id.vars = "Time")
+ggplot(bs,aes(x=Time,y=value,fill=variable))+geom_bar(stat = "identity",position = "dodge")+labs(x="Time Point",y="Brier Score",fill="Score")+theme_classic()
+
+
+###
+
+cox_model <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+dfevent=test[,c("identifier","Cad_0_Any","Cad_0_censor_age")]
+m=merge(dgood[,c("id","age","80")],dfevent,by.x="id",by.y="identifier",all.x =T)
+m$surv=ifelse(m$Cad_0_Any==1,1,0)
+
+for(j in 1:length(time_points)){
+    dat=m[m$age==time_points[j],]
+    surv=dat$surv
+    psurv=dat[,"80"]
+    print(mean((surv-psurv)^2))
+    brier.score[2,j]=mean((surv-psurv)^2)
+    
+}
+
+
+
+###
+
+
+cox_model <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df,x = T)
+time_points <- c(41:80)
+### create a vector of predicted survival for every individual based on their profile at that time over a variety of time points
+surv_probs <- predictSurvProb(object = cox_model,newdata=expanded_df, times=time_points)
+colnames(surv_probs)=time_points
+df=cbind(expanded_df,surv_probs)
+dgood=df[df$age%in%time_points,]
+
+dfevent=test[,c("identifier","Cad_0_Any","Cad_0_censor_age")]
+m=merge(dgood[,c("id","age","80")],dfevent,by.x="id",by.y="identifier",all.x =T)
+m$surv=ifelse(m$Cad_0_Any==1,1,0)
+
+for(j in 1:length(time_points)){
+    dat=m[m$age==time_points[j],]
+    surv=dat$surv
+    psurv=dat[,"80"]
+    print(mean((surv-psurv)^2))
+    brier.score[1,j]=mean((surv-psurv)^2)
+    
+}
+
+
+bs=data.frame(t(brier.score))
+bs$Age=time_points
+colnames(bs)=c("MSGene","FRS30y","Time")
+bs=melt(bs,id.vars = "Time")
+ggplot(bs,aes(x=Time,y=value,fill=variable))+geom_bar(stat = "identity",position = "dodge")+labs(x="Time Point",y="Brier Score",fill="Score")+theme_classic()
+
+```
 

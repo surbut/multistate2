@@ -1,0 +1,175 @@
+---
+title: "lifetime"
+output: html_document
+date: "2023-09-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+coefs=b$custom_smooth
+
+
+prs_quants=qnorm(c(0.2,0.5,0.8))
+
+
+
+sex=c(0,1)
+
+atrisk=expand.grid(intercept=1,prs_quants=prs_quants,sex=sex,smoke=c(0,1),ah=c(0,1),stat=c(0,1))
+
+ar=atrisk[atrisk$ah==0&atrisk$smoke==0&atrisk$stat==0,]
+
+
+ten=tenlifeplotting(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$tenplot+theme_classic()
+
+ggsave(t,file="../output/tenlifehealth.pdf",dpi=600)
+
+l=tenlifeplotting(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifeplot+theme_classic()
+
+ggsave(l,file="../output/lifehealth.pdf",dpi=600)
+
+
+
+
+atrisk=expand.grid(intercept=1,prs_quants=prs_quants,sex=sex,smoke=c(0,1),ah=c(0,1),stat=c(0,1))
+
+ar=atrisk[atrisk$ah==0&atrisk$smoke==0&atrisk$stat==0,]
+
+
+
+start="Health"
+stop="Cad"
+c=coefplotsmooth2(ages = ages,start = start,stop = stop,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+b=compute_prediction_product_matrix(atrisk = ar,agepredinterval = 40:80,coefmat = c$custom_smooth)
+a=apply(data.frame(b$Survival),1,function(x){(1-cumprod(x))})
+
+a2=data.frame(a)
+colnames(a2)=c(paste0(rep("F:",3),round(prs_quants,2)),paste0(rep("M:",3),round(prs_quants,2)))
+rownames(a2)=ages
+a2$ages=ages
+m=melt(a2,id.vars="ages")
+hazplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="Cumulative Hazard starting from 40",x="Ages")
+
+a=apply(data.frame(b$Survival),1,function(x){(cumprod(x))})
+a2=data.frame(a)
+colnames(a2)=c(paste0(rep("F:",3),round(prs_quants,2)),paste0(rep("M:",3),round(prs_quants,2)))
+rownames(a2)=ages
+a2$ages=ages
+m=melt(a2,id.vars="ages")
+
+survplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="Survival Starting from 40",x="Ages")
+
+a=apply(data.frame(b$Survival_treated),1,function(x){(cumprod(x))})
+a2=data.frame(a)
+colnames(a2)=c(paste0(rep("F:",5),round(prs_quants,2)),paste0(rep("M:",5),round(prs_quants,2)))
+rownames(a2)=ages
+a2$ages=ages
+m=melt(a2,id.vars="ages")
+
+survplot2=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="Survival Starting from 40",x="Ages")
+
+gas=ggarrange(ten,l,hazplot,survplot,nrow=2,ncol=2,common.legend = T)
+
+ggsave(gas,file="../output/cumulativehazardandoverall.pdf",dpi=600)
+
+library("ggsci")
+library(dplyr)
+library(tidyr)
+library(data.table)
+
+test=readRDS("~/multistate2/output/test.rds")
+pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
+ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
+#ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rc.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+
+
+ages=c(40:79)
+a=data.frame(cbind(ascvd.30.year,lev=test$int))
+a$metric=rep("30y",nrow(a))
+
+b=data.frame(cbind(ascvd.30.year.rc,lev=test$int))
+b$metric=rep("30yRC",nrow(b))
+ab=rbind(a,b)
+colnames(ab)=c(as.numeric(ages),"score","metric")
+
+t=melt(ab,id.vars = c("score","metric"))
+t$variable=as.numeric(as.character(t$variable))
+
+# Calculate mean values for each combination
+df_mean <- t %>%
+  group_by(score, metric, variable) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE))
+
+df_mean <- df_mean %>%
+  mutate(
+    gender = case_when(
+      score %% 2 == 0 ~ "Male",
+      TRUE ~ "Female"
+    ),
+    percentile = case_when(
+      score %in% c(1,2) ~ "0.2",
+      score %in% c(3,4) ~ "0.5",
+      score %in% c(5,6) ~ "0.8",
+      TRUE ~ as.character(score)
+    )
+  )
+
+
+gf=ggplot(df_mean,aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape="metric"))+stat_smooth(se = F)+
+  labs(x = "Age", y = "Predicted FRS 30 year Risk",col="Sex, PRS Percent",shape="FRS") +theme_classic()
+
+ggsave(gf,file="../output/gf.pdf",dpi=600)
+
+install.packages("patchwork")
+library(patchwork)
+
+gas=ggarrange(ten,l,hazplot,survplot,gf,nrow=2,ncol=3,common.legend = T)
+p1= ten+ theme(legend.position = "none")
+p2 <- l + theme(legend.position = "none")
+p3 <- hazplot + theme(legend.position = "none")
+p4 <- survplot + theme(legend.position = "none")
+p5 <- gf + theme(legend.position = "bottom")
+
+combined_plot <- (ten + p2 + p3) / (p4 + p5) +plot_layout(guides = 'collect') & 
+theme(legend.position = "bottom")
+
+#p1 <- ten + theme(legend.position = "top")
+
+(combined_plot <- (p1 + p2 + p3) / (p4 + p5))
+
+ggsave(combined_plot,file="../output/tenlifesurvfrs.pdf",dpi=600)
+
+
+combined_plot <- (ten + l + gf) /
+(hazplot + survplot) +
+                 plot_layout(guides = 'collect') & 
+                 theme(legend.position = "bottomright")
+
+
+
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

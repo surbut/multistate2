@@ -65,6 +65,9 @@ g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.001,ymax=`Lifetime
 
 ggsave(plot = g1,filename = "../output/MStenvsMslifesaturn.pdf",dpi=300,height = 4,width = 6)
 
-g1=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+g2=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
 
-ggsave(plot = g1,filename = "../output/MStenvsMslifebenefit.pdf",dpi=300,height = 4,width = 6)
+ggsave(plot = g2,filename = "../output/MStenvsMslifebenefit.pdf",dpi=300,height = 4,width = 6)
+
+ggsave(
+ggarrange(g1,g2,benefit,ncol=3,common.legend = T),file="../output/saturnbenefit.pdf",dpi=600,height = 10,width=15)

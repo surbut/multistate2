@@ -85,9 +85,9 @@ for(i in 1:length(agesint)) {
     
 }
 
-saveRDS(pce.reverse.tenyear,"multistate2/output/pce.reverse.tenyear.rds")
+saveRDS(pce.reverse.tenyear,"~/multistate2/output/pce.reverse.tenyear.rds")
 #saveRDS(ascvd.30.year.rc,"multistate2/output/ascvd.30year.rc.rds")
-saveRDS(ascvd.30.year,"multistate2/output/ascvd.30year.rds")
+saveRDS(ascvd.30.year,"~/multistate2/output/ascvd.30year.rds")
 saveRDS(ascvd.30.year.rc,"~/multistate2/output/ascvd.30year.rcnew.rds")
 
 
