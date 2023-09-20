@@ -28,17 +28,17 @@ library("survival")
 
 library("tidyr")
 library("dplyr")
-df_final=readRDS("~/Dropbox/pheno_dir/output/merged_pheno_censor_final.rds")
+df_final=readRDS("~/Library/CloudStorage//Dropbox-Personal//pheno_dir/output/merged_pheno_censor_final.rds")
 
 # the directory with datafiles
-lst.harmonized.data=readRDS("~/Dropbox/pheno_dir/lst.harmonized.data.rds")
-df_frame=readRDS("~/Dropbox/pheno_dir/df_frame_gponly.rds")
+lst.harmonized.data=readRDS("~/Library/CloudStorage//Dropbox-Personal//pheno_dir/lst.harmonized.data.rds")
+df_frame=readRDS("~/Library/CloudStorage//Dropbox-Personal/pheno_dir//df_frame_gponly.rds")
 
-sta_date=readRDS("~/Dropbox/sta_gp.rds")
+sta_date=readRDS("~/Library/CloudStorage//Dropbox-Personal/sta_gp.rds")
 
 ## find non diabetics
 d=df_frame[df_frame$Cad_0_Any==2&df_frame$Dm_0_censor_age>df_frame$Cad_0_censor_age,]
-ldl=readRDS("~/Dropbox/ldl_date.rds")
+ldl=readRDS("~/Library/CloudStorage//Dropbox-Personal/ldl_date.rds")
 
 sta.min=sta_date%>%group_by(eid)%>%summarise(min(mage))
 mc=merge(sta.min,d,by.x="eid",by.y="identifier")
@@ -52,7 +52,7 @@ before=mf[mf$min.mage.-mf$Cad_0_censor_age<=-2,]
 after=mf[mf$min.mage.>mf$Cad_0_censor_age,]
 # mc$eid[mc$`min(mage)`-mc$Cad_0_censor_age]
 # good=intersect(i,ldl$eid[ldl$mage<50])
-pheno_dir="~/Dropbox (Personal)/pheno_dir/"
+pheno_dir="~/Library/CloudStorage//Dropbox-Personal/pheno_dir/"
 # main dataset 
 out_folder<-paste0(pheno_dir,"output/")
 extdata_dir <- paste0(system.file("extdata", package="ukbpheno"),"/")

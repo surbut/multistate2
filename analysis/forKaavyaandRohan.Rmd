@@ -19,6 +19,7 @@ library(ggplot2)
 
 df=fread("~/Library/CloudStorage/Dropbox-Personal/dataframe_main_sex_diff_prs.tsv")
 mg=fread("~/Library/CloudStorage/Dropbox-Personal/MGBB_Phenos_2CODE 2022-06-21.csv")
+gps_mult=fread("~/Downloads/forSurbut.csv")
 
 ```
 
@@ -31,6 +32,9 @@ Here we consider the distribution of ages. Please note that I replace all contro
 
 m=merge(df[,c("Biobank_Subject_ID","IID_x","SUM_RESULT_cardiogram","SUM_RESULT_krishna_female","AGE","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9")], mg[,c("Biobank_Subject_ID","Sex","Incd_cad","Has_cad","Prev_cad","cad_Date","Age_Genotyping","Date_of_Birth","Date_of_Death")],by="Biobank_Subject_ID")
 
+m=merge(m,gps_mult[,c("Biobank_Subject_ID","SUM_RESULT_PGS003725")])
+
+m$gpsmult=scale(m$SUM_RESULT_PGS003725)
 ##replace cad date if dead or never censored
 m$dead=ifelse(!is.na(m$Date_of_Death),1,0)
 
@@ -154,9 +158,68 @@ colnames(df_combined)=c("hazard_ratio","lower_95","upper_95","sex","age")
 
 
 df_long=df_combined[,c(1,4,5)]
-ggplot(df_long, aes(x = age, y = hazard_ratio, group = sex, fill =sex,color=sex)) +geom_smooth() +theme_classic()+labs(x="Age at Collection",y="HR (95% CI)",fill="Sex",col="Sex")+guides(fill=guide_legend(override.aes=list(fill=NA)))
+cdg=ggplot(df_long, aes(x = age, y = hazard_ratio, group = sex, fill =sex,color=sex)) +geom_smooth() +theme_classic()+labs(x="Age at Collection",y="HR (95% CI),Cardiogram",fill="Sex",col="Sex")+guides(fill=guide_legend(override.aes=list(fill=NA)))
+
+
 
 ```
+
+
+Now we do with gpsmult:
+
+```{r}
+#OR_male:
+orm=data.frame()
+ages=c(42:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[m$round.age>(age-5)&m$round.age<(age+5)&m$Sex=="Male",]
+  out=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~gpsmult+PC1+PC2+PC3+PC4+PC5,data = dat)
+  
+  orm[i,1]=exp(out$coef[1])
+  orm[i,2]=exp(confint.default(out))[1,1]
+  orm[i,3]=exp(confint.default(out))[1,2]
+  
+  
+  }
+rownames(orm)=ages
+
+#OR_male:
+orf=data.frame()
+ages=c(42:80)
+
+  for(i in 1:length(ages)){
+  age=ages[i]
+  dat=m[m$round.age>(age-5)&m$round.age<(age+5)&m$Sex=="Female",]
+  out=coxph(Surv(time = Age_Genotyping,time2 = cad.age,event = Incd_cad)~gpsmult+PC1+PC2+PC3+PC4+PC5,data = dat)
+  
+  orf[i,1]=exp(out$coef[1])
+  orf[i,2]=exp(confint.default(out))[1,1]
+  orf[i,3]=exp(confint.default(out))[1,2]
+  
+  
+  }
+  rownames(orf)=ages
+  
+  
+orm$sex <- "Male"
+orf$sex <- "Female"
+
+orm$age=rownames(orm)
+orf$age=rownames(orf)
+
+df_combined <- bind_rows(orm, orf)
+colnames(df_combined)=c("hazard_ratio","lower_95","upper_95","sex","age")
+
+
+
+df_long=df_combined[,c(1,4,5)]
+gp=ggplot(df_long, aes(x = age, y = hazard_ratio, group = sex, fill =sex,color=sex)) +geom_smooth() +theme_classic()+labs(x="Age at Collection",y="HR (95% CI), GPSMULT",fill="Sex",col="Sex")+guides(fill=guide_legend(override.aes=list(fill=NA)))
+
+ggarrange(c)
+```
+
 
 
 Now return the average OR and HR

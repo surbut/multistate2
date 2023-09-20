@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2023-09-09" />
+
+<title>scoretest</title>
+
+<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">multistate</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/surbut/multistate">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">scoretest</h1>
+<h4 class="date">2023-09-09</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2023-09-20
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 2
+</p>
+<p>
+<strong>Knit directory:</strong> <code>multistate2/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
+changes </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguncommittedchanges"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The R Markdown is untracked by Git. To know which version of the R
+Markdown file created these results, you’ll want to first commit it to
+the Git repo. If you’re still working on the analysis, you can ignore
+this warning. When you’re finished, you can run
+<code>wflow_publish</code> to commit the R Markdown file and build the
+HTML.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20230211code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20230211)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20230211code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20230211)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
+</p>
+</div>
+<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Using absolute paths to the files within your workflowr project makes it
+difficult for you and others to run your code on a different machine.
+Change the absolute path(s) below to the suggested relative path(s) to
+make your code more reproducible.
+</p>
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th style="text-align:left;">
+absolute
+</th>
+<th style="text-align:left;">
+relative
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/test.rds
+</td>
+<td style="text-align:left;">
+output/test.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/pce.reverse.tenyear.rds
+</td>
+<td style="text-align:left;">
+output/pce.reverse.tenyear.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/ascvd.30year.rds
+</td>
+<td style="text-align:left;">
+output/ascvd.30year.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/ascvd.30year.rc.rds
+</td>
+<td style="text-align:left;">
+output/ascvd.30year.rc.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/ascvd.30year.rcnew.rds
+</td>
+<td style="text-align:left;">
+output/ascvd.30year.rcnew.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/state_occupancy_risk.rds
+</td>
+<td style="text-align:left;">
+output/state_occupancy_risk.rds
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree86c9fcb52b69601ed5de4817938c70a8d3923be5targetblank86c9fcba">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/surbut/multistate2/tree/86c9fcb52b69601ed5de4817938c70a8d3923be5" target="_blank">86c9fcb</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree86c9fcb52b69601ed5de4817938c70a8d3923be5targetblank86c9fcba"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/surbut/multistate2/tree/86c9fcb52b69601ed5de4817938c70a8d3923be5" target="_blank">86c9fcb</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    analysis/.DS_Store
+    Ignored:    code/.DS_Store
+    Ignored:    data/
+    Ignored:    output/
+    Ignored:    plots/.DS_Store
+
+Untracked files:
+    Untracked:  analysis/prediction_threshod_test.Rmd
+    Untracked:  analysis/table1.R
+    Untracked:  analysis/threhosldtest183.Rmd
+
+Unstaged changes:
+    Modified:   analysis/forKaavyaandRohan.Rmd
+    Modified:   analysis/lipid_effect.Rmd
+    Modified:   code/plotting_code.R
+    Deleted:    prediction_threshod_test.Rmd
+    Deleted:    prediction_threshod_test.html
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+There are no past versions. Publish this analysis with
+<code>wflow_publish()</code> to start tracking its development.
+</p>
+<hr>
+</div>
+</div>
+</div>
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting
+syntax for authoring HTML, PDF, and MS Word documents. For more details
+on using R Markdown see <a href="http://rmarkdown.rstudio.com"
+class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be
+generated that includes both content as well as the output of any
+embedded R code chunks within the document. You can embed an R code
+chunk like this:</p>
+<pre class="r"><code>library(&quot;ggsci&quot;)
+library(dplyr)</code></pre>
+<pre><code>
+Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    filter, lag</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidyr)
+library(data.table)</code></pre>
+<pre><code>
+Attaching package: &#39;data.table&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    between, first, last</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(ggpubr)
+
+test=readRDS(&quot;~/multistate2/output/test.rds&quot;)
+pce.reverse.tenyear=readRDS(&quot;~/multistate2/output/pce.reverse.tenyear.rds&quot;)
+ascvd.30.year=readRDS(&quot;~/multistate2/output/ascvd.30year.rds&quot;)
+#ascvd.30.year.rc=readRDS(&quot;~/multistate2/output/ascvd.30year.rc.rds&quot;)
+ascvd.30.year.rc=readRDS(&quot;~/multistate2/output/ascvd.30year.rcnew.rds&quot;)/1.83
+
+
+# ages=c(40:79)
+# a=data.frame(cbind(ascvd.30.year,lev=test$int))
+# a$metric=rep(&quot;30y&quot;,nrow(a))
+# 
+# b=data.frame(cbind(ascvd.30.year.rc,lev=test$int))
+# b$metric=rep(&quot;30yRC&quot;,nrow(b))
+# ab=rbind(a,b)
+# colnames(ab)=c(ages,&quot;score&quot;,&quot;metric&quot;)
+# 
+# t=melt(ab,id.vars = c(&quot;score&quot;,&quot;metric&quot;))
+
+# Calculate mean values for each combination
+# df_mean &lt;- t %&gt;%
+#   group_by(score, metric, variable) %&gt;%
+#   summarise(mean_value = mean(value, na.rm = TRUE))
+# 
+# df_mean &lt;- df_mean %&gt;%
+#   mutate(
+#     gender = case_when(
+#       score %% 2 == 0 ~ &quot;Male&quot;,
+#       TRUE ~ &quot;Female&quot;
+#     ),
+#     percentile = case_when(
+#       score %in% c(1,2) ~ &quot;0.2&quot;,
+#       score %in% c(3,4) ~ &quot;0.5&quot;,
+#       score %in% c(5,6) ~ &quot;0.8&quot;,
+#       TRUE ~ as.character(score)
+#     )
+#   )
+
+
+# gf=ggplot(df_mean, aes(x = as.numeric(variable), y = mean_value, col = as.factor(interaction(gender,score)),shape=metric)) +
+#   geom_point() +
+#   labs(x = &quot;Age&quot;, y = &quot;Predicted Lifetime Risk&quot;,col=&quot;Sex, PRS Percent&quot;,shape=&quot;FRS&quot;) +
+#   theme_classic()
+# 
+# ggsave(gf,file=&quot;../output/gf.pdf&quot;,dpi=600)
+# 
+# # ggplot(t,aes(variable,value,col=score,shape=metric))+geom_point()
+# 
+# plot(ages,colMeans(a[a[,41]==6,-41]),xlab=&quot;Age&quot;,ylab=&quot;30 year risk, FRS&quot;)
+# points(ages,colMeans(a[a[,41]==5,-41]))
+# points(ages,colMeans(a[a[,41]==4,-41]))
+# points(ages,colMeans(a[a[,41]==3,-41]))
+# points(ages,colMeans(a[a[,41]==2,-41]))
+# points(ages,colMeans(a[a[,41]==1,-41]))
+# 
+# 
+# let=sapply(states,function(x){length(x)})
+# tat=states[which(let==40)]
+# dc=do.call(rbind,tat)
+# dc=dc*100
+# 
+# b=cbind(dc,test$int)
+# 
+# ages=c(40:79)
+# plot(ages,colMeans(b[b[,41]==6,-41]))
+# points(ages,colMeans(b[b[,41]==5,-41]))
+# points(ages,colMeans(b[b[,41]==4,-41]))
+# points(ages,colMeans(b[b[,41]==3,-41]))
+# points(ages,colMeans(b[b[,41]==2,-41]))
+# points(ages,colMeans(b[b[,41]==1,-41]))
+
+             
+head(pce.reverse.tenyear)</code></pre>
+<pre><code>     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+[1,] 3.25 3.63 4.05 4.50 4.98 5.51 6.08 6.69 7.34  8.04  8.79  9.58 10.43 11.33
+[2,] 2.05 2.30 2.56 2.85 3.16 3.50 3.86 4.25 4.67  5.12  5.60  6.11  6.66  7.25
+[3,] 1.00 1.00 1.00 1.00 1.00 1.00 1.04 1.13 1.22  1.33  1.45  1.59  1.74  1.90
+[4,] 1.89 1.95 2.02 2.11 2.21 2.33 2.46 2.60 2.76  2.94  3.15  3.37  3.61  3.89
+[5,] 1.31 1.38 1.46 1.56 1.67 1.79 1.93 2.08 2.25  2.44  2.66  2.89  3.16  3.45
+[6,] 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00  1.00  1.00  1.00  1.00  1.00
+     [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23] [,24] [,25] [,26]
+[1,] 12.28 13.28 14.34 15.46 16.63 17.86 19.15 20.50 21.90 23.36 24.87 26.44
+[2,]  7.87  8.52  9.22  9.96 10.74 11.56 12.42 13.33 14.28 15.28 16.32 17.41
+[3,]  2.09  2.30  2.54  2.80  3.09  3.41  3.78  4.18  4.63  5.13  5.69  6.32
+[4,]  4.19  4.52  4.89  5.29  5.73  6.22  6.76  7.36  8.01  8.72  9.51 10.37
+[5,]  3.78  4.15  4.56  5.01  5.52  6.08  6.70  7.39  8.16  9.01  9.95 10.99
+[6,]  1.08  1.21  1.36  1.53  1.72  1.93  2.18  2.45  2.76  3.12  3.51  3.96
+     [,27] [,28] [,29] [,30] [,31] [,32] [,33] [,34] [,35] [,36] [,37] [,38]
+[1,] 28.06 29.74 31.46 33.24 35.06 36.92 38.82 40.75 42.72 44.71 46.73 48.77
+[2,] 18.55 19.73 20.95 22.23 23.55 24.91 26.32 27.77 29.26 30.80 32.37 33.98
+[3,]  7.01  7.78  8.64  9.58 10.64 11.80 13.09 14.51 16.07 17.79 19.68 21.74
+[4,] 11.31 12.35 13.48 14.71 16.06 17.53 19.13 20.86 22.73 24.76 26.94 29.29
+[5,] 12.14 13.41 14.81 16.35 18.03 19.88 21.90 24.10 26.49 29.08 31.86 34.85
+[6,]  4.47  5.05  5.69  6.42  7.24  8.16  9.20 10.36 11.65 13.10 14.71 16.51
+     [,39] [,40]
+[1,] 50.82 52.88
+[2,] 35.62 37.30
+[3,] 23.98 26.42
+[4,] 31.80 34.48
+[5,] 38.04 41.42
+[6,] 18.50 20.69</code></pre>
+<pre class="r"><code>agesint=c(40:80)
+thresh=5;
+ten=apply(pce.reverse.tenyear,1,function(x){min(agesint[x&gt;thresh])})
+thresh=10;
+thirty=apply(ascvd.30.year.rc,1,function(x){
+  w=which(x&gt;thresh)
+  ifelse(length(w)&gt;0,min(agesint[w]),100)})
+
+
+### this is the data frame with approportiate score
+states=readRDS(&quot;~/multistate2/output/state_occupancy_risk.rds&quot;)
+ages=c(40:80)
+thresh=0.10;
+t=sapply(1:length(states),function(x){w=which(states[[x]]&gt;thresh);ifelse(length(w)&gt;0,min(ages[w]),100)})
+
+df=data.frame(&quot;id&quot;=test$identifier,&quot;Cad_0_Any&quot;=test$Cad_0_Any,&quot;Cad_0_censor_age&quot;=test$Cad_0_censor_age,&quot;sex&quot;=test$f.31.0.0,&quot;prs&quot;=test$cad.prs,&quot;ten&quot;=ten,&quot;thirty&quot;=thirty,&quot;ms&quot;=t)
+
+data &lt;- data.frame(t_val = t)
+# Create the ggplot histogram
+p &lt;- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = &quot;red&quot;, color = &quot;black&quot;, alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = &quot;Histogram of Age Exceeding Risk: MSGene LT&quot;,
+x = &quot;Value of t&quot;,
+y = &quot;Density&quot;)+theme_classic()+lims(y=c(0,0.30))
+
+
+data &lt;- data.frame(t_val = ten)
+# Create the ggplot histogram
+p2 &lt;- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = &quot;blue&quot;, color = &quot;black&quot;, alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = &quot;Histogram of Age Exceeding Risk: Ten year&quot;,
+x = &quot;Value of t&quot;,y = &quot;Density&quot;)+theme_classic()+xlim(39,80)+lims(y=c(0,0.30))
+
+data &lt;- data.frame(t_val = thirty)
+# Create the ggplot histogram
+p3 &lt;- ggplot(data, aes(x = t_val)) +
+geom_histogram(bins = length(ages) - 1, fill = &quot;green&quot;, color = &quot;black&quot;, alpha = 0.7, aes(y =after_stat(density))) +
+labs(title = &quot;Histogram of Age Exceeding Risk: 30-year&quot;,
+x = &quot;Value of t&quot;,y = &quot;Density&quot;)+theme_classic()+lims(y=c(0,0.30))
+
+ gathresh=ggarrange(p,p2,p3,nrow = 3)</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_bar()`).</code></pre>
+<pre class="r"><code># 
+# 
+# ggsave(gathresh,file=&quot;../output/threshold.pdf&quot;,dpi=600)</code></pre>
+</div>
+<div id="including-plots" class="section level2">
+<h2>Including Plots</h2>
+<p>You can also embed plots, for example:</p>
+<p><img src="figure/threhosldtest183.Rmd/pressure-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>AIC for FRS.30y: 190557.1 </code></pre>
+<pre><code>AIC for msGene: 186976.3 </code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_bar()`).</code></pre>
+<p>Now do for continous variable brier score:</p>
+<pre class="r"><code>df=test
+score1_list=states
+score2=readRDS(&quot;~/multistate2/output/ascvd.30year.rcnew.rds&quot;)/1.83
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+
+
+
+
+expanded_df &lt;- data.frame()
+df=test
+score1_list=states
+names(states)=df$identifier
+score2=ascvd.30.year.rc
+rownames(score2)=df$identifier
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+
+bad_indices=which(df$Cad_0_censor_age&gt;=80&amp;df$Cad_0_Any==1)
+
+# Removing the bad IDs from score1_list
+score1_list &lt;- score1_list[-bad_indices]
+
+# Removing the bad IDs from score2 dataframe
+score2 &lt;- score2[-bad_indices, ]
+
+
+df=df[-which(df$Cad_0_censor_age&gt;=80&amp;df$Cad_0_Any==1),]
+dim(df)</code></pre>
+<pre><code>[1] 78974    67</code></pre>
+<pre class="r"><code>all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))</code></pre>
+<pre><code>[1] &quot;Numeric: lengths (0, 78974) differ&quot;</code></pre>
+<pre class="r"><code>all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code># Initialize a list to store the results
+expanded_list &lt;- vector(&quot;list&quot;, length = nrow(df))
+
+for(i in 1:nrow(df)) {
+  #print(i)
+  id &lt;- df$id[i]
+  max_age &lt;- df$Cad_0_censor_age[i]
+  event &lt;- df$Cad_0_Any[i]
+  
+  # When max_age is less than 40 or length of score1_list[i] is 0
+  if (max_age &lt; 40 || length(score1_list[[i]]) == 0) {
+    next  # Skip this iteration and proceed to the next
+  }
+  
+  age_range &lt;- 40:(40 + length(score1_list[[i]]) - 1)
+  score1_values &lt;- score1_list[[i]]
+  score2_values &lt;- score2[i, age_range - 39]
+  
+  # If there&#39;s an event and score1 is shorter than expected
+  if (event == 1 &amp;&amp; max(age_range) &lt; max_age) {
+    extended_age_range &lt;- (max(age_range) + 1):max_age  
+    score1_last_value &lt;- rep(tail(score1_list[[i]], 1), times = length(extended_age_range))
+    score1_values &lt;- c(score1_list[[i]], score1_last_value)
+    score2_last_value &lt;- score2[i,(extended_age_range-39)]
+    score2_values &lt;- c(score2_values, score2_last_value)
+    age_range &lt;- c(age_range, extended_age_range)
+  }
+  
+  # Store the resulting dataframe as a list element
+  expanded_list[[i]] &lt;- data.frame(id = id,
+                                   age = age_range,
+                                   score1 = score1_values,
+                                   score2 = score2_values,
+                                   event = ifelse(age_range == max_age, event, 0))
+}
+
+# Combine all the dataframes in the list at once
+expanded_df &lt;- do.call(rbind, expanded_list)
+expanded_df$score1=expanded_df$score1*100
+expanded_df$start &lt;- expanded_df$age
+expanded_df$stop &lt;- expanded_df$age + 1
+
+
+print(dim(expanded_df))</code></pre>
+<pre><code>[1] 2206675       7</code></pre>
+<pre class="r"><code># Bootstrap C-index
+results_score1 &lt;- bootstrap_cindex(fit_function_score1, expanded_df)
+results_score2 &lt;- bootstrap_cindex(fit_function_score2, expanded_df)
+
+# Confidence intervals (95%)
+ci_score1 &lt;- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
+ci_score2 &lt;- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean + 1.96*results_score2$se)
+
+# Plot using ggplot2
+library(ggplot2)
+
+df_cindex &lt;- data.frame(
+  Score = c( &quot;MSGene&quot;,&quot;30 Year&quot;),
+  Cindex = c(results_score1$mean, results_score2$mean),
+  ymin = c(ci_score1[1], ci_score2[1]),
+  ymax = c(ci_score1[2], ci_score2[2])
+)
+
+p &lt;- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge()) +
+  geom_errorbar(aes(ymin=ymin, ymax=ymax), width=0.1, position=position_dodge(0.9)) +
+  ylim(0,0.8 ) +
+  labs(
+    title = &quot;Comparison of Predictive Performance&quot;,
+    subtitle = &quot;Using Bootstrap 95% CI for C-index (Concordance Index)&quot;,
+    y = &quot;C-index Value&quot;,
+    x = &quot;&quot;
+  ) +
+  theme_classic()+scale_fill_aaas()
+
+print(p)</code></pre>
+<p><img src="figure/threhosldtest183.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>saveRDS(p,&quot;../output/continuosums_lifetime_1.83.rds&quot;)
+
+####</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.3.1 (2023-06-16)
+Platform: aarch64-apple-darwin20 (64-bit)
+Running under: macOS Ventura 13.5.2
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: America/New_York
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] survival_3.5-5    ggpubr_0.6.0      ggplot2_3.4.3     data.table_1.14.8
+[5] tidyr_1.3.0       dplyr_1.1.3       ggsci_3.0.0      
+
+loaded via a namespace (and not attached):
+ [1] sass_0.4.7        utf8_1.2.3        generics_0.1.3    rstatix_0.7.2    
+ [5] lattice_0.21-8    stringi_1.7.12    digest_0.6.33     magrittr_2.0.3   
+ [9] evaluate_0.21     grid_4.3.1        fastmap_1.1.1     Matrix_1.6-0     
+[13] rprojroot_2.0.3   workflowr_1.7.0   jsonlite_1.8.7    backports_1.4.1  
+[17] promises_1.2.0.1  purrr_1.0.1       fansi_1.0.4       scales_1.2.1     
+[21] textshaping_0.3.6 jquerylib_0.1.4   abind_1.4-5       cli_3.6.1        
+[25] rlang_1.1.1       splines_4.3.1     cowplot_1.1.1     munsell_0.5.0    
+[29] withr_2.5.0       cachem_1.0.8      yaml_2.3.7        tools_4.3.1      
+[33] ggsignif_0.6.4    colorspace_2.1-0  httpuv_1.6.11     broom_1.0.5      
+[37] vctrs_0.6.3       R6_2.5.1          lifecycle_1.0.3   git2r_0.32.0     
+[41] stringr_1.5.0     car_3.1-2         fs_1.6.3          ragg_1.2.5       
+[45] pkgconfig_2.0.3   pillar_1.9.0      bslib_0.5.0       later_1.3.1      
+[49] gtable_0.3.3      glue_1.6.2        Rcpp_1.0.11       systemfonts_1.0.4
+[53] xfun_0.39         tibble_3.2.1      tidyselect_1.2.0  highr_0.10       
+[57] rstudioapi_0.15.0 knitr_1.43        farver_2.1.1      htmltools_0.5.5  
+[61] labeling_0.4.2    carData_3.0-5     rmarkdown_2.23    compiler_4.3.1   </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

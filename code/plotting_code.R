@@ -1,6 +1,6 @@
 
 # 
-output_path="~/ukbb-ehr-data/data/"
+output_path="~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/"
 data_period <- readRDS(paste0(output_path, "data_period.rds"))
 biomarkers <- readRDS(paste0(output_path, "biomarkers2.rds"))
 prescriptions <- readRDS(paste0(output_path, "prescriptions.rds"))
