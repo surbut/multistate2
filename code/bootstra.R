@@ -181,7 +181,8 @@ for (j in 1:length(coeflist)) {
   for (i in 1:length(agesint)) {
     age = agesint[i]
     start = age
-    stop = 80
+    #stop = 80
+    stop=min(age+10,80)
     atrisk = test
     ar = data.frame(
       "intercept" = 1,
@@ -250,7 +251,7 @@ sex=c(0,1)
 smoke=c(0,1)
 antihtn_now=c(0,1)
 statin_now=c(0,1)
-
+B=50
 atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now,statin_now)
 
 
@@ -272,9 +273,11 @@ dimnames(predicted_risks) = list(1:B,
                                  )
 )
 
-
+predicted_risks_ten=predicted_risks_ten_treat=predicted_risks
+ages=c(40:80)
 
 time=proc.time()
+B=50
 for(t in c((1:4),(6:B))){
   
   modelfit=readRDS(paste0("~/multistate2/output/bootstrap",t,".rds"))
@@ -389,12 +392,13 @@ for (j in 1:length(coeflist)) {
   for (i in 1:length(agesint)) {
     age = agesint[i]
     start = age
-    stop = 80 ## here we use lifetime
+    #stop = 80 ## here we use lifetime
+    stop=min((age+10),80)
    age=agesint[i]
     start=age
-    stop=80
+    #stop=80
     ar=test
-    
+    stop=min(age+10,80)
 
     
     mso = compute_prediction_product_matrix(
@@ -403,14 +407,23 @@ for (j in 1:length(coeflist)) {
       agepredinterval = c(start:stop)
     )
     
-    #predicted_risks[t,, i, j] = mso$PredictedIntervalrisk
-    predicted_risks[t,, i, j] = mso$Hazard_treated
+    predicted_risks_ten[t,, i, j] = mso$PredictedIntervalrisk
+    predicted_risks_ten_treat[t,, i, j] = mso$Hazard_treated
     print(paste0("completeboot",t,"age",age,"state",j))
 
 }
 }}
 
-pm2=predicted_risks[c((1:4),(6:50)),,,]
+
+
+pm2=predicted_risks_ten[c((1:4),(6:50)),,,]
+saveRDS(pm2,"../output/predictedrsiskboot_fixed_ten.rds")
+
+pm2=predicted_risks_ten_treat[c((1:4),(6:50)),,,]
+saveRDS(pm2,"../output/predictedrsiskboot_fixedtentreat.rds")
+
+
+pm2t=predicted_risks_ten_treat[c((1:4),(6:50)),,,]
 
 saveRDS(pm2,"../output/predictedrsiskboot_fixed.rds")
 
@@ -434,6 +447,26 @@ ggsave(ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) +
   theme_minimal() +
   labs(x = "Years", y = "Risk States", fill = "Mean Difference"),file="../output/benefit.pdf",dpi=600)
 
+
+# Calculate mean and SD across bootstraps
+mean_diff <- apply(diff_array, c(2,3,4), mean)
+sd_diff <- apply(diff_array, c(2,3,4), sd)
+
+# Melt the array to a dataframe for ggplot2
+df <- as.data.frame(as.table(mean_diff))
+
+ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) + 
+  geom_tile() +
+  scale_fill_viridis() + 
+  theme_minimal() +
+  labs(x = "Years", y = "Risk States", fill = "Mean Difference")
+
+benefit=ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) + 
+geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+theme_ridges() + scale_fill_viridis_b()+
+labs(x = "Mean Difference in Risk", y = "Years",fill="Absolute Risk Deifference")
+
+saveRDS(benefit,file = "../output/benefit.rds")
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 
 pm2=readRDS("../output/predictedrsiskboot_fixed.rds")
@@ -523,6 +556,12 @@ p3=get_person_summary_plot(pm, s2, "5021941")
 
 
 o=readRDS("../output/continuosums.rds")
+
+frs=ascvd.30.year.rc[test$identifier%in%"5021941",]
+
+df=data.frame(ages=ages[-41],score=frs/100)
+
+ggplot(df,aes(ages,y=score))+geom_point()
 ga=ggarrange(p1,p3[[1]],o,common.legend = T,ncol =3,nrow =1)
 ggsave(ga,file="../output/predictedrisksfor5021941.pdf",width = 18,units = "in")
 
