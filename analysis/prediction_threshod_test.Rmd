@@ -291,8 +291,9 @@ df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
 expanded_df <- data.frame()
 df=test
-score1_list=states
+
 names(states)=df$identifier
+score1_list=states
 score2=ascvd.30.year.rc
 rownames(score2)=df$identifier
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
@@ -368,6 +369,17 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 
 # Plot using ggplot2
 library(ggplot2)
+
+
+fit1 <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df)
+fit2 <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df)
+
+# Comparing models based on AIC
+aic1 <- AIC(fit1)
+aic2 <- AIC(fit2)
+
+cat("AIC for FRS.30y:", aic2, "\n")
+cat("AIC for msGene:", aic1, "\n")
 
 df_cindex <- data.frame(
   Score = c( "MSGene","30 Year"),

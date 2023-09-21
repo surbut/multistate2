@@ -1,0 +1,59 @@
+---
+title: "NONph"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = F)
+```
+
+
+The aim of this document is to show how we can resolve non proportional hazards by stratifying into age periods, visualize the time dependent hazards, and then validate that an interaction term does not resolve.
+
+
+```{r}
+library("survMisc")
+library(survival)
+library(data.table)
+library(dplyr)
+
+df=data.table(na.omit(readRDS("~/Library/CloudStorage//Dropbox-Personal//phenotypes/df_ani_new.rds")))
+
+dat=data.frame(df %>%group_by(round(phenos.enrollment,0)) %>%summarise(length(phenos.enrollment)))[c(3:32),]
+
+vet2 <- survSplit(Surv(phenos.CAD_censor_age, phenos.has_CAD) ~ prs_quant, data= df[df$sex=="male",], cut=c(55,60,65,70),
+episode= "tgroup", id="id")
+
+fit=coxph(formula = Surv(tstart, phenos.CAD_censor_age, phenos.has_CAD) ~ prs_quant:strata(tgroup), data = vet2)
+fit
+cox.zph(fit)
+summary(fit)$concordance[1]
+```
+
+Now for females:
+```{r}
+vet2 <- survSplit(Surv(phenos.CAD_censor_age, phenos.has_CAD) ~ prs_quant, data= df[df$sex=="female",], cut=c(55,60,65,70),
+episode= "tgroup", id="id")
+
+fit=coxph(formula = Surv(tstart, phenos.CAD_censor_age, phenos.has_CAD) ~ prs_quant:strata(tgroup), data = vet2)
+fit
+summary(fit)$concordance[1]
+cox.zph(fit)
+```
+
+We see that inclusion of time strata interaction with PRS resolves these non-proportional hazards in ways that an interaction term does not.
+
+Now we look overall
+```{r}
+
+
+fit=coxph(formula = Surv(phenos.enrollment,phenos.CAD_censor_age, phenos.has_CAD) ~ sex:prs_quant,df[df$phenos.CAD_censor_age>df$phenos.enrollment,])
+summary(fit)$concordance[1]
+cox.zph(fit)
+
+```
+
+
