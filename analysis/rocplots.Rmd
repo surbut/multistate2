@@ -56,7 +56,7 @@ prcmat = matrix(NA, nrow = length(enrollments), ncol = 4)
 semat = matrix(NA, nrow = length(enrollments), ncol = 4)
 
 ages = 40:80
-enrollments = c(41:70)
+enrollments = c(41:79)
 ## return a matrix of coefficients over all ages for a given state to state transition
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
 ggplotly(b$plot)
@@ -204,7 +204,7 @@ levels(m$Model)[4] = "PRS only"
 m$se=as.vector(semat)
 
 aucplot <-
-  ggplot(m[m$Age<55,], 
+  ggplot(m, 
     aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
   geom_line(aes(group = Model, color = Model), linewidth = 3) +
   geom_pointrange() +
@@ -213,7 +213,7 @@ aucplot <-
 
 library(pROC)
 rownames(prcmat) = enrollments
-colnames(prcmat)=c("MSGene","FRS30y","PRSonly","FRS30.recal")
+colnames(prcmat)=c("MSGene","FRS30y","FRS30.recal","PRSonly")
 prcmat=prcmat[,c("MSGene","FRS30y","FRS30.recal","PRSonly")]
 m = melt(prcmat, id.vars = "Age")
 
@@ -227,7 +227,7 @@ levels(m$Model)[4] = "PRSonly"
 m$se=as.vector(semat[,c(1,2,3,4)])/10
 #m = m[m$Model %in% c("MSGene", "FRS30y", "PRS only"), ]
 prplot <-
-  ggplot(m[m$Age<55,], 
+  ggplot(m, 
     aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
   geom_line(aes(group = Model, color = Model), linewidth = 3) +
   geom_pointrange() +

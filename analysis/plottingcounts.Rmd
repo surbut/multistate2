@@ -18,6 +18,8 @@ When you click the **Knit** button a document will be generated that includes bo
 library(dplyr)
 library(ggplot2)
 library(data.table)
+library(ggsci)
+
 test=readRDS("~/multistate2/output/test.rds")
 pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
 ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
@@ -25,403 +27,605 @@ ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 
 
-### this is the data frame with approportiate score
-prediction_list=readRDS("~/multistate2/output/state_occupancy_risk.rds")
-ages=c(40:80)
-
-
-
-# Initialize a list to store the results for each year
-results_list <- list()
-
-
-matrix1=ascvd.30.year.rc
-matrix2=pce.reverse.tenyear
-
-colnames(matrix1)=colnames(matrix2)=ages[-length(ages)]
-rownames(matrix1)=rownames(matrix2)=test$identifier
-
-for(year in 1:(length(ages)-1)){
-
-  threshold1=0.10
-  selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
-    if(length(x) >= year) x[year] > threshold1 else FALSE
-  }))
-  
-  
-  data_score1 <- test[selected_indices_score1, ]
-   prop1=dim(data_score1)[1]/dim(test)
-  stats_score1 <- c(
-    mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE),# replace with your lab columns
-    under_low=mean(data_score1[,"cad.prs.lev"]=="low")*prop1,
-    under_mid=mean(data_score1[,"cad.prs.lev"]=="mid")*prop1,
-    under_high=mean(data_score1[,"cad.prs.lev"]=="high")*prop1
-  )
-  
-    threshold3=5
-  selected_indices_score3 <- which(matrix2[, year] > threshold3)
-  data_score3 <- test[selected_indices_score3, ]
- prop3=dim(data_score3)[1]/dim(test)
-   stats_score3 <- c(
-    mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE),
-    under_low=mean(data_score3[,"cad.prs.lev"]=="low")*prop3,
-    under_mid=mean(data_score3[,"cad.prs.lev"]=="mid")*prop3,
-    under_high=mean(data_score3[,"cad.prs.lev"]=="high")*prop3#place with your lab columns
-  )
-
-
-   
-   
-selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
-data_score1_not3 <- test[selected_1_not3, ]
-prop1not3=dim(data_score1_not3)[1]/dim(test)[1]
-stats_score_1_not_3 <- c(
-    mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE),
-   under_low=mean(data_score1_not3[,"cad.prs.lev"]=="low")*prop1not3,
-    under_mid=mean(data_score1_not3[,"cad.prs.lev"]=="mid")*prop1not3,
-    under_high=mean(data_score1_not3[,"cad.prs.lev"]=="high")*prop1not3# replace with your lab columns
-  )
-   
-   
-selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
-data_score3_not1 <- test[selected_3_not1, ]
-   stats_score_3_not_1 <- c(
-    mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-   
-selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
-data_score3_and1 <- test[selected_3_and1, ]
-   stats_score_3_and_1 <- c(
-    mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-   
-  score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
-
-  # Unique to each score
-  only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
-  only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
-  
-  only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==2))
-  only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==2))
-  
-  
-  both=intersect(selected_indices_score1,selected_indices_score3)
-  both_andsick=intersect(both,which(test$Cad_0_Any==2))
-  # Counts
-  counts <- list(
-    only_score1 = length(only_score1),
-    only_score1_andsick=length(only_score1_andsick),
-
-    only_score3 = length(only_score3),
-    only_score3_andsick=length(only_score3_andsick),
-        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
-        both_andsick=length(both_andsick))
-
-  
-  
-  # Store results for this year
-  results_list[[year]] <- list(
-    stats_score1=stats_score1,
-    stats_score3=stats_score3,
-    stats_score_3_not_1=stats_score_3_not_1,
-    stats_score_1_not_3=stats_score_1_not_3,
-    stats_score_3_and_1=stats_score_3_and_1,
-    counts=counts
-  )
-}
-
-
-stats1=lapply(results_list, function(x) x$stats_score1)
-df_ms <- data.frame(do.call(rbind, stats1))
-
-stats3=lapply(results_list, function(x) x$stats_score3)
-df_ten <- data.frame(do.call(rbind, stats3))
-
-stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
-df_ms_ten <- data.frame(do.call(rbind, stats1not3))
-
-
-prsnums=data.frame(ages[-41],df_ms_ten[,c(7:9)])
-colnames(prsnums)=c("Age","Low","Int","High")
-p=melt(prsnums,id.vars="Age")
-p$variable=factor(p$variable,levels=c("Low","Int","High"),labels=c("Low","Intermediate","High"))
-
-levels(p$variable)[1]="Low"
-levels(p$variable)[2]="Intermediate"
-levels(p$variable)[3]="High"
-g=ggplot(p,aes(x = Age,y = value,group=variable,fill=variable ))+geom_bar(stat="identity")+labs(x="Age",y="Proportion PCE-10yr <5% and MSGene-lifetime > 10%",fill="Genomic Risk Level")+theme_classic(base_size = 15)+scale_fill_aaas()
-
-ggsave(plot = g,filename="~/multistate2/output/geneticoverlap.pdf",dpi = 300,height = 7,width = 10)
-
-
-
-# Required libraries
-#install.packages(c("ggplot2", "dplyr", "tidyr"))
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-
-# Example data
-# Let's say the matrices are named matrix1 and matrix2
-# These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
-# And they have 40 rows for 40 years
-
-# Convert matrices to data frames
-df1 <- as.data.frame(df_ms)
-df2 <- as.data.frame(df_ten)
-df3 = as.data.frame(df_ms_ten)
-
-
-
-# Add a Score column to each
-df1$Score <- "MSGene LT"
-df2$Score <- "PCE 10y"
-df3$Score <- "MSGene not PCE"
-
-df1$Year=c(40:79)
-df2$Year=c(40:79)
-df3$Year=c(40:79)
-# Combine the two data frames
-df <- rbind(df1, df2,df3)
-
-
-# Combine the two data frames
-df <- rbind(df1, df2,df3)
-
-# Convert to a long format using tidyr
-df_long <- df %>%
-  gather(key = "Metric", value = "Value", -Year, -Score)
-
-# Plot using ggplot2
-ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
-  stat_smooth()+
-  facet_wrap(~ Metric, scales = "free_y") + 
-  labs(title = "Comparison of Metrics Across 40 Years", 
-       y = "Value", 
-       x = "Age") +
-  theme_classic()
-
-
-
-all_counts <- lapply(results_list, function(x) x$counts)
-
-# Convert this list to a data frame suitable for UpSetR
-df <- data.frame(do.call(rbind, all_counts))
-
-df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
-colnames(df_c)=c("MSlife","PCETeny","Both")
-
-
-
-d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
-d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
-d$ages=ages[1:40]
-colnames(d)=c("MSGene LT>10% Only","PCE 10y>5% Only","Both","ages")
-m=melt(d,id.var="ages")
-
-ga=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Cases Captured")
-ga
-ggsave(ga,file="../output/proportioncasesten.pdf",dpi=600)
-
-
-
-###
+# ### this is the data frame with approportiate score
+# prediction_list=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+# ages=c(40:80)
+# 
+# 
+# 
+# # Initialize a list to store the results for each year
+# results_list <- list()
+# 
+# 
+# matrix1=ascvd.30.year.rc
+# matrix2=pce.reverse.tenyear
+# 
+# colnames(matrix1)=colnames(matrix2)=ages[-length(ages)]
+# rownames(matrix1)=rownames(matrix2)=test$identifier
+# 
+# for(year in 1:(length(ages)-1)){
+# 
+#   threshold1=0.10
+#   selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
+#     if(length(x) >= year) x[year] > threshold1 else FALSE
+#   }))
+#   
+#   
+#   data_score1 <- test[selected_indices_score1, ]
+#    prop1=dim(data_score1)[1]/dim(test)
+#   stats_score1 <- c(
+#     mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE),# replace with your lab columns
+#     under_low=mean(data_score1[,"cad.prs.lev"]=="low")*prop1,
+#     under_mid=mean(data_score1[,"cad.prs.lev"]=="mid")*prop1,
+#     under_high=mean(data_score1[,"cad.prs.lev"]=="high")*prop1
+#   )
+#   
+#     threshold3=5
+#   selected_indices_score3 <- which(matrix2[, year] > threshold3)
+#   data_score3 <- test[selected_indices_score3, ]
+#  prop3=dim(data_score3)[1]/dim(test)
+#    stats_score3 <- c(
+#     mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE),
+#     under_low=mean(data_score3[,"cad.prs.lev"]=="low")*prop3,
+#     under_mid=mean(data_score3[,"cad.prs.lev"]=="mid")*prop3,
+#     under_high=mean(data_score3[,"cad.prs.lev"]=="high")*prop3#place with your lab columns
+#   )
+# 
+# 
+#    
+#    
+# selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
+# data_score1_not3 <- test[selected_1_not3, ]
+# prop1not3=dim(data_score1_not3)[1]/dim(test)[1]
+# stats_score_1_not_3 <- c(
+#     mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE),
+#    under_low=mean(data_score1_not3[,"cad.prs.lev"]=="low")*prop1not3,
+#     under_mid=mean(data_score1_not3[,"cad.prs.lev"]=="mid")*prop1not3,
+#     under_high=mean(data_score1_not3[,"cad.prs.lev"]=="high")*prop1not3# replace with your lab columns
+#   )
+#    
+#    
+# selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
+# data_score3_not1 <- test[selected_3_not1, ]
+#    stats_score_3_not_1 <- c(
+#     mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+# selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
+# data_score3_and1 <- test[selected_3_and1, ]
+#    stats_score_3_and_1 <- c(
+#     mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+#   score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
+# 
+#   # Unique to each score
+#   only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
+#   only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
+#   
+#   only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==2))
+#   only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==2))
+#   
+#   
+#   both=intersect(selected_indices_score1,selected_indices_score3)
+#   both_andsick=intersect(both,which(test$Cad_0_Any==2))
+#   # Counts
+#   counts <- list(
+#     only_score1 = length(only_score1),
+#     only_score1_andsick=length(only_score1_andsick),
+# 
+#     only_score3 = length(only_score3),
+#     only_score3_andsick=length(only_score3_andsick),
+#         score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+#         both_andsick=length(both_andsick))
+# 
+#   
+#   
+#   # Store results for this year
+#   results_list[[year]] <- list(
+#     stats_score1=stats_score1,
+#     stats_score3=stats_score3,
+#     stats_score_3_not_1=stats_score_3_not_1,
+#     stats_score_1_not_3=stats_score_1_not_3,
+#     stats_score_3_and_1=stats_score_3_and_1,
+#     counts=counts
+#   )
+# }
+# 
+# 
+# stats1=lapply(results_list, function(x) x$stats_score1)
+# df_ms <- data.frame(do.call(rbind, stats1))
+# 
+# stats3=lapply(results_list, function(x) x$stats_score3)
+# df_ten <- data.frame(do.call(rbind, stats3))
+# 
+# stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
+# df_ms_ten <- data.frame(do.call(rbind, stats1not3))
+# 
+# 
+# prsnums=data.frame(ages[-41],df_ms_ten[,c(7:9)])
+# colnames(prsnums)=c("Age","Low","Int","High")
+# p=melt(prsnums,id.vars="Age")
+# p$variable=factor(p$variable,levels=c("Low","Int","High"),labels=c("Low","Intermediate","High"))
+# 
+# levels(p$variable)[1]="Low"
+# levels(p$variable)[2]="Intermediate"
+# levels(p$variable)[3]="High"
+# g=ggplot(p,aes(x = Age,y = value,group=variable,fill=variable ))+geom_bar(stat="identity")+labs(x="Age",y="Proportion PCE-10yr <5% and MSGene-lifetime > 10%",fill="Genomic Risk Level")+theme_classic(base_size = 15)+scale_fill_aaas()
+# 
+# ggsave(plot = g,filename="~/multistate2/output/geneticoverlap.pdf",dpi = 300,height = 7,width = 10)
+# 
+# 
+# 
+# # Required libraries
+# #install.packages(c("ggplot2", "dplyr", "tidyr"))
+# library(ggplot2)
+# library(dplyr)
+# library(tidyr)
+# 
+# # Example data
+# # Let's say the matrices are named matrix1 and matrix2
+# # These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
+# # And they have 40 rows for 40 years
+# 
+# # Convert matrices to data frames
+# df1 <- as.data.frame(df_ms)
+# df2 <- as.data.frame(df_ten)
+# df3 = as.data.frame(df_ms_ten)
+# 
+# 
+# 
+# # Add a Score column to each
+# df1$Score <- "MSGene LT"
+# df2$Score <- "PCE 10y"
+# df3$Score <- "MSGene not PCE"
+# 
+# df1$Year=c(40:79)
+# df2$Year=c(40:79)
+# df3$Year=c(40:79)
+# # Combine the two data frames
+# df <- rbind(df1, df2,df3)
+# 
+# 
+# # Combine the two data frames
+# df <- rbind(df1, df2,df3)
+# 
+# # Convert to a long format using tidyr
+# df_long <- df %>%
+#   gather(key = "Metric", value = "Value", -Year, -Score)
+# 
+# # Plot using ggplot2
+# ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
+#   stat_smooth()+
+#   facet_wrap(~ Metric, scales = "free_y") + 
+#   labs(title = "Comparison of Metrics Across 40 Years", 
+#        y = "Value", 
+#        x = "Age") +
+#   theme_classic()
+# 
+# 
+# 
+# all_counts <- lapply(results_list, function(x) x$counts)
+# 
+# # Convert this list to a data frame suitable for UpSetR
+# df <- data.frame(do.call(rbind, all_counts))
+# 
+# df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+# colnames(df_c)=c("MSlife","PCETeny","Both")
+# 
+# 
+# 
+# d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+# d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
+# d$ages=ages[1:40]
+# colnames(d)=c("MSGene LT>10% Only","PCE 10y>5% Only","Both","ages")
+# m=melt(d,id.var="ages")
+# 
+# ga=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Cases Captured")
+# ga
+# ggsave(ga,file="../output/proportioncasesten.pdf",dpi=600)
+# 
+# 
+# 
+# ###
+# ```
+# 
+# ## For controls
+# 
+# 
+# ```{r}
+# for(year in 1:(length(ages)-1)){
+# 
+#   threshold1=0.10
+#   selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
+#     if(length(x) >= year) x[year] > threshold1 else FALSE
+#   }))
+#   
+#   
+#   data_score1 <- test[selected_indices_score1, ]
+#   stats_score1 <- c(
+#     mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#   
+#     threshold3=5
+#   selected_indices_score3 <- which(matrix2[, year] > threshold3)
+#   data_score3 <- test[selected_indices_score3, ]
+#  
+#    stats_score3 <- c(
+#     mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+# 
+# 
+#    
+#    
+# selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
+# data_score1_not3 <- test[selected_1_not3, ]
+# stats_score_1_not_3 <- c(
+#     mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+#    
+# selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
+# data_score3_not1 <- test[selected_3_not1, ]
+#    stats_score_3_not_1 <- c(
+#     mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+# selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
+# data_score3_and1 <- test[selected_3_and1, ]
+#    stats_score_3_and_1 <- c(
+#     mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+#   score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
+# 
+#   # Unique to each score
+#   only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
+#   only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
+#   
+#   only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==1))
+#   only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==1))
+#   
+#   
+#   both=intersect(selected_indices_score1,selected_indices_score3)
+#   both_andsick=intersect(both,which(test$Cad_0_Any==1))
+#   # Counts
+#   counts <- list(
+#     only_score1 = length(only_score1),
+#     only_score1_andsick=length(only_score1_andsick),
+# 
+#     only_score3 = length(only_score3),
+#     only_score3_andsick=length(only_score3_andsick),
+#         score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+#         both_andsick=length(both_andsick))
+# 
+#   
+#   
+#   # Store results for this year
+#   results_list[[year]] <- list(
+#     stats_score1=stats_score1,
+#     stats_score3=stats_score3,
+#     stats_score_3_not_1=stats_score_3_not_1,
+#     stats_score_1_not_3=stats_score_1_not_3,
+#     stats_score_3_and_1=stats_score_3_and_1,
+#     counts=counts
+#   )
+# }
+# 
+# 
+# stats1=lapply(results_list, function(x) x$stats_score1)
+# df_ms <- data.frame(do.call(rbind, stats1))
+# 
+# stats3=lapply(results_list, function(x) x$stats_score3)
+# df_ten <- data.frame(do.call(rbind, stats3))
+# 
+# stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
+# df_ms_ten <- data.frame(do.call(rbind, stats1not3))
+# 
+# 
+# 
+# # Required libraries
+# #install.packages(c("ggplot2", "dplyr", "tidyr"))
+# library(ggplot2)
+# library(dplyr)
+# library(tidyr)
+# 
+# # Example data
+# # Let's say the matrices are named matrix1 and matrix2
+# # These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
+# # And they have 40 rows for 40 years
+# 
+# # Convert matrices to data frames
+# df1 <- as.data.frame(df_ms)
+# df2 <- as.data.frame(df_ten)
+# df3 = as.data.frame(df_ms_ten)
+# 
+# 
+# 
+# # Add a Score column to each
+# df1$Score <- "MSGene LT"
+# df2$Score <- "PCE 10y"
+# df3$Score <- "MSGene not PCE"
+# 
+# df1$Year=c(40:79)
+# df2$Year=c(40:79)
+# df3$Year=c(40:79)
+# # Combine the two data frames
+# df <- rbind(df1, df2,df3)
+# 
+# 
+# # Combine the two data frames
+# df <- rbind(df1, df2,df3)
+# 
+# # Convert to a long format using tidyr
+# df_long <- df %>%
+#   gather(key = "Metric", value = "Value", -Year, -Score)
+# 
+# # Plot using ggplot2
+# ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
+#   stat_smooth()+
+#   facet_wrap(~ Metric, scales = "free_y") + 
+#   labs(title = "Comparison of Metrics Across 40 Years", 
+#        y = "Value", 
+#        x = "Age") +
+#   theme_classic()
+# 
+# 
+# 
+# all_counts <- lapply(results_list, function(x) x$counts)
+# 
+# # Convert this list to a data frame suitable for UpSetR
+# df <- data.frame(do.call(rbind, all_counts))
+# 
+# df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+# colnames(df_c)=c("MSlife","PCETeny","Both")
+# 
+# 
+# 
+# d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+# d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
+# d$ages=ages[1:40]
+# colnames(d)=c("MSGene LT>10% Only","PCE 10y>5% Only","Both","ages")
+# m=melt(d,id.var="ages")
+# 
+# ga2=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Controls Captured")
+# 
+# 
+# saveRDS(ga,"../output/proportioncontrolstenmslife.rds")
+# ###
 ```
 
-## For controls
 
+### For LT
 
 ```{r}
-for(year in 1:(length(ages)-1)){
+# rm(list=ls())
+# test=readRDS("~/multistate2/output/test.rds")
+# ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")/1.83
+# 
+# 
+# ### this is the data frame with approportiate score
+# prediction_list=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+# 
+# ages=c(40:80)
+# 
+# 
+# 
+# # Initialize a list to store the results for each year
+# results_list <- list()
+# 
+# 
+# matrix2=ascvd.30.year.rc
+# 
+# for(year in 1:(length(ages)-1)){
+#   
+#   # Example criterion: individuals where matrix1 prediction > threshold1 AND matrix2 prediction > threshold2
+#   # Adjust this as per your actual criteria
+#   threshold1=0.10
+#   selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
+#     if(length(x) >= year) x[year] > threshold1 else FALSE
+#   }))
+#   
+#   
+#   data_score1 <- test[selected_indices_score1, ]
+#   stats_score1 <- c(
+#     mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#   
+#      threshold3=10
+#   selected_indices_score3 <- which(matrix2[, year] > threshold3)
+#   data_score3 <- test[selected_indices_score3, ]
+#  
+#    stats_score3 <- c(
+#     mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+# 
+# selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
+# data_score1_not3 <- test[selected_1_not3, ]
+# stats_score_1_not_3 <- c(
+#     mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+#    
+# selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
+# data_score3_not1 <- test[selected_3_not1, ]
+#    stats_score_3_not_1 <- c(
+#     mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+# selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
+# data_score3_and1 <- test[selected_3_and1, ]
+#    stats_score_3_and_1 <- c(
+#     mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
+#     percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
+#     percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
+#     mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+#   )
+#    
+# 
+#   # Intersections
+#   #score1_and_score2 <- intersect(selected_indices_score1, selected_indices_score2)
+#   score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
+#   #score2_and_score3 <- intersect(selected_indices_score2, selected_indices_score3)
+#   #all_two_scores <- intersect(score1_and_score2, selected_indices_score3)
+# 
+# 
+#   # Unique to each score
+#   only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
+#   only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
+#   
+#   only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==2))
+#   only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==2))
+#   
+#   
+#   both=intersect(selected_indices_score1,selected_indices_score3)
+#   both_andsick=intersect(both,which(test$Cad_0_Any==2))
+#   # Counts
+#   counts <- list(
+#     only_score1 = length(only_score1),
+#     only_score1_andsick=length(only_score1_andsick),
+# 
+#     only_score3 = length(only_score3),
+#     only_score3_andsick=length(only_score3_andsick),
+#         score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+#         both_andsick=length(both_andsick))
+# 
+#  
+#   
+#   # Store results for this year
+#   results_list[[year]] <- list(
+#     stats_score1=stats_score1,
+#     #stats_score2=stats_score2,
+#     stats_score3=stats_score3,
+#     stats_score_3_not_1=stats_score_3_not_1,
+#     stats_score_1_not_3=stats_score_1_not_3,
+#     stats_score_3_and_1=stats_score_3_and_1,
+#     counts=counts
+#   )
+# }
+# 
+# 
+# stats1=lapply(results_list, function(x) x$stats_score1)
+# df_ms <- data.frame(do.call(rbind, stats1))
+# 
+# stats3=lapply(results_list, function(x) x$stats_score3)
+# df_thirty <- data.frame(do.call(rbind, stats3))
+# 
+# stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
+# df_ms_thirty <- data.frame(do.call(rbind, stats1not3))
+# 
+# 
+# 
+# # Required libraries
+# #install.packages(c("ggplot2", "dplyr", "tidyr"))
+# library(ggplot2)
+# library(dplyr)
+# library(tidyr)
+# 
+# # Example data
+# # Let's say the matrices are named matrix1 and matrix2
+# # These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
+# # And they have 40 rows for 40 years
+# 
+# # Convert matrices to data frames
+# df1 <- as.data.frame(df_ms)
+# df2 <- as.data.frame(df_thirty)
+# df3 = as.data.frame(df_ms_thirty)
+# 
+# 
+# 
+# # Add a Score column to each
+# df1$Score <- "MSGene LT"
+# df2$Score <- "FRS 30"
+# df3$Score <- "MSGene not FRS"
+# 
+# df1$Year=c(40:79)
+# df2$Year=c(40:79)
+# df3$Year=c(40:79)
+# # Combine the two data frames
+# df <- rbind(df1, df2,df3)
+# 
+# # Convert to a long format using tidyr
+# df_long <- df %>%
+#   gather(key = "Metric", value = "Value", -Year, -Score)
+# 
+# # Plot using ggplot2
+# ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
+#   stat_smooth()+
+#   facet_wrap(~ Metric, scales = "free_y") + 
+#   labs(title = "Comparison of Metrics Across 40 Years", 
+#        y = "Value", 
+#        x = "Age") +
+#   theme_classic()
+# 
+# 
+# 
+# 
+# all_counts <- lapply(results_list, function(x) x$counts)
+# 
+# # Convert this list to a data frame suitable for UpSetR
+# df <- data.frame(do.call(rbind, all_counts))
+# 
+# df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+# colnames(df_c)=c("MSlife","PCETeny","Both")
+# 
+# 
+# 
+# d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+# d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
+# d$ages=ages[1:40]
+# colnames(d)=c("MSGene LT>10% Only","FRS 30y>10% Only","Both","ages")
+# m=melt(d,id.var="ages")
+# 
+# g1=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Proportion of Cases Captured")
+# 
+# ggsave(g1,file="~/multistate2/output/proportioncasescaptured.pdf",dpi=600)
+# ```
 
-  threshold1=0.10
-  selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
-    if(length(x) >= year) x[year] > threshold1 else FALSE
-  }))
-  
-  
-  data_score1 <- test[selected_indices_score1, ]
-  stats_score1 <- c(
-    mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-  
-    threshold3=5
-  selected_indices_score3 <- which(matrix2[, year] > threshold3)
-  data_score3 <- test[selected_indices_score3, ]
- 
-   stats_score3 <- c(
-    mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
 
 
-   
-   
-selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
-data_score1_not3 <- test[selected_1_not3, ]
-stats_score_1_not_3 <- c(
-    mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-   
-   
-selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
-data_score3_not1 <- test[selected_3_not1, ]
-   stats_score_3_not_1 <- c(
-    mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-   
-selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
-data_score3_and1 <- test[selected_3_and1, ]
-   stats_score_3_and_1 <- c(
-    mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
-    percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
-    percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
-    mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
-  )
-   
-  score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
-
-  # Unique to each score
-  only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
-  only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
-  
-  only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==1))
-  only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==1))
-  
-  
-  both=intersect(selected_indices_score1,selected_indices_score3)
-  both_andsick=intersect(both,which(test$Cad_0_Any==1))
-  # Counts
-  counts <- list(
-    only_score1 = length(only_score1),
-    only_score1_andsick=length(only_score1_andsick),
-
-    only_score3 = length(only_score3),
-    only_score3_andsick=length(only_score3_andsick),
-        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
-        both_andsick=length(both_andsick))
-
-  
-  
-  # Store results for this year
-  results_list[[year]] <- list(
-    stats_score1=stats_score1,
-    stats_score3=stats_score3,
-    stats_score_3_not_1=stats_score_3_not_1,
-    stats_score_1_not_3=stats_score_1_not_3,
-    stats_score_3_and_1=stats_score_3_and_1,
-    counts=counts
-  )
-}
-
-
-stats1=lapply(results_list, function(x) x$stats_score1)
-df_ms <- data.frame(do.call(rbind, stats1))
-
-stats3=lapply(results_list, function(x) x$stats_score3)
-df_ten <- data.frame(do.call(rbind, stats3))
-
-stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
-df_ms_ten <- data.frame(do.call(rbind, stats1not3))
-
-
-
-# Required libraries
-#install.packages(c("ggplot2", "dplyr", "tidyr"))
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-
-# Example data
-# Let's say the matrices are named matrix1 and matrix2
-# These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
-# And they have 40 rows for 40 years
-
-# Convert matrices to data frames
-df1 <- as.data.frame(df_ms)
-df2 <- as.data.frame(df_ten)
-df3 = as.data.frame(df_ms_ten)
-
-
-
-# Add a Score column to each
-df1$Score <- "MSGene LT"
-df2$Score <- "PCE 10y"
-df3$Score <- "MSGene not PCE"
-
-df1$Year=c(40:79)
-df2$Year=c(40:79)
-df3$Year=c(40:79)
-# Combine the two data frames
-df <- rbind(df1, df2,df3)
-
-
-# Combine the two data frames
-df <- rbind(df1, df2,df3)
-
-# Convert to a long format using tidyr
-df_long <- df %>%
-  gather(key = "Metric", value = "Value", -Year, -Score)
-
-# Plot using ggplot2
-ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
-  stat_smooth()+
-  facet_wrap(~ Metric, scales = "free_y") + 
-  labs(title = "Comparison of Metrics Across 40 Years", 
-       y = "Value", 
-       x = "Age") +
-  theme_classic()
-
-
-
-all_counts <- lapply(results_list, function(x) x$counts)
-
-# Convert this list to a data frame suitable for UpSetR
-df <- data.frame(do.call(rbind, all_counts))
-
-df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
-colnames(df_c)=c("MSlife","PCETeny","Both")
-
-
-
-d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
-d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==2)})))
-d$ages=ages[1:40]
-colnames(d)=c("MSGene LT>10% Only","PCE 10y>5% Only","Both","ages")
-m=melt(d,id.var="ages")
-
-ga2=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Controls Captured")
-
-
-saveRDS(ga,"../output/proportioncasestenmslife.rds")
-###
-```
 
 
 ### For LT
@@ -429,7 +633,7 @@ saveRDS(ga,"../output/proportioncasestenmslife.rds")
 ```{R}
 rm(list=ls())
 test=readRDS("~/multistate2/output/test.rds")
-ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")/1.83
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 
 
 ### this is the data frame with approportiate score
@@ -619,7 +823,207 @@ m=melt(d,id.var="ages")
 
 g1=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Proportion of Cases Captured")
 
-ggsave(g1,file="~/multistate2/output/proportioncasescaptured.pdf",dpi=600)
+ggsave(g1,file="~/multistate2/output/proportioncasescaptured_not1.83.pdf",dpi=600)
+```
+
+
+
+## ctonrols
+
+```{R}
+rm(list=ls())
+test=readRDS("~/multistate2/output/test.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+
+
+### this is the data frame with approportiate score
+prediction_list=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+
+ages=c(40:80)
+
+
+
+# Initialize a list to store the results for each year
+results_list <- list()
+
+
+matrix2=ascvd.30.year.rc
+
+for(year in 1:(length(ages)-1)){
+  
+  # Example criterion: individuals where matrix1 prediction > threshold1 AND matrix2 prediction > threshold2
+  # Adjust this as per your actual criteria
+  threshold1=0.10
+  selected_indices_score1 <- which(sapply(prediction_list, function(x) { 
+    if(length(x) >= year) x[year] > threshold1 else FALSE
+  }))
+  
+  
+  data_score1 <- test[selected_indices_score1, ]
+  stats_score1 <- c(
+    mean_genetics = mean(data_score1$cad.prs, na.rm = TRUE),
+    percent_female = mean(data_score1$sex == "female", na.rm = TRUE) * 100,
+    percent_smoker = mean(data_score1$smoke, na.rm = TRUE) * 100,
+    mean_labs = colMeans(data_score1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+  )
+  
+     threshold3=10
+  selected_indices_score3 <- which(matrix2[, year] > threshold3)
+  data_score3 <- test[selected_indices_score3, ]
+ 
+   stats_score3 <- c(
+    mean_genetics = mean(data_score3$cad.prs, na.rm = TRUE),
+    percent_female = mean(data_score3$sex == "female", na.rm = TRUE) * 100,
+    percent_smoker = mean(data_score3$smoke, na.rm = TRUE) * 100,
+    mean_labs = colMeans(data_score3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+  )
+
+selected_1_not3=setdiff(selected_indices_score1,selected_indices_score3)
+data_score1_not3 <- test[selected_1_not3, ]
+stats_score_1_not_3 <- c(
+    mean_genetics = mean(data_score1_not3$cad.prs, na.rm = TRUE),
+    percent_female = mean(data_score1_not3$sex == "female", na.rm = TRUE) * 100,
+    percent_smoker = mean(data_score1_not3$smoke, na.rm = TRUE) * 100,
+    mean_labs = colMeans(data_score1_not3[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+  )
+   
+   
+selected_3_not1=setdiff(selected_indices_score3,selected_indices_score1)
+data_score3_not1 <- test[selected_3_not1, ]
+   stats_score_3_not_1 <- c(
+    mean_genetics = mean(data_score3_not1$cad.prs, na.rm = TRUE),
+    percent_female = mean(data_score3_not1$sex == "female", na.rm = TRUE) * 100,
+    percent_smoker = mean(data_score3_not1$smoke, na.rm = TRUE) * 100,
+    mean_labs = colMeans(data_score3_not1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+  )
+   
+selected_3_and1=intersect(selected_indices_score3,selected_indices_score1)
+data_score3_and1 <- test[selected_3_and1, ]
+   stats_score_3_and_1 <- c(
+    mean_genetics = mean(data_score3_and1$cad.prs, na.rm = TRUE),
+    percent_female = mean(data_score3_and1$sex == "female", na.rm = TRUE) * 100,
+    percent_smoker = mean(data_score3_and1$smoke, na.rm = TRUE) * 100,
+    mean_labs = colMeans(data_score3_and1[, c("sbp","choladj","hdladj")], na.rm = TRUE) # replace with your lab columns
+  )
+   
+
+  # Intersections
+  #score1_and_score2 <- intersect(selected_indices_score1, selected_indices_score2)
+  score1_and_score3 <- intersect(selected_indices_score1, selected_indices_score3)
+  #score2_and_score3 <- intersect(selected_indices_score2, selected_indices_score3)
+  #all_two_scores <- intersect(score1_and_score2, selected_indices_score3)
+
+
+  # Unique to each score
+  only_score1 <- setdiff(selected_indices_score1, selected_indices_score3)
+  only_score3 <- setdiff(selected_indices_score3, selected_indices_score1)
+  
+  only_score1_andsick=intersect(only_score1,which(test$Cad_0_Any==1))
+  only_score3_andsick=intersect(only_score3,which(test$Cad_0_Any==1))
+  
+  
+  both=intersect(selected_indices_score1,selected_indices_score3)
+  both_andsick=intersect(both,which(test$Cad_0_Any==1))
+  # Counts
+  counts <- list(
+    only_score1 = length(only_score1),
+    only_score1_andsick=length(only_score1_andsick),
+
+    only_score3 = length(only_score3),
+    only_score3_andsick=length(only_score3_andsick),
+        score1_and_score3 = length(intersect(selected_indices_score1,selected_indices_score3)),
+        both_andsick=length(both_andsick))
+
+ 
+  
+  # Store results for this year
+  results_list[[year]] <- list(
+    stats_score1=stats_score1,
+    #stats_score2=stats_score2,
+    stats_score3=stats_score3,
+    stats_score_3_not_1=stats_score_3_not_1,
+    stats_score_1_not_3=stats_score_1_not_3,
+    stats_score_3_and_1=stats_score_3_and_1,
+    counts=counts
+  )
+}
+
+
+stats1=lapply(results_list, function(x) x$stats_score1)
+df_ms <- data.frame(do.call(rbind, stats1))
+
+stats3=lapply(results_list, function(x) x$stats_score3)
+df_thirty <- data.frame(do.call(rbind, stats3))
+
+stats1not3=lapply(results_list, function(x) x$stats_score_1_not_3)
+df_ms_thirty <- data.frame(do.call(rbind, stats1not3))
+
+
+
+# Required libraries
+#install.packages(c("ggplot2", "dplyr", "tidyr"))
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Example data
+# Let's say the matrices are named matrix1 and matrix2
+# These matrices have columns: Year, MeanRisk, PercentFemale, Smoker, SBP, LDL, HDL
+# And they have 40 rows for 40 years
+
+# Convert matrices to data frames
+df1 <- as.data.frame(df_ms)
+df2 <- as.data.frame(df_thirty)
+df3 = as.data.frame(df_ms_thirty)
+
+
+
+# Add a Score column to each
+df1$Score <- "MSGene LT"
+df2$Score <- "FRS 30"
+df3$Score <- "MSGene not FRS"
+
+df1$Year=c(40:79)
+df2$Year=c(40:79)
+df3$Year=c(40:79)
+# Combine the two data frames
+df <- rbind(df1, df2,df3)
+
+# Convert to a long format using tidyr
+df_long <- df %>%
+  gather(key = "Metric", value = "Value", -Year, -Score)
+
+# Plot using ggplot2
+ggplot(df_long, aes(x = Year, y = Value, color = Score, group = Score)) +
+  stat_smooth()+
+  facet_wrap(~ Metric, scales = "free_y") + 
+  labs(title = "Comparison of Metrics Across 40 Years", 
+       y = "Value", 
+       x = "Age") +
+  theme_classic()
+
+
+
+
+all_counts <- lapply(results_list, function(x) x$counts)
+
+# Convert this list to a data frame suitable for UpSetR
+df <- data.frame(do.call(rbind, all_counts))
+
+df_c=df[,c("only_score1_andsick","only_score3_andsick","both_andsick")]
+colnames(df_c)=c("MSlife","PCETeny","Both")
+
+
+
+d=data.frame(t(apply(df_c,1,function(x){as.numeric(x)})))
+d=data.frame(t(apply(d,1,function(x){x/sum(test$Cad_0_Any==1)})))
+d$ages=ages[1:40]
+colnames(d)=c("MSGene LT>10% Only","FRS 30y>10% Only","Both","ages")
+m=melt(d,id.var="ages")
+
+g1=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Updated Metric",x="Age",y="Proportion of controls Captured")
+
+ggsave(g1,file="~/multistate2/output/controlscaptured_not183.pdf",dpi=600)
 ```
 
 
@@ -628,122 +1032,4 @@ ggsave(g1,file="~/multistate2/output/proportioncasescaptured.pdf",dpi=600)
 
 
 
-
-
-
-```{r,eval=F,echo=F}
-
-upsetfunc1=function(age){
-year=which(ages==age)
-current_df <- df[year, ]
-  # Convert row to a list with named elements for UpSetR
-# Constructing the matrix data
-only_score1_df <- if(current_df$only_score1 > 0) data.frame(score1 = rep(1, current_df$only_score1), score3 = 0) else data.frame()
-#only_score2_df <- if(current_df$only_score2 > 0) data.frame(score1 = rep(0, current_df$only_score2), score2 = 1) else data.frame()
-only_score3_df <- if(current_df$only_score3 > 0) data.frame(score1 = rep(0, current_df$only_score3),  score3 = 1) else data.frame()
-#score1_and_score2_df <- if(current_df$score1_and_score2 > 0) data.frame(score1 = rep(1, current_df$score1_and_score2), score2 = 1) else data.frame()
-score1_and_score3_df <- if(current_df$score1_and_score3 > 0) data.frame(score1 = rep(1, current_df$score1_and_score3), score3 = 1) else data.frame()
-#score2_and_score3_df <- if(current_df$score2_and_score3 > 0) data.frame(score1 = rep(0, current_df$score2_and_score3), score2 = 1, score3 = 1) else data.frame()
-#all_three_scores_df <- if(current_df$all_three_scores > 0) data.frame(score1 = rep(1, current_df$all_three_scores), score2 = 1, score3 = 1) else data.frame()
-
-matrix_data <- rbind(only_score1_df, only_score3_df, #only_score3_df, 
-                     score1_and_score3_df
-                     #, score1_and_score3_df, score2_and_score3_df, all_three_scores_df
-                     )
-
-colnames(matrix_data) <- c("MSGene LT", "PCE 10y")
-
-# Plot with UpSetR
-p=upset(
-  matrix_data, 
-  sets = c("PCE 10y","MSGene LT"),
-  main.bar.color = c("#5DADE2", "#2ECC71", "#C0392B"),
-  matrix.color = "#D55E00",
-  sets.bar.color = c("#2ECC71","#5DADE2") ,
-  keep.order=T
-)
-
-return(p)
-
-}
-
-
-upsetfunc2=function(age){
-year=which(ages==age)
-  current_df <- df[year, ]
-  # Convert row to a list with named elements for UpSetR
-# Constructing the matrix data
-only_score1_df <- if(current_df$only_score1 > 0) data.frame(score1 = rep(1, current_df$only_score1), score2 = 0, score3 = 0) else data.frame()
-only_score2_df <- if(current_df$only_score2 > 0) data.frame(score1 = rep(0, current_df$only_score2), score2 = 1, score3 = 0) else data.frame()
-only_score3_df <- if(current_df$only_score3 > 0) data.frame(score1 = rep(0, current_df$only_score3), score2 = 0, score3 = 1) else data.frame()
-score1_and_score2_df <- if(current_df$score1_and_score2 > 0) data.frame(score1 = rep(1, current_df$score1_and_score2), score2 = 1, score3 = 0) else data.frame()
-score1_and_score3_df <- if(current_df$score1_and_score3 > 0) data.frame(score1 = rep(1, current_df$score1_and_score3), score2 = 0, score3 = 1) else data.frame()
-score2_and_score3_df <- if(current_df$score2_and_score3 > 0) data.frame(score1 = rep(0, current_df$score2_and_score3), score2 = 1, score3 = 1) else data.frame()
-all_three_scores_df <- if(current_df$all_three_scores > 0) data.frame(score1 = rep(1, current_df$all_three_scores), score2 = 1, score3 = 1) else data.frame()
-
-matrix_data <- rbind(only_score1_df, only_score2_df, only_score3_df, score1_and_score2_df, score1_and_score3_df, score2_and_score3_df, all_three_scores_df)
-colors_age <- generate_colors(matrix_data)
-
-colnames(matrix_data) <- c("MSGene LT", "FRS 30y", "PCE 10y")
-
-# Plot with UpSetR
-p=upset(
-  matrix_data, 
-  sets = c("MSGene LT", "FRS 30y", "PCE 10y"),
-  main.bar.color = c( "#2ECC71","#5DADE2", "#C0392B","#A6ACAF"),
-  matrix.color = "#D55E00",
-  sets.bar.color = c("#5DADE2", "#2ECC71", "#C0392B"),
-)
-
-return(p)
-
-}
-
-
-upsetfunc3=function(age){
-year=which(ages==age)
-  current_df <- df[year, ]
-  # Convert row to a list with named elements for UpSetR
-# Constructing the matrix data
-only_score1_df <- if(current_df$only_score1 > 0) data.frame(score1 = rep(1, current_df$only_score1), score2 = 0, score3 = 0) else data.frame()
-only_score2_df <- if(current_df$only_score2 > 0) data.frame(score1 = rep(0, current_df$only_score2), score2 = 1, score3 = 0) else data.frame()
-only_score3_df <- if(current_df$only_score3 > 0) data.frame(score1 = rep(0, current_df$only_score3), score2 = 0, score3 = 1) else data.frame()
-score1_and_score2_df <- if(current_df$score1_and_score2 > 0) data.frame(score1 = rep(1, current_df$score1_and_score2), score2 = 1, score3 = 0) else data.frame()
-score1_and_score3_df <- if(current_df$score1_and_score3 > 0) data.frame(score1 = rep(1, current_df$score1_and_score3), score2 = 0, score3 = 1) else data.frame()
-score2_and_score3_df <- if(current_df$score2_and_score3 > 0) data.frame(score1 = rep(0, current_df$score2_and_score3), score2 = 1, score3 = 1) else data.frame()
-all_three_scores_df <- if(current_df$all_three_scores > 0) data.frame(score1 = rep(1, current_df$all_three_scores), score2 = 1, score3 = 1) else data.frame()
-
-matrix_data <- rbind(only_score1_df, only_score2_df, only_score3_df, score1_and_score2_df, score1_and_score3_df, score2_and_score3_df, all_three_scores_df)
-colors_age <- generate_colors(matrix_data)
-
-colnames(matrix_data) <- c("MSGene LT", "FRS 30y", "PCE 10y")
-
-# Plot with UpSetR
-p=upset(
-  matrix_data, 
-  sets = c("MSGene LT", "FRS 30y", "PCE 10y"),
-  main.bar.color = c("#5DADE2", "#2ECC71", "#C0392B","#A6ACAF","#A6ACAF","#A6ACAF","#A6ACAF"),
-  matrix.color = "#D55E00",
-  sets.bar.color = c("#5DADE2", "#2ECC71", "#C0392B"),
-)
-
-return(p)
-
-}
-plot1=upsetfunc1(age = 40)
-plot2=upsetfunc1(age = 55)
-plot3=upsetfunc3(age = 65)
-plot4=upsetfunc2(age = 70)
-
-pdf("../output/upsetplot_age40.pdf")
-upsetfunc1(age = 40)
-dev.off()
-
-pdf("../output/upsetplot_age55.pdf")
-upsetfunc1(age = 55)
-dev.off()
-
-pdf("../output/upsetplot_age65.pdf")
-upsetfunc3(age = 65)
-dev.off()
 

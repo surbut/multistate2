@@ -426,10 +426,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of
-the R Markdown file created these results, you’ll want to first commit
-it to the Git repo. If you’re still working on the analysis, you can
-ignore this warning. When you’re finished, you can run
+<p>The R Markdown is untracked by Git. To know which version of the R
+Markdown file created these results, you’ll want to first commit it to
+the Git repo. If you’re still working on the analysis, you can ignore
+this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -582,34 +582,18 @@ output/state_occupancy_risk.rds
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/geneticoverlap.pdf
+~/multistate2/output/proportioncasescaptured_183.pdf
 </td>
 <td style="text-align:left;">
-output/geneticoverlap.pdf
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/proportioncasescaptured.pdf
-</td>
-<td style="text-align:left;">
-output/proportioncasescaptured.pdf
+output/proportioncasescaptured_183.pdf
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/proportioncasescaptured_not1.83.pdf
+~/multistate2/output/controlscaptured_183.pdf
 </td>
 <td style="text-align:left;">
-output/proportioncasescaptured_not1.83.pdf
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/controlscaptured_not183.pdf
-</td>
-<td style="text-align:left;">
-output/controlscaptured_not183.pdf
+output/controlscaptured_183.pdf
 </td>
 </tr>
 </tbody>
@@ -679,125 +663,10 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
-
 <p>
-These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/plottingcounts.Rmd</code>) and
-HTML (<code>docs/plottingcounts.html</code>) files. If you’ve configured
-a remote Git repository (see <code>?wflow_git_remote</code>), click on
-the hyperlinks in the table below to view the files as they were in that
-past version.
+There are no past versions. Publish this analysis with
+<code>wflow_publish()</code> to start tracking its development.
 </p>
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-File
-</th>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-<th>
-Message
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/2802992fc03909a8c02b3b3116a0048d5f031400/analysis/plottingcounts.Rmd" target="_blank">2802992</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-09-19
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/4d7d65cde4e3bd79a02526b276e49eec2f7573d7/analysis/plottingcounts.Rmd" target="_blank">4d7d65c</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-09-17
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/4d7d65cde4e3bd79a02526b276e49eec2f7573d7/docs/plottingcounts.html" target="_blank">4d7d65c</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-09-17
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/8d93dce683d2f65743a96803f39c1c4b779cc38d/analysis/plottingcounts.Rmd" target="_blank">8d93dce</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-09-16
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/8d93dce683d2f65743a96803f39c1c4b779cc38d/docs/plottingcounts.html" target="_blank">8d93dce</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-09-16
-</td>
-<td>
-Update
-</td>
-</tr>
-</tbody>
-</table>
-</div>
 <hr>
 </div>
 </div>
@@ -825,11 +694,9 @@ Attaching package: &#39;data.table&#39;</code></pre>
 <pre><code>The following objects are masked from &#39;package:dplyr&#39;:
 
     between, first, last</code></pre>
-<div id="for-lt" class="section level3">
-<h3>For LT</h3>
 <pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula = &#39;y ~ x&#39;</code></pre>
-<pre><code>Warning: Removed 66 rows containing non-finite values (`stat_smooth()`).</code></pre>
-<p><img src="figure/plottingcounts.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: Removed 24 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<p><img src="figure/propcases183.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>Warning in melt(d, id.var = &quot;ages&quot;): The melt generic in data.table has been
 passed a data.frame and will attempt to redirect to the relevant reshape2
 method; please note that reshape2 is deprecated, and this redirection is now
@@ -838,12 +705,11 @@ libraries are attached, e.g. melt.list, you can prepend the namespace like
 reshape2::melt(d). In the next version, this warning will become an error.</code></pre>
 <pre><code>Saving 7 x 5 in image</code></pre>
 </div>
-</div>
 <div id="ctonrols" class="section level2">
 <h2>ctonrols</h2>
 <pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula = &#39;y ~ x&#39;</code></pre>
-<pre><code>Warning: Removed 66 rows containing non-finite values (`stat_smooth()`).</code></pre>
-<p><img src="figure/plottingcounts.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: Removed 24 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<p><img src="figure/propcases183.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>Warning in melt(d, id.var = &quot;ages&quot;): The melt generic in data.table has been
 passed a data.frame and will attempt to redirect to the relevant reshape2
 method; please note that reshape2 is deprecated, and this redirection is now
@@ -881,22 +747,21 @@ other attached packages:
 [5] dplyr_1.1.3      
 
 loaded via a namespace (and not attached):
- [1] sass_0.4.7        utf8_1.2.3        generics_0.1.3    lattice_0.21-8   
- [5] stringi_1.7.12    digest_0.6.33     magrittr_2.0.3    evaluate_0.21    
+ [1] sass_0.4.7        utf8_1.2.3        generics_0.1.3    stringi_1.7.12   
+ [5] lattice_0.21-8    digest_0.6.33     magrittr_2.0.3    evaluate_0.21    
  [9] grid_4.3.1        fastmap_1.1.1     plyr_1.8.8        Matrix_1.6-0     
-[13] rprojroot_2.0.3   workflowr_1.7.0   jsonlite_1.8.7    whisker_0.4.1    
-[17] promises_1.2.0.1  mgcv_1.8-42       purrr_1.0.1       fansi_1.0.4      
-[21] scales_1.2.1      textshaping_0.3.6 jquerylib_0.1.4   cli_3.6.1        
-[25] rlang_1.1.1       munsell_0.5.0     splines_4.3.1     withr_2.5.0      
-[29] cachem_1.0.8      yaml_2.3.7        tools_4.3.1       reshape2_1.4.4   
-[33] colorspace_2.1-0  httpuv_1.6.11     vctrs_0.6.3       R6_2.5.1         
-[37] lifecycle_1.0.3   git2r_0.32.0      stringr_1.5.0     fs_1.6.3         
-[41] ragg_1.2.5        pkgconfig_2.0.3   pillar_1.9.0      bslib_0.5.0      
-[45] later_1.3.1       gtable_0.3.3      glue_1.6.2        Rcpp_1.0.11      
-[49] systemfonts_1.0.4 xfun_0.39         tibble_3.2.1      tidyselect_1.2.0 
-[53] highr_0.10        rstudioapi_0.15.0 knitr_1.43        farver_2.1.1     
-[57] nlme_3.1-162      htmltools_0.5.5   labeling_0.4.2    rmarkdown_2.23   
-[61] compiler_4.3.1   </code></pre>
+[13] rprojroot_2.0.3   workflowr_1.7.0   jsonlite_1.8.7    promises_1.2.0.1 
+[17] mgcv_1.8-42       purrr_1.0.1       fansi_1.0.4       scales_1.2.1     
+[21] textshaping_0.3.6 jquerylib_0.1.4   cli_3.6.1         rlang_1.1.1      
+[25] munsell_0.5.0     splines_4.3.1     withr_2.5.0       cachem_1.0.8     
+[29] yaml_2.3.7        tools_4.3.1       reshape2_1.4.4    colorspace_2.1-0 
+[33] httpuv_1.6.11     vctrs_0.6.3       R6_2.5.1          lifecycle_1.0.3  
+[37] git2r_0.32.0      stringr_1.5.0     fs_1.6.3          ragg_1.2.5       
+[41] pkgconfig_2.0.3   pillar_1.9.0      bslib_0.5.0       later_1.3.1      
+[45] gtable_0.3.3      glue_1.6.2        Rcpp_1.0.11       systemfonts_1.0.4
+[49] xfun_0.39         tibble_3.2.1      tidyselect_1.2.0  highr_0.10       
+[53] rstudioapi_0.15.0 knitr_1.43        farver_2.1.1      htmltools_0.5.5  
+[57] nlme_3.1-162      labeling_0.4.2    rmarkdown_2.23    compiler_4.3.1   </code></pre>
 </div>
 </div>
 

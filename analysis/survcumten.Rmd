@@ -15,14 +15,40 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
+source("~/dynamichr/code/utils.R")
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
+source("~/multistate2/code/fitarray.R")
+library("reshape2")
+source("~/multistate2/code/arrayindicate.R")
+
+load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) <- c(1,2,3,4,5,6)
+agesint = c(40:79)
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
+library(CVrisk)
+ages=c(40:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+
 
 modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
 
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
 coefs=b$custom_smooth
 
-
-prs_quants=qnorm(c(0.2,0.5,0.8))
+prs_quants=c(mean(dfh$cad.prs[dfh$cad.prs.lev=="low"]),mean(dfh$cad.prs[dfh$cad.prs.lev=="mid"]),mean(dfh$cad.prs[dfh$cad.prs.lev=="high"]))
 
 
 
@@ -33,11 +59,229 @@ atrisk=expand.grid(intercept=1,prs_quants=prs_quants,sex=sex,smoke=c(0,1),ah=c(0
 ar=atrisk[atrisk$ah==0&atrisk$smoke==0&atrisk$stat==0,]
 
 
-ten=tenlifeplotting(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$tenplot+theme_classic()
 
-ggsave(t,file="../output/tenlifehealth.pdf",dpi=600)
 
-l=tenlifeplotting(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifeplot+theme_classic()
+
+
+library(ggplot2)
+
+
+
+tenlb = function(start,
+                 stop,
+                 modelfit,
+                 agesmooth,
+                 agesint,
+                 atrisk,
+                 window_width = 20,
+                 span = 0.75,
+                 degree = 2,
+                 prs_quants) {
+  mat = coefplotsmooth2(
+    agesmooth,
+    start,
+    stop,
+    modelfit,
+    window_width = window_width,
+    span = span,
+    degree = degree
+  )$custom_smooth
+  ten.year = matrix(NA,
+                    nrow = length(agesint),
+                    ncol = length(prs_quants) * 2)
+  ten.year.ben = matrix(NA,
+                        nrow = length(agesint),
+                        ncol = length(prs_quants) * 2)
+  lifetime = matrix(NA,
+                    nrow = length(agesint),
+                    ncol = length(prs_quants) * 2)
+  lifetime.ben = matrix(NA,
+                        nrow = length(agesint),
+                        ncol = length(prs_quants) * 2)
+  
+  for (i in 1:length(agesint)) {
+    age = agesint[i]
+    ten.year[i, ] = compute_prediction_product_matrix(
+      atrisk = atrisk,
+      agepredinterval = c(age:min(age + 10, 80)),
+      coefmat = mat
+    )$PredictedIntervalrisk
+    ten.year.ben[i, ] = compute_prediction_product_matrix(
+      atrisk = atrisk,
+      agepredinterval = c(age:min(age + 10, 80)),
+      coefmat = mat
+    )$Hazard_treated
+    
+    lifetime[i, ] = compute_prediction_product_matrix(
+      atrisk = atrisk,
+      agepredinterval = c(age:(80)),
+      coefmat = mat
+    )$PredictedIntervalrisk
+    lifetime.ben[i, ] = compute_prediction_product_matrix(
+      atrisk = atrisk,
+      agepredinterval = c(age:(80)),
+      coefmat = mat
+    )$Hazard_treated
+  }
+  
+  ten.year = data.frame(ten.year) * 100
+  lifetime = data.frame(lifetime) * 100
+  lifetime.ben = data.frame(lifetime.ben) * 100
+  ten.year.ben = data.frame(ten.year.ben) * 100
+  
+  e = length(prs_quants)
+  rownames(ten.year) = rownames(ten.year.ben) = agesint
+  colnames(ten.year) = colnames(ten.year.ben) = paste0(rep(round(prs_quants, 1), 2), ":", rep(c("female", "male"), each =
+                                                                                                e))
+  ten.year$age = ten.year.ben$age = agesint
+  
+  rownames(lifetime) = rownames(lifetime.ben) = agesint
+  colnames(lifetime) = colnames(lifetime.ben) = paste0(rep(round(prs_quants, 1), 2), ":", rep(c("female", "male"), each =
+                                                                                                e))
+  lifetime$age = lifetime.ben$age = agesint
+  
+  
+  lookup_table <- data.frame(melt(ten.year, id.vars = c("age")))
+  lookup_table_treat <-
+    data.frame(melt(ten.year.ben, id.vars = c("age")))
+  
+  df <-
+    inner_join(lookup_table, lookup_table_treat, by = c("age", "variable"))
+  colors <- c("darkred", "red", "lightcoral", "darkblue", "blue", "lightblue")
+
+  
+
+
+  d = df[, c(1, 2, 3, 4)]
+  colnames(d) = c("year", "strata", "untreated_risk", "treated_risk")
+  
+  
+  gtentreat = ggplot(d, aes(x = year)) +
+    geom_ribbon(aes(
+      ymin = treated_risk,
+      ymax = untreated_risk,
+      fill = strata
+    ),
+    alpha = 0.3) +
+    geom_line(aes(
+      y = treated_risk,
+      color = strata,
+      linetype = "treated"
+    )) +
+    geom_line(aes(
+      y = untreated_risk,
+      color = strata,
+      linetype = "untreated"
+    )) +
+    labs(
+      title = "Predicted Ten Year Risk Curves",
+      x = "Age",
+      y = "Risk (%)",
+      fill = "Strata",
+      color = "Strata",
+      linetype = "Strategy"
+    ) +
+    theme_classic()
+  
+  
+  
+  
+  
+  names(lookup_table)[3] = "ten.year"
+  gten = ggplot(lookup_table, aes(age, y = ten.year, color = as.factor(variable))) +
+    stat_smooth() + labs(
+      x = "Age",
+      y = paste0("Ten Year Risk from ", start, " to ", stop),
+      col = "PRS:Sex"
+    )
+  
+  
+  
+  lookup_table2 <- data.frame(melt(lifetime, id.vars = c("age")))
+  lookup_table2$strategy = rep("untreated_risk", nrow(lookup_table))
+  lookup_table_treat2 <-
+    data.frame(melt(lifetime.ben, id.vars = c("age")))
+  lookup_table_treat2$strategy = rep("treated_risk", nrow(lookup_table_treat2))
+  
+  df_long_me = rbind(lookup_table2, lookup_table_treat2)
+  df <-
+    inner_join(lookup_table2, lookup_table_treat2, by = c("age", "variable"))
+  
+  
+  d = df[, c(1, 2, 3, 5)]
+  colnames(d) = c("year", "strata", "untreated_risk", "treated_risk")
+  # gltreat = ggplot(d, aes(x = year)) +
+  #   geom_ribbon(aes(
+  #     ymin = treated_risk,
+  #     ymax = untreated_risk,
+  #     fill = strata
+  #   ),
+  #   alpha = 0.3) +
+  #   geom_line(aes(
+  #     y = treated_risk,
+  #     color = strata,
+  #     linetype = "treated"
+  #   )) +
+  #   geom_line(aes(
+  #     y = untreated_risk,
+  #     color = strata,
+  #     linetype = "untreated"
+  #   )) +
+  #   scale_fill_gradientn(colors = colorRampPalette(c("blue", "red"))(10)) +
+  #   labs(
+  #     title = "Predicted Lifetime Risk Curves",
+  #     x = "Age",
+  #     y = "Risk",
+  #     fill = "Strata",
+  #     color = "Strata",
+  #     linetype = "Strategy"
+  #   ) +
+  #   theme_classic()
+  
+  
+    gltreat <- ggplot(d, aes(x=year)) +
+  geom_ribbon(aes(ymin=treated_risk, ymax=untreated_risk, fill=strata), alpha=0.3) +
+  geom_line(aes(y=treated_risk, color=strata, linetype="treated")) +
+  geom_line(aes(y=untreated_risk, color=strata, linetype="untreated")) +
+  scale_fill_manual(values = colors) +
+  scale_color_manual(values = colors) +
+  labs(title="Predicted Lifetime Risk Curves", x="Age", y="Risk", fill="Strata", color="Strata", linetype="Strategy") +
+  theme_classic()
+  
+  
+  names(lookup_table2)[3] = "lifetime"
+  glife = ggplot(lookup_table2, aes(age, y = lifetime, color = as.factor(variable))) +
+    stat_smooth() + labs(
+      x = "Age",
+      y = paste0("Lifetme Risk from ", start, " to ", stop),
+      col = "PRS:Sex"
+    )
+  
+  return(
+    list(
+      "tenplot" = gten,
+      "lifeplot" = glife,
+      "gtentreat" = gtentreat,
+      "lifetreat" = gltreat
+    )
+  )
+}
+
+
+ten=tenlb(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$gtentreat
+
+scaled_colors <- colorRampPalette(c("blue", "red"))(10)
+print(scaled_colors)
+
+ggsave(ten,file="../output/tenlifehealth.pdf",dpi=600)
+
+l=tenlb(start="Health",
+                  stop="Cad",
+                  modelfit = modelfit,
+                  agesmooth = c(40:80),
+                  prs_quants=prs_quants,
+                  agesint = c(40:79),
+                  atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifetreat+theme_classic()
 
 ggsave(l,file="../output/lifehealth.pdf",dpi=600)
 
@@ -70,11 +314,11 @@ rownames(a2)=ages
 a2$ages=ages
 m=melt(a2,id.vars="ages")
 
-survplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="Survival Starting from 40",x="Ages")
+survplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="CAD free survival from 40",x="Ages")
 
 a=apply(data.frame(b$Survival_treated),1,function(x){(cumprod(x))})
 a2=data.frame(a)
-colnames(a2)=c(paste0(rep("F:",5),round(prs_quants,2)),paste0(rep("M:",5),round(prs_quants,2)))
+colnames(a2)=c(paste0(rep("F:",3),round(prs_quants,2)),paste0(rep("M:",3),round(prs_quants,2)))
 rownames(a2)=ages
 a2$ages=ages
 m=melt(a2,id.vars="ages")
@@ -105,8 +349,10 @@ b=data.frame(cbind(ascvd.30.year.rc,lev=test$int))
 b$metric=rep("30yRC",nrow(b))
 ab=rbind(a,b)
 colnames(ab)=c(as.numeric(ages),"score","metric")
-
+#colnames(b)=c(as.numeric(ages)
+              
 t=melt(ab,id.vars = c("score","metric"))
+
 t$variable=as.numeric(as.character(t$variable))
 
 # Calculate mean values for each combination
@@ -129,29 +375,48 @@ df_mean <- df_mean %>%
   )
 
 
-gf=ggplot(df_mean,aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape="metric"))+stat_smooth(se = F)+
+gf=ggplot(df_mean[df_mean$metric=="30yRC",],aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape="metric"))+geom_smooth()+
   labs(x = "Age", y = "Predicted FRS 30 year Risk",col="Sex, PRS Percent",shape="FRS") +theme_classic()
 
-ggsave(gf,file="../output/gf.pdf",dpi=600)
 
+
+gfall=ggplot(df_mean,aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape=as.factor(metric)))+geom_point()+
+  labs(x = "Age", y = "Predicted FRS 30 year Risk",col="Sex, PRS Percent",shape="FRS") +theme_classic()
+
+ggsave(gfall,file="../output/gfall.pdf",dpi=600)
 install.packages("patchwork")
 library(patchwork)
 
 gas=ggarrange(ten,l,hazplot,survplot,gf,nrow=2,ncol=3,common.legend = T)
 p1= ten+ theme(legend.position = "none")
 p2 <- l + theme(legend.position = "none")
-p3 <- hazplot + theme(legend.position = "none")
-p4 <- survplot + theme(legend.position = "none")
-p5 <- gf + theme(legend.position = "bottom")
+#p3 <- hazplot + theme(legend.position = "none")
+p4 <- survplot 
+p5 <- gf + theme(legend.position = "none")
 
-combined_plot <- (ten + p2 + p3) / (p4 + p5) +plot_layout(guides = 'collect') & 
+combined_plot <- (p4 + p1) / (p2 + p5) +plot_layout(guides = 'collect') & 
 theme(legend.position = "bottom")
 
-#p1 <- ten + theme(legend.position = "top")
+p1 <- ten + theme(legend.position = "top")
+p4 = p4+theme(legend.position = "bottom")
+(combined_plot <- (p1 + p2) / (p4 + p5))
 
-(combined_plot <- (p1 + p2 + p3) / (p4 + p5))
+colors <- c("darkred", "red", "lightcoral", "darkblue", "blue", "lightblue")
 
-ggsave(combined_plot,file="../output/tenlifesurvfrs.pdf",dpi=600)
+
+(combined_plot <- (p4 + p2 + p5))
+
+ggsave(combined_plot,file="../output/tenlifesurvfrs_183.pdf",dpi=600,width=12,height=10,units = "in")
+
+pdf("../output/censorage.pdf")
+barplot(table(round(dfh$Cad_0_censor_age,0)[dfh$Cad_0_censor_age>30&dfh$Cad_0_Any==1])/sum(dfh$Cad_0_censor_age>30&dfh$Cad_0_Any==1),las=2,main="Censor Age UKB")
+dev.off()
+
+
+ggsave(ggarrange(p4,p2,p5,common.legend = T,legend = "bottom",labels = c("A","B","C","D")),file="../output/survlifefrs.pdf")
+
+
+ggsave(ggarrange(p4,p1,p2,p5,common.legend = T,legend = "bottom",labels = c("A","B","C","D")),file="../output/survlifefrswithten.pdf")
 
 
 combined_plot <- (ten + l + gf) /
@@ -169,7 +434,106 @@ combined_plot <- (ten + l + gf) /
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
-```
+## for lifetime
+predicted_risk_boot=readRDS("../output/predictedrsiskboot_fixed.rds")
+predicted_risk_boot_treat=readRDS("../output/predictedrsiskboot_fixed_benefit.rds")
+summarized_data <- array(0, dim = c(4, 80, 8))
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+summarized_stats <- array(0, dim = c(2, 4, 80, 8))
+
+target_ages <- c(40, 50, 60, 70)
+
+for (a in 1:4) {
+  for (c in 1:80) {
+    for (r in 1:8) {
+      summarized_stats[1, a, c, r] <- mean(predicted_risk_boot[, c, target_ages[a]-39, r])
+      summarized_stats[2, a, c, r] <- sd(predicted_risk_boot[, c, target_ages[a]-39, r])
+    }
+  }
+}
+
+format_dataframe <- function(age_index) {
+ table_data <- data.frame(CovariateProfile = c(paste0(rep("F:",5),c(-2:2)),paste(rep("M:",5),c(-2:2))))
+  for (r in 1:4) {
+    table_data[paste0(nstates[r], "_Mean")] <- summarized_stats[1, age_index, 1:10, r]
+    table_data[paste0(nstates[r], "_SD")] <- summarized_stats[2, age_index, 1:10, r]
+  }
+  
+  return(table_data)}
+
+  
+
+
+
+# Format and save to CSV
+for (a in 1:4) {
+  df <- format_dataframe(a)
+  write.csv(df, file=paste0("../output/Age_", target_ages[a], "_LifetimeRisk.csv"), row.names=FALSE)
+}
+
+
+
+for (a in 1:4) {
+  for (c in 1:80) {
+    for (r in 1:8) {
+      summarized_stats[1, a, c, r] <- mean(predicted_risk_boot_treat[, c, target_ages[a]-39, r])
+      summarized_stats[2, a, c, r] <- sd(predicted_risk_boot_treat[, c, target_ages[a]-39, r])
+    }
+  }
+}
+
+
+# Format and save to CSV
+for (a in 1:4) {
+  df <- format_dataframe(a)
+  write.csv(df, file=paste0("../output/Age_", target_ages[a], "_LifetimeRisk_treat.csv"), row.names=FALSE)
+}
+
+
+#### Now for ten year
+
+
+predicted_risk_boot=readRDS("../output/predictedrsiskboot_fixed_ten.rds")
+predicted_risk_boot_treat=readRDS("../output/predictedrsiskboot_fixedtentreat.rds")
+
+
+
+summarized_stats <- array(0, dim = c(2, 4, 80, 8))
+
+target_ages <- c(40, 50, 60, 70)
+
+for (a in 1:4) {
+  for (c in 1:80) {
+    for (r in 1:8) {
+      summarized_stats[1, a, c, r] <- mean(predicted_risk_boot[, c, target_ages[a]-39, r])
+      summarized_stats[2, a, c, r] <- sd(predicted_risk_boot[, c, target_ages[a]-39, r])
+    }
+  }
+}
+
+
+# Format and save to CSV
+for (a in 1:4) {
+  df <- format_dataframe(a)
+  write.csv(df, file=paste0("../output/Age_", target_ages[a], "_tenrisk.csv"), row.names=FALSE)
+}
+
+
+
+
+for (a in 1:4) {
+  for (c in 1:80) {
+    for (r in 1:8) {
+      summarized_stats[1, a, c, r] <- mean(predicted_risk_boot_treat[, c, target_ages[a]-39, r])
+      summarized_stats[2, a, c, r] <- sd(predicted_risk_boot_treat[, c, target_ages[a]-39, r])
+    }
+  }
+}
+
+
+# Format and save to CSV
+for (a in 1:4) {
+  df <- format_dataframe(a)
+  write.csv(df, file=paste0("../output/Age_", target_ages[a], "_tenRisk_treat.csv"), row.names=FALSE)
+}

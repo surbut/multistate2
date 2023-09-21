@@ -461,7 +461,13 @@ ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) +
   theme_minimal() +
   labs(x = "Years", y = "Risk States", fill = "Mean Difference")
 
-benefit=ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) + 
+library(ggplot2)
+library(ggridges)
+
+df <- as.data.frame(as.table(apply(diff_array, c(3,4), mean)))
+
+
+benefit=ggplot(df, aes(x = Freq, y = as.factor(Var2), fill = ..x..)) + 
 geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
 theme_ridges() + scale_fill_viridis_b()+
 labs(x = "Mean Difference in Risk", y = "Years",fill="Absolute Risk Deifference")
