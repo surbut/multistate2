@@ -67,14 +67,3 @@ ggarrange(hr,r2,or,nrow=1,common.legend = T)
 
 Now let's do it with survsplit:
 
-```{r}
-vet2 <- survSplit(Surv(phenos.CAD_censor_age, phenos.has_CAD) ~ prs_quant, data= df, cut=c(55,60,65,70),
-episode= "tgroup", id="id")
-
-fit=coxph(formula = Surv(tstart, phenos.CAD_censor_age, phenos.has_CAD) ~  prs_quant:strata(tgroup), data = vet2)
-fit
-cox.zph(fit)
-
-
-# aa_fit <-aareg(Surv(round(age_to_censor,2), phenos.has_CAD) ~ phenos.enrollment + prs_quant+ldladj+choladj+sbp+hdladj,data=df)
-# autoplot(aa_fit)

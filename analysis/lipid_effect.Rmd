@@ -109,7 +109,7 @@ print_code=function(id)
 return(list(bday=bd,diag=df1,statin=df2))
 
 }
-source("code/plotting_code.R")
+source("../code/plotting_code.R")
   
 ```
 
@@ -222,5 +222,14 @@ pheno_plot(after$eid[3])
 ```
 
 
+## Afters
+
+
+First we look at someone who started statin after disease. We see that he didn't start a statin until 1.5 years after diagnsosis, thus obscruing the relationship between CAD and statin benefit, as well as lipid levels and CAD. We then find someone who have started before:
+
+```{r}
+print_code(after$eid[3])
+pheno_plot(after$eid[3])
+```
 
 

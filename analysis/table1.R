@@ -11,7 +11,7 @@ dev.off()
 load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
 df_final=dfh
 dim(dfh)
-dim(lst.harmonized.data$dfukb)[1]-dim(dfh)[1]
+#dim(lst.harmonized.data$dfukb)[1]-dim(dfh)[1]
 a=merge(g2,df_final,by.x="eid",by.y="identifier")
 
 a=data.frame(a)
@@ -78,16 +78,23 @@ i=intersect(g2$eid,dfh$identifier)
 nrow(dfh)-length(i)
 
 design <- tibble::tribble(
-  ~left,               ~n_left, ~right,              ~n_right,
-  "Study base with Outcome Data", 502,461 , "Lack QC Genotype, Sex, Birthdate or smoking information", 20534,
-  "Contain baseline covariates",  481,927,    "Excluded from gp clinical atlas", 259930,
-  "Individuals in GP Clinical", 221997,   "With CAD at baseline",   646,
-  "PRS, Pheno, Covariate info", 221351,  "",                  NA_integer_)
+  ~left,~n_left, ~right,~n_right,
+  "Study base with Outcome Data", 502461 ,"Lack QC Genotype, Sex, Birthdate or Smoking information", 20534,
+  "Contain baseline covariates",  481927,    "Excluded from GP Records atlas", 259930,
+  "Individuals in GP Records", 221997,   "With CAD at baseline",   646,
+  "PRS, Pheno, Covariate info", 221351,  "",  NA_integer_)
+
+
+
 
 
 ##
 
 e=exclusion_flowchart(design, width = 2)
 e
+e %>%
+  export_svg() %>%
+  read_xml() %>%
+  write_xml("Figs/Flowcharts/flowchart_msgene.svg")
 ###
 

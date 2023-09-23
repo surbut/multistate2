@@ -347,19 +347,31 @@ library("VennDiagram")
 ht=fread("~/Desktop/output_gp/Hypertension.tab.tsv.gz")
 hyperlip=fread("~/Desktop/output_gp/Hypercholesterolemia.tab.tsv.gz")
 cad=fread("~/Desktop/output_gp/Coronary_Artery_Disease_INTERMEDIATE.tab.tsv.gz")
+dm=fread("~/Desktop/output_gp/Diabetes_Type_2.tab.tsv.gz")
 g=merge(dfh[c("identifier","Ht_0_Any","HyperLip_0_Any","Cad_0_Any","antihtn","statin")],ht[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
 g2=merge(g,hyperlip[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
 g3=merge(g2,cad[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g4=merge(dfh[,c("identifier","Dm_0_Any")],dm[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
 
 
+pdf("../output/hypertense.pdf")
 plot(euler(list("UkbPheno"=which(g2$Ht_0_Any==2),"Lab"=which(g2$has_disease.x==1),"AntiHtn"=which(g2$antihtn==1))),main="Hypertenson",quantities = T)
+dev.off()
 
 
-
+pdf("../output/hyperlip.pdf")
 plot(euler(list("UkbPheno"=which(g2$HyperLip_0_Any==2),"Lab"=which(g2$has_disease.y==1),"Statin"=which(g2$statin==1))),main="HyperLipidemia",quantities = T)
+dev.off()
 
 
+pdf("../output/cad.pdf")
 plot(euler(list("UkbPheno"=which(g3$Cad_0_Any==2),"Lab"=which(g3$has_disease==1),"Statin"=which(g3$statin==1))),main="CAD",quantities = T)
+dev.off()
+
+
+pdf("../output/dm.pdf")
+plot(euler(list("UkbPheno"=which(g4$Dm_0_Any==2),"Lab"=which(g4$has_disease==1))),main="DM",quantities = T)
+dev.off()
 ```
 
 

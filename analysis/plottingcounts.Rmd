@@ -421,7 +421,7 @@ ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 # ga2=ggplot(m,aes(ages,value,fill=variable))+geom_bar(stat="identity")+theme_classic()+labs(fill="Dynamic Metric",x="Age",y="Proportion Controls Captured")
 # 
 # 
-# saveRDS(ga,"../output/proportioncontrolstenmslife.rds")
+#saveRDS(ga,"../output/proportioncontrolstenmslife.rds")
 # ###
 ```
 

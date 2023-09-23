@@ -218,7 +218,7 @@ pm=predicted_risks[c((1:4),(6:50)),,,]
 
 saveRDS(pm,"../output/predictedrsiskboot.rds")
 saveRDS(pm,"../output/predictedrsiskboot_withtreat.rds")
-
+pm=readRDS("../output/predictedrsiskboot.rds")
 
 pm=readRDS("../output/predictedrsiskboot.rds")
 
@@ -429,8 +429,8 @@ saveRDS(pm2,"../output/predictedrsiskboot_fixed.rds")
 
 saveRDS(pm2,"../output/predictedrsiskboot_fixed_benefit.rds")
 
-untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
-treated=pm2
+
+
 # Assuming `array1` is predicted risk and `array2` is risk under treatment
 diff_array <- untreated[,c(6:10),,] - treated[,c(6:10),,] 
 
@@ -448,6 +448,11 @@ ggsave(ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) +
   labs(x = "Years", y = "Risk States", fill = "Mean Difference"),file="../output/benefit.pdf",dpi=600)
 
 
+
+untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
+treated=readRDS("../output/predictedrsiskboot_fixed_benefit.rds")
+
+
 # Calculate mean and SD across bootstraps
 mean_diff <- apply(diff_array, c(2,3,4), mean)
 sd_diff <- apply(diff_array, c(2,3,4), sd)
@@ -463,16 +468,29 @@ ggplot(df, aes(x = Var2, y = Var3, fill = Freq)) +
 
 library(ggplot2)
 library(ggridges)
+untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
+treated=readRDS("../output/predictedrsiskboot_fixed_benefit.rds")
+# Assuming `array1` is predicted risk and `array2` is risk under treatment
+diff_array <- untreated[,,,] - treated[,,,] 
+#diff_array <- untreated[,c(1:40),,] - treated[,c(1:0),,] 
+
 
 df <- as.data.frame(as.table(apply(diff_array, c(3,4), mean)))
 
+median(df[df$Var1==40,"Freq"])
+median(df[df$Var1==79,"Freq"])
 
-benefit=ggplot(df, aes(x = Freq, y = as.factor(Var2), fill = ..x..)) + 
+ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) +
 geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
-theme_ridges() + scale_fill_viridis_b()+
+theme_ridges() +
+labs(x = "Mean Difference in Risk", y = "Years")
+
+benefit=ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) + 
+geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+theme_ridges() + scale_fill_viridis()+
 labs(x = "Mean Difference in Risk", y = "Years",fill="Absolute Risk Deifference")
 
-saveRDS(benefit,file = "../output/benefit.rds")
+saveRDS(benefit,file = "../output/benefit_good.rds")
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 
 pm2=readRDS("../output/predictedrsiskboot_fixed.rds")

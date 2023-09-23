@@ -155,8 +155,7 @@ df_expanded <- data.frame(
   stop = numeric(), 
   event = integer(), 
   score1 = integer(), 
-  score2 = integer(),
-  score3 = integer()
+  score2 = integer()
 )
 
 library(data.table)
@@ -165,8 +164,8 @@ library(data.table)
 # Convert df to data.table
 setDT(df)
 
-expand_data <- function(id, cad_status, censor_age, score1_age, score2_age,score3_age) {
-  ages <- sort(c(40, score1_age, score2_age,score3_age, censor_age))
+expand_data <- function(id, cad_status, censor_age, score1_age, score2_age) {
+  ages <- sort(c(40, score1_age, score2_age, censor_age))
   result <- list()
   
   for(j in 1:(length(ages) - 1)) {
@@ -177,11 +176,10 @@ expand_data <- function(id, cad_status, censor_age, score1_age, score2_age,score
     
     s1 <- ifelse(start_age >= score1_age, 1, 0)
     s2 <- ifelse(start_age >= score2_age, 1, 0)
-    s3 <- ifelse(start_age >= score3_age, 1, 0)
     
     event_at_stop <- ifelse(stop_age == censor_age && cad_status == 2, 1, 0)
     
-    result[[length(result) + 1]] <- list(id = id, start = start_age, stop = stop_age, event = event_at_stop, score1 = s1, score2 = s2, score3=s3)
+    result[[length(result) + 1]] <- list(id = id, start = start_age, stop = stop_age, event = event_at_stop, score1 = s1, score2 = s2)
   }
   
   return(result)
@@ -189,7 +187,7 @@ expand_data <- function(id, cad_status, censor_age, score1_age, score2_age,score
 
 list_dt <- lapply(1:nrow(df), function(i) {
   row <- df[i,]
-  expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$thirty, row$ms,row$ten)
+  expand_data(row$id, row$Cad_0_Any, row$Cad_0_censor_age, row$thirty, row$ms)
 })
 
 # list_dt <- lapply(1:nrow(df), function(i) {
@@ -222,31 +220,32 @@ bootstrap_cindex <- function(fit_function, data, n_iter=10) {
 # Fit functions for score1 and score2
 fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
 fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
-fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data)
 
 
 # Bootstrap C-index
 
 results_score1 <- bootstrap_cindex(fit_function_score1, df_expanded)
 results_score2 <- bootstrap_cindex(fit_function_score2, df_expanded)
-results_score3 <- bootstrap_cindex(fit_function_score3, df_expanded)
 
 
 # Confidence intervals (95%)
 ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
 ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean + 1.96*results_score2$se)
-ci_score3 <- c(results_score3$mean - 1.96*results_score3$se, results_score3$mean + 1.96*results_score2$se)
 
 # Plot using ggplot2
 library(ggplot2)
 
 df_cindex <- data.frame(
-  Score = c("MSGene","30 Year","10year"),
-  Cindex = c(results_score2$mean,results_score1$mean,results_score3$mean),
-  ymin = c(ci_score2[1], ci_score1[1],ci_score3[1]),
-  ymax = c(ci_score2[2], ci_score1[2],ci_score3[2])
-  
+  Score = c("MSGene","30 Year"),
+  Cindex = c(results_score2$mean,results_score1$mean),
+  ymin = c(ci_score2[1], ci_score1[1]),
+  ymax = c(ci_score2[2], ci_score1[2])
 )
+
+# df_cindex
+#     Score    Cindex      ymin      ymax
+# 1  MSGene 0.7014402 0.6969279 0.7059526
+# 2 30 Year 0.5306952 0.5274984 0.5338919
 # df_cindex <- data.frame(
 #   Score = c("PCE 10", "MSGene"),
 #   Cindex = c(results_score1$mean, results_score2$mean),
@@ -269,17 +268,15 @@ cp <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 print(cp)
 fit1 <- coxph(Surv(start, stop, event) ~ score1, data = df_expanded)
 fit2 <- coxph(Surv(start, stop, event) ~ score2, data = df_expanded)
-fit3 <- coxph(Surv(start, stop, event) ~ score3, data = df_expanded)
 
 # Comparing models based on AIC
 aic1 <- AIC(fit1)
 aic2 <- AIC(fit2)
-aic3 <- AIC(fit3)
 
 cat("AIC for FRS.30y:", aic1, "\n")
 cat("AIC for msGene:", aic2, "\n")
 
-ggsave(ggarrange(p,p2,p3,cp,nrow=2,ncol=2),file="../output/thresholdexceeded.pdf",dpi=900,width = 12,height = 11,units = "in")
+ggsave(ggarrange(p,p2,p3,cp,nrow=2,ncol=2),file="../output/thresholdexceeded.pdf")
 ```
 
 
@@ -299,9 +296,8 @@ df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
 expanded_df <- data.frame()
 df=test
-
-names(states)=df$identifier
 score1_list=states
+names(states)=df$identifier
 score2=ascvd.30.year.rc
 rownames(score2)=df$identifier
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
@@ -378,17 +374,6 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 # Plot using ggplot2
 library(ggplot2)
 
-
-fit1 <- coxph(Surv(start, stop, event) ~ score1, data = expanded_df)
-fit2 <- coxph(Surv(start, stop, event) ~ score2, data = expanded_df)
-
-# Comparing models based on AIC
-aic1 <- AIC(fit1)
-aic2 <- AIC(fit2)
-
-cat("AIC for FRS.30y:", aic2, "\n")
-cat("AIC for msGene:", aic1, "\n")
-
 df_cindex <- data.frame(
   Score = c( "MSGene","30 Year"),
   Cindex = c(results_score1$mean, results_score2$mean),
@@ -410,15 +395,13 @@ p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 
 print(p)
 
-#  df_cindex
-#     Score    Cindex      ymin      ymax
-# 1  MSGene 0.7363445 0.7299602 0.7427288
-# 2 30 Year 0.6551157 0.6488721 0.6613592
-
 saveRDS(p,"../output/continuosums_lifetime.rds")
-ggsave(p,"../output/continuosums_lifetime.pdf",dpi=600)
 
 ####
 
-deltac=(results_score1$mean-results_score2$mean)/(sqrt(results_score1$se^2+results_score2$se^2))
-````
+```
+
+
+
+
+

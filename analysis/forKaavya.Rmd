@@ -54,4 +54,30 @@ cox.zph(fit)
 
 ```
 
+```{r}
+library(survival)
 
+# Create survival object
+surv_obj <- Surv(time = df$phenos.CAD_censor_age - df$phenos.enrollment, event = df$phenos.has_CAD)
+
+# Model with interaction
+model <- coxph(surv_obj ~ prs_quant * phenos.CAD_censor_age + sex, data = df)
+summary(model)
+
+```
+
+
+
+df_counting <- tmerge(df, df, id=eid, start= "phenos.enrollment", stop="phenos.CAD_censor_age", event="phenos.has_CAD")
+
+library(survival)
+
+df_counting <- tmerge(df, df, 
+                      id = eid, 
+                      start = c(start = "phenos.enrollment"), 
+                      stop = c(stop = "phenos.CAD_censor_age"), 
+                      event = event(phenos.has_CAD))
+
+# Model with time-dependent covariates
+model_time_dep <- coxph(surv_obj ~ polygenic_risk_score:strata(time_int) + Sex:strata(time_int), data = df_counting)
+summary(model_time_dep)

@@ -54,6 +54,7 @@ enrollments = c(41:70)
 aucmat = matrix(NA, nrow = length(enrollments), ncol = 4)
 prcmat = matrix(NA, nrow = length(enrollments), ncol = 4)
 semat = matrix(NA, nrow = length(enrollments), ncol = 4)
+pmat = matrix(NA, nrow = length(enrollments), ncol = 2)
 
 ages = 40:80
 enrollments = c(41:79)
@@ -157,6 +158,13 @@ for (z in 1:length(enrollments)) {
   aucmat[z, 4] = roc(d$outcome ~ d$cad.prs)$auc
   semat[z, 4] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
   
+  
+  roc1 <- roc(d$outcome, d$ms)
+  roc2 <- roc(d$outcome,d$frs.recal)
+  roc3 <- roc(d$outcome,d$cad.prs)
+  pmat[z, 1] = roc.test(roc1,roc2)$p
+  pmat[z, 2] = roc.test(roc1,roc3)$p
+ 
   
   require(PRROC)
   fg <- d$ms[d$outcome == 1]
@@ -359,6 +367,11 @@ pce.reverse.tenyear =
   semat[z, 2] = sqrt(var(roc(d$outcome ~ d$pceten)))
   aucmat[z, 3] = roc(d$outcome ~ d$cad.prs)$auc
   semat[z, 3] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
+
+  
+  pmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  
+
   
   
   require(PRROC)

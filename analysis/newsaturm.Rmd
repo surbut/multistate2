@@ -18,7 +18,7 @@ coefs=b$custom_smooth
 
 prs_quants=qnorm(c(seq(0.1,0.9,by=0.1)))
 
-prs_quants=c(-2.5,prs_quants,2.5)
+prs_quants=c(-2:2)
 
 sex=c(0,1)
 
@@ -47,20 +47,28 @@ for(g in 1:length(agesint)){
 
 netben=tenlifarray[,,"Lifetime"]-tenlifarray[,,"LifetimeBenefit"]
 ben=melt(netben)
-ben2=melt(tenlifarray[,c(12:22),"LifetimeBenefit"])
-ten=melt(tenlifarray[,c(12:22),"Ten"])
-l=melt(tenlifarray[,c(12:22),"Lifetime"])
+ben2=melt(tenlifarray[,c(6:10),"LifetimeBenefit"])
+ten=melt(tenlifarray[,c(6:10),"Ten"])
+l=melt(tenlifarray[,c(6:10),"Lifetime"])
 
 mer=merge(ten,l,by=c("Var1","Var2"))
 mer=merge(mer,ben,by=c("Var1","Var2"))
 
+# colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+# mer$`PRS Category`=factor(mer$`PRS Category`,labels = c(0.01,seq(0.1,0.9,by=0.1),0.99))
+# mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
 colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
-mer$`PRS Category`=factor(mer$`PRS Category`,labels = c(0.01,seq(0.1,0.9,by=0.1),0.99))
+mer$`PRS Category`=factor(mer$`PRS Category`,labels = -2:2)
 mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
 
 ## dot point
 
 g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.001,ymax=`Lifetime`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
+
+
+g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.01,ymax=`Lifetime`+0.01,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")
 
 
 ggsave(plot = g1,filename = "../output/MStenvsMslifesaturn.pdf",dpi=300,height = 4,width = 6)
@@ -70,4 +78,4 @@ g2=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+
 ggsave(plot = g2,filename = "../output/MStenvsMslifebenefit.pdf",dpi=300,height = 4,width = 6)
 
 ggsave(
-ggarrange(g1,g2,benefit,ncol=3,common.legend = T),file="../output/saturnbenefit.pdf",dpi=600,height = 10,width=15)
+ggarrange(g1,g2,benefit,ncol=2,nrow=2,common.legend = T),file="../output/saturnbenefit_better.pdf",dpi=600,height = 12,width=10)
