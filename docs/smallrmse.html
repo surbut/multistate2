@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2023-09-17" />
+
+<title>rmse</title>
+
+<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.10.2/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">multistate</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/surbut/multistate">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">rmse</h1>
+<h4 class="date">2023-09-17</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2023-09-23
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 2
+</p>
+<p>
+<strong>Knit directory:</strong> <code>multistate2/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
+changes </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguncommittedchanges"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The R Markdown is untracked by Git. To know which version of the R
+Markdown file created these results, you’ll want to first commit it to
+the Git repo. If you’re still working on the analysis, you can ignore
+this warning. When you’re finished, you can run
+<code>wflow_publish</code> to commit the R Markdown file and build the
+HTML.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20230211code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20230211)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20230211code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20230211)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
+</p>
+</div>
+<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Using absolute paths to the files within your workflowr project makes it
+difficult for you and others to run your code on a different machine.
+Change the absolute path(s) below to the suggested relative path(s) to
+make your code more reproducible.
+</p>
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th style="text-align:left;">
+absolute
+</th>
+<th style="text-align:left;">
+relative
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+~/multistate2//code/smoothtest.R
+</td>
+<td style="text-align:left;">
+code/smoothtest.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2//code/newsmooth.R
+</td>
+<td style="text-align:left;">
+code/newsmooth.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/fitarray.R
+</td>
+<td style="text-align:left;">
+code/fitarray.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/arrayindicate.R
+</td>
+<td style="text-align:left;">
+code/arrayindicate.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R
+</td>
+<td style="text-align:left;">
+code/frs30_URBUT/fun.frs_30ynew.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/train2.rds
+</td>
+<td style="text-align:left;">
+output/train2.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/test2.rds
+</td>
+<td style="text-align:left;">
+output/test2.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/frs30_URBUT/fun.frs_30y.R
+</td>
+<td style="text-align:left;">
+code/frs30_URBUT/fun.frs_30y.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/sharedrmse_mfnodiv_small.pdf
+</td>
+<td style="text-align:left;">
+output/sharedrmse_mfnodiv_small.pdf
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree273d0249cf12cd31640a6c5b71c5c9f94d1122cbtargetblank273d024a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/surbut/multistate2/tree/273d0249cf12cd31640a6c5b71c5c9f94d1122cb" target="_blank">273d024</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree273d0249cf12cd31640a6c5b71c5c9f94d1122cbtargetblank273d024a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/surbut/multistate2/tree/273d0249cf12cd31640a6c5b71c5c9f94d1122cb" target="_blank">273d024</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    analysis/.DS_Store
+    Ignored:    code/.DS_Store
+    Ignored:    data/
+    Ignored:    output/
+    Ignored:    plots/.DS_Store
+
+Untracked files:
+    Untracked:  analysis/code.Rmd
+    Untracked:  analysis/newrocaucsmall.Rmd
+    Untracked:  analysis/rmsenew.Rmd
+    Untracked:  analysis/smallrmse.Rmd
+    Untracked:  ten.pdf
+    Untracked:  ten.pptx
+    Untracked:  ~$ten.pptx
+
+Unstaged changes:
+    Modified:   analysis/rmseplots.Rmd
+    Modified:   analysis/table1.R
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+There are no past versions. Publish this analysis with
+<code>wflow_publish()</code> to start tracking its development.
+</p>
+<hr>
+</div>
+</div>
+</div>
+<pre class="r"><code>source(&quot;~/dynamichr/code/utils.R&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    filter, lag</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, setdiff, setequal, union</code></pre>
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.0     ✔ readr     2.1.4
+✔ ggplot2   3.4.3     ✔ stringr   1.5.0
+✔ lubridate 1.9.2     ✔ tibble    3.2.1
+✔ purrr     1.0.1     ✔ tidyr     1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
+Loading required package: ggpubr
+
+
+Attaching package: &#39;survminer&#39;
+
+
+The following object is masked from &#39;package:survival&#39;:
+
+    myeloma
+
+
+
+Attaching package: &#39;reshape&#39;
+
+
+The following object is masked from &#39;package:lubridate&#39;:
+
+    stamp
+
+
+The following objects are masked from &#39;package:tidyr&#39;:
+
+    expand, smiths
+
+
+The following object is masked from &#39;package:dplyr&#39;:
+
+    rename
+
+
+
+Attaching package: &#39;gridExtra&#39;
+
+
+The following object is masked from &#39;package:dplyr&#39;:
+
+    combine
+
+
+
+Attaching package: &#39;survMisc&#39;
+
+
+The following object is masked from &#39;package:ggplot2&#39;:
+
+    autoplot
+
+
+
+Attaching package: &#39;rsq&#39;
+
+
+The following object is masked from &#39;package:survMisc&#39;:
+
+    rsq
+
+
+Type &#39;citation(&quot;pROC&quot;)&#39; for a citation.
+
+
+Attaching package: &#39;pROC&#39;
+
+
+The following object is masked from &#39;package:survMisc&#39;:
+
+    ci
+
+
+The following objects are masked from &#39;package:stats&#39;:
+
+    cov, smooth, var
+
+
+
+Attaching package: &#39;data.table&#39;
+
+
+The following object is masked from &#39;package:reshape&#39;:
+
+    melt
+
+
+The following objects are masked from &#39;package:lubridate&#39;:
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+
+The following object is masked from &#39;package:purrr&#39;:
+
+    transpose
+
+
+The following objects are masked from &#39;package:dplyr&#39;:
+
+    between, first, last
+
+
+
+Attaching package: &#39;plotly&#39;
+
+
+The following object is masked from &#39;package:reshape&#39;:
+
+    rename
+
+
+The following object is masked from &#39;package:ggplot2&#39;:
+
+    last_plot
+
+
+The following object is masked from &#39;package:stats&#39;:
+
+    filter
+
+
+The following object is masked from &#39;package:graphics&#39;:
+
+    layout</code></pre>
+<pre class="r"><code>source(&quot;~/multistate2//code/smoothtest.R&quot;)
+source(&quot;~/multistate2//code/newsmooth.R&quot;)
+source(&quot;~/multistate2/code/fitarray.R&quot;)
+library(&quot;reshape2&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;reshape2&#39;
+
+The following objects are masked from &#39;package:data.table&#39;:
+
+    dcast, melt
+
+The following objects are masked from &#39;package:reshape&#39;:
+
+    colsplit, melt, recast
+
+The following object is masked from &#39;package:tidyr&#39;:
+
+    smiths</code></pre>
+<pre class="r"><code>source(&quot;~/multistate2/code/arrayindicate.R&quot;)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R&quot;)
+
+
+
+train=readRDS(&quot;~/multistate2/output/train2.rds&quot;)
+
+train=data.table(readRDS(&quot;~/multistate2/output/train2.rds&quot;))
+test=data.table(readRDS(&quot;~/multistate2/output/test2.rds&quot;))
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30y.R&quot;)
+library(CVrisk)
+ages=c(40:80)
+nstates=c(&quot;Health&quot;, &quot;Ht&quot;,&quot;HyperLip&quot;,&quot;Dm&quot;,&quot;Cad&quot;,&quot;death&quot;,&quot;Ht&amp;HyperLip&quot;,&quot;HyperLip&amp;Dm&quot;,&quot;Ht&amp;Dm&quot;,&quot;Ht&amp;HyperLip&amp;Dm&quot;)
+
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30y.R&quot;)
+library(CVrisk)
+ages=c(40:80)
+nstates=c(&quot;Health&quot;, &quot;Ht&quot;,&quot;HyperLip&quot;,&quot;Dm&quot;,&quot;Cad&quot;,&quot;death&quot;,&quot;Ht&amp;HyperLip&quot;,&quot;HyperLip&amp;Dm&quot;,&quot;Ht&amp;Dm&quot;,&quot;Ht&amp;HyperLip&amp;Dm&quot;)
+
+
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = &quot;binomial&quot;,covariates =&quot;cad.prs+f.31.0.0+smoke+antihtn_now+statin_now&quot;)
+                  
+
+b=coefplotsmooth2(ages = ages,start = &quot;Health&quot;,stop = &quot;Cad&quot;,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+
+ggplotly(b$plot)</code></pre>
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-5aaf454407f48c6beee6" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-5aaf454407f48c6beee6">{"x":{"data":[{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[-8.8488797313109817,-8.9319834473536712,-8.9595339059688381,-8.8105591493374078,-8.416862743312425,-8.1550336266284909,-8.036348362097856,-8.1805423246776083,-7.9131478202978309,-7.501549615255362,-8.362609163985514,-7.7894520893645405,-7.699009296802183,-7.3421226585386208,-7.2922785033315636,-7.3584382754163409,-7.3490416264167679,-7.4611300649731813,-7.0708623668202213,-6.9504617037156544,-7.0134361718981273,-7.0861405160508326,-6.9707270819219138,-7.1205491995655379,-6.9780849178338293,-6.6347711383118639,-6.821956651383263,-7.033864783260019,-6.5322353268161706,-6.7920080859460157,-6.456864722913922,-6.344320076332095,-6.2304102194238871,-6.1561555303329634,-6.125438691966985,-5.7572678020415591,-5.8651289273034353,-5.7732410273307799,-5.7921997956152396,-5.6699852131439021,-5.6575267458340752],"text":["Age: 40<br />Value: -8.84887973<br />Method: Coefficient","Age: 41<br />Value: -8.93198345<br />Method: Coefficient","Age: 42<br />Value: -8.95953391<br />Method: Coefficient","Age: 43<br />Value: -8.81055915<br />Method: Coefficient","Age: 44<br />Value: -8.41686274<br />Method: Coefficient","Age: 45<br />Value: -8.15503363<br />Method: Coefficient","Age: 46<br />Value: -8.03634836<br />Method: Coefficient","Age: 47<br />Value: -8.18054232<br />Method: Coefficient","Age: 48<br />Value: -7.91314782<br />Method: Coefficient","Age: 49<br />Value: -7.50154962<br />Method: Coefficient","Age: 50<br />Value: -8.36260916<br />Method: Coefficient","Age: 51<br />Value: -7.78945209<br />Method: Coefficient","Age: 52<br />Value: -7.69900930<br />Method: Coefficient","Age: 53<br />Value: -7.34212266<br />Method: Coefficient","Age: 54<br />Value: -7.29227850<br />Method: Coefficient","Age: 55<br />Value: -7.35843828<br />Method: Coefficient","Age: 56<br />Value: -7.34904163<br />Method: Coefficient","Age: 57<br />Value: -7.46113006<br />Method: Coefficient","Age: 58<br />Value: -7.07086237<br />Method: Coefficient","Age: 59<br />Value: -6.95046170<br />Method: Coefficient","Age: 60<br />Value: -7.01343617<br />Method: Coefficient","Age: 61<br />Value: -7.08614052<br />Method: Coefficient","Age: 62<br />Value: -6.97072708<br />Method: Coefficient","Age: 63<br />Value: -7.12054920<br />Method: Coefficient","Age: 64<br />Value: -6.97808492<br />Method: Coefficient","Age: 65<br />Value: -6.63477114<br />Method: Coefficient","Age: 66<br />Value: -6.82195665<br />Method: Coefficient","Age: 67<br />Value: -7.03386478<br />Method: Coefficient","Age: 68<br />Value: -6.53223533<br />Method: Coefficient","Age: 69<br />Value: -6.79200809<br />Method: Coefficient","Age: 70<br />Value: -6.45686472<br />Method: Coefficient","Age: 71<br />Value: -6.34432008<br />Method: Coefficient","Age: 72<br />Value: -6.23041022<br />Method: Coefficient","Age: 73<br />Value: -6.15615553<br />Method: Coefficient","Age: 74<br />Value: -6.12543869<br />Method: Coefficient","Age: 75<br />Value: -5.75726780<br />Method: Coefficient","Age: 76<br />Value: -5.86512893<br />Method: Coefficient","Age: 77<br />Value: -5.77324103<br />Method: Coefficient","Age: 78<br />Value: -5.79219980<br />Method: Coefficient","Age: 79<br />Value: -5.66998521<br />Method: Coefficient","Age: 80<br />Value: -5.65752675<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.6471939764978643,2.2175929450082328,0.98872438102199023,1.752180371656207,1.4910964142281793,1.4796201933383142,1.5153870166226806,1.6589584129446782,1.6571170712043075,1.271011509882253,1.8847962549505981,1.5880725541930552,1.7137800417043438,1.3590985111979383,1.3410184574122204,1.2634465871347422,1.4753883900883036,1.556459463475294,1.502363056519934,1.3807019586534783,1.3740758336130321,1.4425861757330762,1.353090486886348,1.4663933468402293,1.4779711349267464,1.1771868318149843,1.4994927242762637,1.4728271787175866,1.4408803267873347,1.3731330307162271,1.2364760592439481,1.1515206752697698,1.1847341094110693,0.8215816212434035,0.95489963107658038,0.97294677091870008,0.7254462988262057,0.40344590966312482,0.62387493273558647,-0.38399650109812222,0.45703760474296407],"text":["Age: 40<br />Value:  1.64719398<br />Method: Coefficient","Age: 41<br />Value:  2.21759295<br />Method: Coefficient","Age: 42<br />Value:  0.98872438<br />Method: Coefficient","Age: 43<br />Value:  1.75218037<br />Method: Coefficient","Age: 44<br />Value:  1.49109641<br />Method: Coefficient","Age: 45<br />Value:  1.47962019<br />Method: Coefficient","Age: 46<br />Value:  1.51538702<br />Method: Coefficient","Age: 47<br />Value:  1.65895841<br />Method: Coefficient","Age: 48<br />Value:  1.65711707<br />Method: Coefficient","Age: 49<br />Value:  1.27101151<br />Method: Coefficient","Age: 50<br />Value:  1.88479625<br />Method: Coefficient","Age: 51<br />Value:  1.58807255<br />Method: Coefficient","Age: 52<br />Value:  1.71378004<br />Method: Coefficient","Age: 53<br />Value:  1.35909851<br />Method: Coefficient","Age: 54<br />Value:  1.34101846<br />Method: Coefficient","Age: 55<br />Value:  1.26344659<br />Method: Coefficient","Age: 56<br />Value:  1.47538839<br />Method: Coefficient","Age: 57<br />Value:  1.55645946<br />Method: Coefficient","Age: 58<br />Value:  1.50236306<br />Method: Coefficient","Age: 59<br />Value:  1.38070196<br />Method: Coefficient","Age: 60<br />Value:  1.37407583<br />Method: Coefficient","Age: 61<br />Value:  1.44258618<br />Method: Coefficient","Age: 62<br />Value:  1.35309049<br />Method: Coefficient","Age: 63<br />Value:  1.46639335<br />Method: Coefficient","Age: 64<br />Value:  1.47797113<br />Method: Coefficient","Age: 65<br />Value:  1.17718683<br />Method: Coefficient","Age: 66<br />Value:  1.49949272<br />Method: Coefficient","Age: 67<br />Value:  1.47282718<br />Method: Coefficient","Age: 68<br />Value:  1.44088033<br />Method: Coefficient","Age: 69<br />Value:  1.37313303<br />Method: Coefficient","Age: 70<br />Value:  1.23647606<br />Method: Coefficient","Age: 71<br />Value:  1.15152068<br />Method: Coefficient","Age: 72<br />Value:  1.18473411<br />Method: Coefficient","Age: 73<br />Value:  0.82158162<br />Method: Coefficient","Age: 74<br />Value:  0.95489963<br />Method: Coefficient","Age: 75<br />Value:  0.97294677<br />Method: Coefficient","Age: 76<br />Value:  0.72544630<br />Method: Coefficient","Age: 77<br />Value:  0.40344591<br />Method: Coefficient","Age: 78<br />Value:  0.62387493<br />Method: Coefficient","Age: 79<br />Value: -0.38399650<br />Method: Coefficient","Age: 80<br />Value:  0.45703760<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.60544123532330019,0.82281093174058106,0.70420849857514389,0.75668211551963716,0.66939327804467563,0.52536662069014217,0.5263268761980715,0.52936217240378569,0.48488850967365271,0.57129710404776723,0.664446932582891,0.5157629085214025,0.44264172000908031,0.48892535121840147,0.54424303610201763,0.46989012336680014,0.48203085690022346,0.43150028252823125,0.37082885432647844,0.36049835687507698,0.32689699783601495,0.34146388632513436,0.30991868723481741,0.41629896309376302,0.37700464231957009,0.24760047688502093,0.32578000990320355,0.36452193851468112,0.26088150359152495,0.31898447174582845,0.20936576730631767,0.31889597618962162,0.23105856454450269,0.23326302776266442,0.11898144078646068,0.29848359654360407,0.28814105222797665,0.29844469832982262,0.35929411418032686,0.16118256556628341,0.19466839187574608],"text":["Age: 40<br />Value:  0.60544124<br />Method: Coefficient","Age: 41<br />Value:  0.82281093<br />Method: Coefficient","Age: 42<br />Value:  0.70420850<br />Method: Coefficient","Age: 43<br />Value:  0.75668212<br />Method: Coefficient","Age: 44<br />Value:  0.66939328<br />Method: Coefficient","Age: 45<br />Value:  0.52536662<br />Method: Coefficient","Age: 46<br />Value:  0.52632688<br />Method: Coefficient","Age: 47<br />Value:  0.52936217<br />Method: Coefficient","Age: 48<br />Value:  0.48488851<br />Method: Coefficient","Age: 49<br />Value:  0.57129710<br />Method: Coefficient","Age: 50<br />Value:  0.66444693<br />Method: Coefficient","Age: 51<br />Value:  0.51576291<br />Method: Coefficient","Age: 52<br />Value:  0.44264172<br />Method: Coefficient","Age: 53<br />Value:  0.48892535<br />Method: Coefficient","Age: 54<br />Value:  0.54424304<br />Method: Coefficient","Age: 55<br />Value:  0.46989012<br />Method: Coefficient","Age: 56<br />Value:  0.48203086<br />Method: Coefficient","Age: 57<br />Value:  0.43150028<br />Method: Coefficient","Age: 58<br />Value:  0.37082885<br />Method: Coefficient","Age: 59<br />Value:  0.36049836<br />Method: Coefficient","Age: 60<br />Value:  0.32689700<br />Method: Coefficient","Age: 61<br />Value:  0.34146389<br />Method: Coefficient","Age: 62<br />Value:  0.30991869<br />Method: Coefficient","Age: 63<br />Value:  0.41629896<br />Method: Coefficient","Age: 64<br />Value:  0.37700464<br />Method: Coefficient","Age: 65<br />Value:  0.24760048<br />Method: Coefficient","Age: 66<br />Value:  0.32578001<br />Method: Coefficient","Age: 67<br />Value:  0.36452194<br />Method: Coefficient","Age: 68<br />Value:  0.26088150<br />Method: Coefficient","Age: 69<br />Value:  0.31898447<br />Method: Coefficient","Age: 70<br />Value:  0.20936577<br />Method: Coefficient","Age: 71<br />Value:  0.31889598<br />Method: Coefficient","Age: 72<br />Value:  0.23105856<br />Method: Coefficient","Age: 73<br />Value:  0.23326303<br />Method: Coefficient","Age: 74<br />Value:  0.11898144<br />Method: Coefficient","Age: 75<br />Value:  0.29848360<br />Method: Coefficient","Age: 76<br />Value:  0.28814105<br />Method: Coefficient","Age: 77<br />Value:  0.29844470<br />Method: Coefficient","Age: 78<br />Value:  0.35929411<br />Method: Coefficient","Age: 79<br />Value:  0.16118257<br />Method: Coefficient","Age: 80<br />Value:  0.19466839<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x3","yaxis":"y3","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.4935701292562058,1.6853520746526456,1.6411310098122609,1.560329934098585,1.37872938415712,1.1281857973287086,1.3330279863582373,1.4891615548468677,1.4520883871766073,1.3463128402070543,1.8845758278023457,1.6699030813935647,1.5951993664914226,1.1079900478097806,1.1783190862284871,1.2359410442007648,1.4233589094872972,1.338098120470903,0.99666861503402537,0.91433642468244025,1.0502227249896434,0.97663512774577144,0.8707045940775493,1.0834747975659189,0.95402381099957567,0.79915314729666809,0.48028404676042918,0.6563926658816015,0.54055766310957165,0.42783234454092411,0.67847457905989683,0.47435509761897265,0.66068668841421963,0.67521076081148756,0.26778208803901782,0.1871686074165276,0.48305498668562069,0.56809723459579742,0.58646118452199059,0.44306106424508196,0.070150165020837429],"text":["Age: 40<br />Value:  1.49357013<br />Method: Coefficient","Age: 41<br />Value:  1.68535207<br />Method: Coefficient","Age: 42<br />Value:  1.64113101<br />Method: Coefficient","Age: 43<br />Value:  1.56032993<br />Method: Coefficient","Age: 44<br />Value:  1.37872938<br />Method: Coefficient","Age: 45<br />Value:  1.12818580<br />Method: Coefficient","Age: 46<br />Value:  1.33302799<br />Method: Coefficient","Age: 47<br />Value:  1.48916155<br />Method: Coefficient","Age: 48<br />Value:  1.45208839<br />Method: Coefficient","Age: 49<br />Value:  1.34631284<br />Method: Coefficient","Age: 50<br />Value:  1.88457583<br />Method: Coefficient","Age: 51<br />Value:  1.66990308<br />Method: Coefficient","Age: 52<br />Value:  1.59519937<br />Method: Coefficient","Age: 53<br />Value:  1.10799005<br />Method: Coefficient","Age: 54<br />Value:  1.17831909<br />Method: Coefficient","Age: 55<br />Value:  1.23594104<br />Method: Coefficient","Age: 56<br />Value:  1.42335891<br />Method: Coefficient","Age: 57<br />Value:  1.33809812<br />Method: Coefficient","Age: 58<br />Value:  0.99666862<br />Method: Coefficient","Age: 59<br />Value:  0.91433642<br />Method: Coefficient","Age: 60<br />Value:  1.05022272<br />Method: Coefficient","Age: 61<br />Value:  0.97663513<br />Method: Coefficient","Age: 62<br />Value:  0.87070459<br />Method: Coefficient","Age: 63<br />Value:  1.08347480<br />Method: Coefficient","Age: 64<br />Value:  0.95402381<br />Method: Coefficient","Age: 65<br />Value:  0.79915315<br />Method: Coefficient","Age: 66<br />Value:  0.48028405<br />Method: Coefficient","Age: 67<br />Value:  0.65639267<br />Method: Coefficient","Age: 68<br />Value:  0.54055766<br />Method: Coefficient","Age: 69<br />Value:  0.42783234<br />Method: Coefficient","Age: 70<br />Value:  0.67847458<br />Method: Coefficient","Age: 71<br />Value:  0.47435510<br />Method: Coefficient","Age: 72<br />Value:  0.66068669<br />Method: Coefficient","Age: 73<br />Value:  0.67521076<br />Method: Coefficient","Age: 74<br />Value:  0.26778209<br />Method: Coefficient","Age: 75<br />Value:  0.18716861<br />Method: Coefficient","Age: 76<br />Value:  0.48305499<br />Method: Coefficient","Age: 77<br />Value:  0.56809723<br />Method: Coefficient","Age: 78<br />Value:  0.58646118<br />Method: Coefficient","Age: 79<br />Value:  0.44306106<br />Method: Coefficient","Age: 80<br />Value:  0.07015017<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x","yaxis":"y4","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.56287487963615168,0.42820895348220461,0.30285035088035045,0.6599667838992278,0.65568223022409267,0.82635049181715714,0.32749461009024877,0.52537406371349615,0.072431788590722815,0.31923434032739467,0.098565187933281215,0.33548793014742545,0.21550033122263354,0.2826133734448808,0.14028925579099258,0.23329624248150421,0.2082702310578447,-0.088859159151175246,0.4249613624345801,0.098239530325006486,0.15265431789461961,0.19604475685812828,-0.087525072044632529,0.029998577800341077,-0.068175745479842981,0.10755642383132324,-0.22906026318950642,0.18949359514572417,0.51407546854449093,0.2253383503155687,0.157990979937121,0.13596966958345932,0.33602896623275813,0.50515343025183734,0.6753320915368386,-0.40659902153320643,0.39614906054511706,0.24771701932479981,-0.91875130703267305,0.5544463147568558,0.14115590014132451],"text":["Age: 40<br />Value:  0.56287488<br />Method: Coefficient","Age: 41<br />Value:  0.42820895<br />Method: Coefficient","Age: 42<br />Value:  0.30285035<br />Method: Coefficient","Age: 43<br />Value:  0.65996678<br />Method: Coefficient","Age: 44<br />Value:  0.65568223<br />Method: Coefficient","Age: 45<br />Value:  0.82635049<br />Method: Coefficient","Age: 46<br />Value:  0.32749461<br />Method: Coefficient","Age: 47<br />Value:  0.52537406<br />Method: Coefficient","Age: 48<br />Value:  0.07243179<br />Method: Coefficient","Age: 49<br />Value:  0.31923434<br />Method: Coefficient","Age: 50<br />Value:  0.09856519<br />Method: Coefficient","Age: 51<br />Value:  0.33548793<br />Method: Coefficient","Age: 52<br />Value:  0.21550033<br />Method: Coefficient","Age: 53<br />Value:  0.28261337<br />Method: Coefficient","Age: 54<br />Value:  0.14028926<br />Method: Coefficient","Age: 55<br />Value:  0.23329624<br />Method: Coefficient","Age: 56<br />Value:  0.20827023<br />Method: Coefficient","Age: 57<br />Value: -0.08885916<br />Method: Coefficient","Age: 58<br />Value:  0.42496136<br />Method: Coefficient","Age: 59<br />Value:  0.09823953<br />Method: Coefficient","Age: 60<br />Value:  0.15265432<br />Method: Coefficient","Age: 61<br />Value:  0.19604476<br />Method: Coefficient","Age: 62<br />Value: -0.08752507<br />Method: Coefficient","Age: 63<br />Value:  0.02999858<br />Method: Coefficient","Age: 64<br />Value: -0.06817575<br />Method: Coefficient","Age: 65<br />Value:  0.10755642<br />Method: Coefficient","Age: 66<br />Value: -0.22906026<br />Method: Coefficient","Age: 67<br />Value:  0.18949360<br />Method: Coefficient","Age: 68<br />Value:  0.51407547<br />Method: Coefficient","Age: 69<br />Value:  0.22533835<br />Method: Coefficient","Age: 70<br />Value:  0.15799098<br />Method: Coefficient","Age: 71<br />Value:  0.13596967<br />Method: Coefficient","Age: 72<br />Value:  0.33602897<br />Method: Coefficient","Age: 73<br />Value:  0.50515343<br />Method: Coefficient","Age: 74<br />Value:  0.67533209<br />Method: Coefficient","Age: 75<br />Value: -0.40659902<br />Method: Coefficient","Age: 76<br />Value:  0.39614906<br />Method: Coefficient","Age: 77<br />Value:  0.24771702<br />Method: Coefficient","Age: 78<br />Value: -0.91875131<br />Method: Coefficient","Age: 79<br />Value:  0.55444631<br />Method: Coefficient","Age: 80<br />Value:  0.14115590<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x2","yaxis":"y5","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.8558164106303336,3.2700934787126328,3.971434384591634,3.1428940246021493,2.9006440245183898,2.6451021189407484,2.7051098489820644,2.3237774046408846,2.9734980318451587,2.4550894349624421,2.4482292358729061,2.5493637996549876,2.0988587357853299,2.5895875153076071,2.5192700293125156,2.5485519160903243,2.2856479863937724,2.62718912776683,2.2886448915228348,2.395861855967961,2.3930855192442064,2.2955532779807077,2.2951945411611505,2.0594422416649847,1.992879307839748,1.8485753095171806,1.9580359228089432,2.2229631693573282,1.6365226049331723,1.7900911307105793,1.2398850810818673,1.4202249816001578,1.0279113251286944,0.8627653211925056,1.0373967883584228,0.88007535064332965,0.28076408914900042,0.34065847002202082,0.44684685621636494,0.38906188611143033,0.88554753496991412],"text":["Age: 40<br />Value:  1.85581641<br />Method: Coefficient","Age: 41<br />Value:  3.27009348<br />Method: Coefficient","Age: 42<br />Value:  3.97143438<br />Method: Coefficient","Age: 43<br />Value:  3.14289402<br />Method: Coefficient","Age: 44<br />Value:  2.90064402<br />Method: Coefficient","Age: 45<br />Value:  2.64510212<br />Method: Coefficient","Age: 46<br />Value:  2.70510985<br />Method: Coefficient","Age: 47<br />Value:  2.32377740<br />Method: Coefficient","Age: 48<br />Value:  2.97349803<br />Method: Coefficient","Age: 49<br />Value:  2.45508943<br />Method: Coefficient","Age: 50<br />Value:  2.44822924<br />Method: Coefficient","Age: 51<br />Value:  2.54936380<br />Method: Coefficient","Age: 52<br />Value:  2.09885874<br />Method: Coefficient","Age: 53<br />Value:  2.58958752<br />Method: Coefficient","Age: 54<br />Value:  2.51927003<br />Method: Coefficient","Age: 55<br />Value:  2.54855192<br />Method: Coefficient","Age: 56<br />Value:  2.28564799<br />Method: Coefficient","Age: 57<br />Value:  2.62718913<br />Method: Coefficient","Age: 58<br />Value:  2.28864489<br />Method: Coefficient","Age: 59<br />Value:  2.39586186<br />Method: Coefficient","Age: 60<br />Value:  2.39308552<br />Method: Coefficient","Age: 61<br />Value:  2.29555328<br />Method: Coefficient","Age: 62<br />Value:  2.29519454<br />Method: Coefficient","Age: 63<br />Value:  2.05944224<br />Method: Coefficient","Age: 64<br />Value:  1.99287931<br />Method: Coefficient","Age: 65<br />Value:  1.84857531<br />Method: Coefficient","Age: 66<br />Value:  1.95803592<br />Method: Coefficient","Age: 67<br />Value:  2.22296317<br />Method: Coefficient","Age: 68<br />Value:  1.63652260<br />Method: Coefficient","Age: 69<br />Value:  1.79009113<br />Method: Coefficient","Age: 70<br />Value:  1.23988508<br />Method: Coefficient","Age: 71<br />Value:  1.42022498<br />Method: Coefficient","Age: 72<br />Value:  1.02791133<br />Method: Coefficient","Age: 73<br />Value:  0.86276532<br />Method: Coefficient","Age: 74<br />Value:  1.03739679<br />Method: Coefficient","Age: 75<br />Value:  0.88007535<br />Method: Coefficient","Age: 76<br />Value:  0.28076409<br />Method: Coefficient","Age: 77<br />Value:  0.34065847<br />Method: Coefficient","Age: 78<br />Value:  0.44684686<br />Method: Coefficient","Age: 79<br />Value:  0.38906189<br />Method: Coefficient","Age: 80<br />Value:  0.88554753<br />Method: Coefficient"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":1,"size":5.6692913385826778,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x3","yaxis":"y6","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[-8.8488797313109817,-8.9319834473536712,-8.9595339059688381,-8.8105591493374078,-8.416862743312425,-8.1550336266284909,-8.036348362097856,-8.1805423246776083,-7.9131478202978309,-7.501549615255362,-8.362609163985514,-7.7894520893645405,-7.699009296802183,-7.3421226585386208,-7.2922785033315636,-7.3584382754163409,-7.3490416264167679,-7.4611300649731813,-7.0708623668202213,-6.9504617037156544,-7.0134361718981273,-7.0861405160508326,-6.9707270819219138,-7.1205491995655379,-6.9780849178338293,-6.6347711383118639,-6.821956651383263,-7.033864783260019,-6.5322353268161706,-6.7920080859460157,-6.456864722913922,-6.344320076332095,-6.2304102194238871,-6.1561555303329634,-6.125438691966985,-5.7572678020415591,-5.8651289273034353,-5.7732410273307799,-5.7921997956152396,-5.6699852131439021,-5.6575267458340752],"text":["Age: 40<br />Value: -8.84887973<br />Value - Standard_error: -9.100961476<br />Value + Standard_error: -8.5967979864<br />Method: Coefficient","Age: 41<br />Value: -8.93198345<br />Value - Standard_error: -9.170488998<br />Value + Standard_error: -8.6934778967<br />Method: Coefficient","Age: 42<br />Value: -8.95953391<br />Value - Standard_error: -9.218514001<br />Value + Standard_error: -8.7005538107<br />Method: Coefficient","Age: 43<br />Value: -8.81055915<br />Value - Standard_error: -9.040165538<br />Value + Standard_error: -8.5809527605<br />Method: Coefficient","Age: 44<br />Value: -8.41686274<br />Value - Standard_error: -8.614759526<br />Value + Standard_error: -8.2189659603<br />Method: Coefficient","Age: 45<br />Value: -8.15503363<br />Value - Standard_error: -8.333353309<br />Value + Standard_error: -7.9767139445<br />Method: Coefficient","Age: 46<br />Value: -8.03634836<br />Value - Standard_error: -8.206246968<br />Value + Standard_error: -7.8664497557<br />Method: Coefficient","Age: 47<br />Value: -8.18054232<br />Value - Standard_error: -8.357919721<br />Value + Standard_error: -8.0031649283<br />Method: Coefficient","Age: 48<br />Value: -7.91314782<br />Value - Standard_error: -8.068654984<br />Value + Standard_error: -7.7576406564<br />Method: Coefficient","Age: 49<br />Value: -7.50154962<br />Value - Standard_error: -7.631471965<br />Value + Standard_error: -7.3716272660<br />Method: Coefficient","Age: 50<br />Value: -8.36260916<br />Value - Standard_error: -8.543021969<br />Value + Standard_error: -8.1821963589<br />Method: Coefficient","Age: 51<br />Value: -7.78945209<br />Value - Standard_error: -7.931763950<br />Value + Standard_error: -7.6471402283<br />Method: Coefficient","Age: 52<br />Value: -7.69900930<br />Value - Standard_error: -7.839458601<br />Value + Standard_error: -7.5585599928<br />Method: Coefficient","Age: 53<br />Value: -7.34212266<br />Value - Standard_error: -7.463060333<br />Value + Standard_error: -7.2211849842<br />Method: Coefficient","Age: 54<br />Value: -7.29227850<br />Value - Standard_error: -7.411004161<br />Value + Standard_error: -7.1735528455<br />Method: Coefficient","Age: 55<br />Value: -7.35843828<br />Value - Standard_error: -7.483191064<br />Value + Standard_error: -7.2336854869<br />Method: Coefficient","Age: 56<br />Value: -7.34904163<br />Value - Standard_error: -7.472392447<br />Value + Standard_error: -7.2256908059<br />Method: Coefficient","Age: 57<br />Value: -7.46113006<br />Value - Standard_error: -7.589917108<br />Value + Standard_error: -7.3323430224<br />Method: Coefficient","Age: 58<br />Value: -7.07086237<br />Value - Standard_error: -7.184118927<br />Value + Standard_error: -6.9576058069<br />Method: Coefficient","Age: 59<br />Value: -6.95046170<br />Value - Standard_error: -7.061653172<br />Value + Standard_error: -6.8392702357<br />Method: Coefficient","Age: 60<br />Value: -7.01343617<br />Value - Standard_error: -7.129347806<br />Value + Standard_error: -6.8975245377<br />Method: Coefficient","Age: 61<br />Value: -7.08614052<br />Value - Standard_error: -7.208664885<br />Value + Standard_error: -6.9636161469<br />Method: Coefficient","Age: 62<br />Value: -6.97072708<br />Value - Standard_error: -7.093406884<br />Value + Standard_error: -6.8480472797<br />Method: Coefficient","Age: 63<br />Value: -7.12054920<br />Value - Standard_error: -7.253202254<br />Value + Standard_error: -6.9878961450<br />Method: Coefficient","Age: 64<br />Value: -6.97808492<br />Value - Standard_error: -7.108260480<br />Value + Standard_error: -6.8479093561<br />Method: Coefficient","Age: 65<br />Value: -6.63477114<br />Value - Standard_error: -6.756213321<br />Value + Standard_error: -6.5133289553<br />Method: Coefficient","Age: 66<br />Value: -6.82195665<br />Value - Standard_error: -6.958411001<br />Value + Standard_error: -6.6855023023<br />Method: Coefficient","Age: 67<br />Value: -7.03386478<br />Value - Standard_error: -7.180080224<br />Value + Standard_error: -6.8876493424<br />Method: Coefficient","Age: 68<br />Value: -6.53223533<br />Value - Standard_error: -6.661386038<br />Value + Standard_error: -6.4030846155<br />Method: Coefficient","Age: 69<br />Value: -6.79200809<br />Value - Standard_error: -6.947344200<br />Value + Standard_error: -6.6366719720<br />Method: Coefficient","Age: 70<br />Value: -6.45686472<br />Value - Standard_error: -6.602862527<br />Value + Standard_error: -6.3108669191<br />Method: Coefficient","Age: 71<br />Value: -6.34432008<br />Value - Standard_error: -6.491748809<br />Value + Standard_error: -6.1968913432<br />Method: Coefficient","Age: 72<br />Value: -6.23041022<br />Value - Standard_error: -6.381620173<br />Value + Standard_error: -6.0792002659<br />Method: Coefficient","Age: 73<br />Value: -6.15615553<br />Value - Standard_error: -6.321694557<br />Value + Standard_error: -5.9906165039<br />Method: Coefficient","Age: 74<br />Value: -6.12543869<br />Value - Standard_error: -6.306322779<br />Value + Standard_error: -5.9445546049<br />Method: Coefficient","Age: 75<br />Value: -5.75726780<br />Value - Standard_error: -5.936177700<br />Value + Standard_error: -5.5783579038<br />Method: Coefficient","Age: 76<br />Value: -5.86512893<br />Value - Standard_error: -6.082949389<br />Value + Standard_error: -5.6473084657<br />Method: Coefficient","Age: 77<br />Value: -5.77324103<br />Value - Standard_error: -6.018601347<br />Value + Standard_error: -5.5278807074<br />Method: Coefficient","Age: 78<br />Value: -5.79219980<br />Value - Standard_error: -6.080063597<br />Value + Standard_error: -5.5043359944<br />Method: Coefficient","Age: 79<br />Value: -5.66998521<br />Value - Standard_error: -6.018924894<br />Value + Standard_error: -5.3210455318<br />Method: Coefficient","Age: 80<br />Value: -5.65752675<br />Value - Standard_error: -6.067448229<br />Value + Standard_error: -5.2476052628<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[0.25208174488259161,0.23850555065699552,0.25898009525532473,0.22960638880743112,0.19789678303849811,0.17831968209903515,0.16989860636230691,0.17737739635038174,0.15550716387084673,0.12992234927730628,0.18041280511143398,0.14231186102282578,0.14044930402976075,0.12093767431062385,0.11872565782468136,0.12475278849164173,0.12335082053033375,0.12878704258525531,0.11325655989291583,0.111191467985984,0.1159116341827664,0.12252436916945797,0.12267980224837327,0.13265305461307086,0.13017556173593459,0.12144218304120802,0.13645434911955867,0.14621544081797389,0.12915071130086986,0.15533611397122904,0.14599780378901617,0.14742873311882665,0.1512099535035194,0.165539026432584,0.18088408708133485,0.17890989828705361,0.21782046163264557,0.24536031988884499,0.28786380124056254,0.34893968135129771,0.40992148298514763],"arrayminus":[0.25208174488259161,0.23850555065699552,0.25898009525532473,0.22960638880743112,0.19789678303849811,0.17831968209903515,0.1698986063623078,0.17737739635038174,0.15550716387084673,0.12992234927730628,0.18041280511143398,0.14231186102282578,0.14044930402976075,0.12093767431062385,0.11872565782468136,0.12475278849164173,0.12335082053033375,0.12878704258525531,0.11325655989291583,0.111191467985984,0.1159116341827664,0.12252436916945797,0.12267980224837327,0.13265305461307086,0.13017556173593459,0.12144218304120802,0.13645434911955867,0.14621544081797389,0.12915071130086986,0.15533611397122904,0.14599780378901617,0.14742873311882665,0.1512099535035194,0.165539026432584,0.18088408708133485,0.17890989828705361,0.21782046163264557,0.24536031988884499,0.28786380124056254,0.34893968135129771,0.40992148298514763],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.6471939764978643,2.2175929450082328,0.98872438102199023,1.752180371656207,1.4910964142281793,1.4796201933383142,1.5153870166226806,1.6589584129446782,1.6571170712043075,1.271011509882253,1.8847962549505981,1.5880725541930552,1.7137800417043438,1.3590985111979383,1.3410184574122204,1.2634465871347422,1.4753883900883036,1.556459463475294,1.502363056519934,1.3807019586534783,1.3740758336130321,1.4425861757330762,1.353090486886348,1.4663933468402293,1.4779711349267464,1.1771868318149843,1.4994927242762637,1.4728271787175866,1.4408803267873347,1.3731330307162271,1.2364760592439481,1.1515206752697698,1.1847341094110693,0.8215816212434035,0.95489963107658038,0.97294677091870008,0.7254462988262057,0.40344590966312482,0.62387493273558647,-0.38399650109812222,0.45703760474296407],"text":["Age: 40<br />Value:  1.64719398<br />Value - Standard_error:  1.110111551<br />Value + Standard_error:  2.1842764022<br />Method: Coefficient","Age: 41<br />Value:  2.21759295<br />Value - Standard_error:  1.888727836<br />Value + Standard_error:  2.5464580536<br />Method: Coefficient","Age: 42<br />Value:  0.98872438<br />Value - Standard_error:  0.521657785<br />Value + Standard_error:  1.4557909775<br />Method: Coefficient","Age: 43<br />Value:  1.75218037<br />Value - Standard_error:  1.424530938<br />Value + Standard_error:  2.0798298054<br />Method: Coefficient","Age: 44<br />Value:  1.49109641<br />Value - Standard_error:  1.182122630<br />Value + Standard_error:  1.8000701982<br />Method: Coefficient","Age: 45<br />Value:  1.47962019<br />Value - Standard_error:  1.192318149<br />Value + Standard_error:  1.7669222375<br />Method: Coefficient","Age: 46<br />Value:  1.51538702<br />Value - Standard_error:  1.271036478<br />Value + Standard_error:  1.7597375549<br />Method: Coefficient","Age: 47<br />Value:  1.65895841<br />Value - Standard_error:  1.437543955<br />Value + Standard_error:  1.8803728705<br />Method: Coefficient","Age: 48<br />Value:  1.65711707<br />Value - Standard_error:  1.473581449<br />Value + Standard_error:  1.8406526936<br />Method: Coefficient","Age: 49<br />Value:  1.27101151<br />Value - Standard_error:  1.099869870<br />Value + Standard_error:  1.4421531501<br />Method: Coefficient","Age: 50<br />Value:  1.88479625<br />Value - Standard_error:  1.718742281<br />Value + Standard_error:  2.0508502288<br />Method: Coefficient","Age: 51<br />Value:  1.58807255<br />Value - Standard_error:  1.443783866<br />Value + Standard_error:  1.7323612425<br />Method: Coefficient","Age: 52<br />Value:  1.71378004<br />Value - Standard_error:  1.572778310<br />Value + Standard_error:  1.8547817734<br />Method: Coefficient","Age: 53<br />Value:  1.35909851<br />Value - Standard_error:  1.218515549<br />Value + Standard_error:  1.4996814737<br />Method: Coefficient","Age: 54<br />Value:  1.34101846<br />Value - Standard_error:  1.208401403<br />Value + Standard_error:  1.4736355120<br />Method: Coefficient","Age: 55<br />Value:  1.26344659<br />Value - Standard_error:  1.127013601<br />Value + Standard_error:  1.3998795738<br />Method: Coefficient","Age: 56<br />Value:  1.47538839<br />Value - Standard_error:  1.353047989<br />Value + Standard_error:  1.5977287910<br />Method: Coefficient","Age: 57<br />Value:  1.55645946<br />Value - Standard_error:  1.431387034<br />Value + Standard_error:  1.6815318927<br />Method: Coefficient","Age: 58<br />Value:  1.50236306<br />Value - Standard_error:  1.382644363<br />Value + Standard_error:  1.6220817504<br />Method: Coefficient","Age: 59<br />Value:  1.38070196<br />Value - Standard_error:  1.261276128<br />Value + Standard_error:  1.5001277892<br />Method: Coefficient","Age: 60<br />Value:  1.37407583<br />Value - Standard_error:  1.256374858<br />Value + Standard_error:  1.4917768094<br />Method: Coefficient","Age: 61<br />Value:  1.44258618<br />Value - Standard_error:  1.318754284<br />Value + Standard_error:  1.5664180679<br />Method: Coefficient","Age: 62<br />Value:  1.35309049<br />Value - Standard_error:  1.226498154<br />Value + Standard_error:  1.4796828194<br />Method: Coefficient","Age: 63<br />Value:  1.46639335<br />Value - Standard_error:  1.338677746<br />Value + Standard_error:  1.5941089477<br />Method: Coefficient","Age: 64<br />Value:  1.47797113<br />Value - Standard_error:  1.349834028<br />Value + Standard_error:  1.6061082417<br />Method: Coefficient","Age: 65<br />Value:  1.17718683<br />Value - Standard_error:  1.049799277<br />Value + Standard_error:  1.3045743865<br />Method: Coefficient","Age: 66<br />Value:  1.49949272<br />Value - Standard_error:  1.356361626<br />Value + Standard_error:  1.6426238227<br />Method: Coefficient","Age: 67<br />Value:  1.47282718<br />Value - Standard_error:  1.332890988<br />Value + Standard_error:  1.6127633698<br />Method: Coefficient","Age: 68<br />Value:  1.44088033<br />Value - Standard_error:  1.307593251<br />Value + Standard_error:  1.5741674028<br />Method: Coefficient","Age: 69<br />Value:  1.37313303<br />Value - Standard_error:  1.213707353<br />Value + Standard_error:  1.5325587089<br />Method: Coefficient","Age: 70<br />Value:  1.23647606<br />Value - Standard_error:  1.082565515<br />Value + Standard_error:  1.3903866032<br />Method: Coefficient","Age: 71<br />Value:  1.15152068<br />Value - Standard_error:  0.994103326<br />Value + Standard_error:  1.3089380245<br />Method: Coefficient","Age: 72<br />Value:  1.18473411<br />Value - Standard_error:  1.024107022<br />Value + Standard_error:  1.3453611971<br />Method: Coefficient","Age: 73<br />Value:  0.82158162<br />Value - Standard_error:  0.637424247<br />Value + Standard_error:  1.0057389954<br />Method: Coefficient","Age: 74<br />Value:  0.95489963<br />Value - Standard_error:  0.748597693<br />Value + Standard_error:  1.1612015691<br />Method: Coefficient","Age: 75<br />Value:  0.97294677<br />Value - Standard_error:  0.760730662<br />Value + Standard_error:  1.1851628800<br />Method: Coefficient","Age: 76<br />Value:  0.72544630<br />Value - Standard_error:  0.457422926<br />Value + Standard_error:  0.9934696721<br />Method: Coefficient","Age: 77<br />Value:  0.40344591<br />Value - Standard_error:  0.089055816<br />Value + Standard_error:  0.7178360030<br />Method: Coefficient","Age: 78<br />Value:  0.62387493<br />Value - Standard_error:  0.273280404<br />Value + Standard_error:  0.9744694613<br />Method: Coefficient","Age: 79<br />Value: -0.38399650<br />Value - Standard_error: -0.957537309<br />Value + Standard_error:  0.1895443065<br />Method: Coefficient","Age: 80<br />Value:  0.45703760<br />Value - Standard_error: -0.079009621<br />Value + Standard_error:  0.9930848303<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[0.53708242574070408,0.32886510856334628,0.46706659650147964,0.32764943369616062,0.30897378398830222,0.28730204417003136,0.24435053830534592,0.22141445750956956,0.18353562243716759,0.17114164019342093,0.16605397386379384,0.1442886883413157,0.14100173169336094,0.14058296246900781,0.13261705459963102,0.13643298663044656,0.12234040090216469,0.12507242923146822,0.11971869388622003,0.11942583057270761,0.11770097574216498,0.12383189214708112,0.1265923324636915,0.12771560090624834,0.12813710681606461,0.12738755468303675,0.1431310983906775,0.13993619108059518,0.13328707601108136,0.1594256781447887,0.15391054396831039,0.15741734925910822,0.16062708769770162,0.18415737417749645,0.20630193799300123,0.21221610907782251,0.26802337327941239,0.31439009330808271,0.35059452856155293,0.57354080757112336,0.5360472256015637],"arrayminus":[0.53708242574070408,0.32886510856334628,0.46706659650147964,0.32764943369616062,0.30897378398830222,0.28730204417003136,0.24435053830534592,0.22141445750956956,0.18353562243716759,0.17114164019342093,0.16605397386379384,0.1442886883413157,0.14100173169336094,0.14058296246900781,0.13261705459963102,0.13643298663044656,0.12234040090216469,0.12507242923146822,0.11971869388622003,0.11942583057270761,0.11770097574216498,0.12383189214708112,0.1265923324636915,0.12771560090624834,0.12813710681606461,0.12738755468303675,0.1431310983906775,0.13993619108059518,0.13328707601108136,0.1594256781447887,0.15391054396831039,0.15741734925910822,0.16062708769770162,0.18415737417749656,0.20630193799300123,0.21221610907782251,0.26802337327941239,0.31439009330808271,0.35059452856155299,0.57354080757112336,0.5360472256015637],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.60544123532330019,0.82281093174058106,0.70420849857514389,0.75668211551963716,0.66939327804467563,0.52536662069014217,0.5263268761980715,0.52936217240378569,0.48488850967365271,0.57129710404776723,0.664446932582891,0.5157629085214025,0.44264172000908031,0.48892535121840147,0.54424303610201763,0.46989012336680014,0.48203085690022346,0.43150028252823125,0.37082885432647844,0.36049835687507698,0.32689699783601495,0.34146388632513436,0.30991868723481741,0.41629896309376302,0.37700464231957009,0.24760047688502093,0.32578000990320355,0.36452193851468112,0.26088150359152495,0.31898447174582845,0.20936576730631767,0.31889597618962162,0.23105856454450269,0.23326302776266442,0.11898144078646068,0.29848359654360407,0.28814105222797665,0.29844469832982262,0.35929411418032686,0.16118256556628341,0.19466839187574608],"text":["Age: 40<br />Value:  0.60544124<br />Value - Standard_error:  0.494775581<br />Value + Standard_error:  0.7161068892<br />Method: Coefficient","Age: 41<br />Value:  0.82281093<br />Value - Standard_error:  0.726669264<br />Value + Standard_error:  0.9189525992<br />Method: Coefficient","Age: 42<br />Value:  0.70420850<br />Value - Standard_error:  0.597778257<br />Value + Standard_error:  0.8106387401<br />Method: Coefficient","Age: 43<br />Value:  0.75668212<br />Value - Standard_error:  0.660330241<br />Value + Standard_error:  0.8530339904<br />Method: Coefficient","Age: 44<br />Value:  0.66939328<br />Value - Standard_error:  0.580349207<br />Value + Standard_error:  0.7584373494<br />Method: Coefficient","Age: 45<br />Value:  0.52536662<br />Value - Standard_error:  0.437213014<br />Value + Standard_error:  0.6135202271<br />Method: Coefficient","Age: 46<br />Value:  0.52632688<br />Value - Standard_error:  0.446511697<br />Value + Standard_error:  0.6061420552<br />Method: Coefficient","Age: 47<br />Value:  0.52936217<br />Value - Standard_error:  0.450794270<br />Value + Standard_error:  0.6079300745<br />Method: Coefficient","Age: 48<br />Value:  0.48488851<br />Value - Standard_error:  0.415273513<br />Value + Standard_error:  0.5545035066<br />Method: Coefficient","Age: 49<br />Value:  0.57129710<br />Value - Standard_error:  0.510589578<br />Value + Standard_error:  0.6320046303<br />Method: Coefficient","Age: 50<br />Value:  0.66444693<br />Value - Standard_error:  0.594275139<br />Value + Standard_error:  0.7346187262<br />Method: Coefficient","Age: 51<br />Value:  0.51576291<br />Value - Standard_error:  0.455947433<br />Value + Standard_error:  0.5755783845<br />Method: Coefficient","Age: 52<br />Value:  0.44264172<br />Value - Standard_error:  0.381328390<br />Value + Standard_error:  0.5039550503<br />Method: Coefficient","Age: 53<br />Value:  0.48892535<br />Value - Standard_error:  0.428678749<br />Value + Standard_error:  0.5491719531<br />Method: Coefficient","Age: 54<br />Value:  0.54424304<br />Value - Standard_error:  0.485827804<br />Value + Standard_error:  0.6026582682<br />Method: Coefficient","Age: 55<br />Value:  0.46989012<br />Value - Standard_error:  0.409629175<br />Value + Standard_error:  0.5301510718<br />Method: Coefficient","Age: 56<br />Value:  0.48203086<br />Value - Standard_error:  0.425451916<br />Value + Standard_error:  0.5386097983<br />Method: Coefficient","Age: 57<br />Value:  0.43150028<br />Value - Standard_error:  0.372427025<br />Value + Standard_error:  0.4905735400<br />Method: Coefficient","Age: 58<br />Value:  0.37082885<br />Value - Standard_error:  0.314030136<br />Value + Standard_error:  0.4276275725<br />Method: Coefficient","Age: 59<br />Value:  0.36049836<br />Value - Standard_error:  0.303732583<br />Value + Standard_error:  0.4172641311<br />Method: Coefficient","Age: 60<br />Value:  0.32689700<br />Value - Standard_error:  0.270539911<br />Value + Standard_error:  0.3832540849<br />Method: Coefficient","Age: 61<br />Value:  0.34146389<br />Value - Standard_error:  0.282175355<br />Value + Standard_error:  0.4007524172<br />Method: Coefficient","Age: 62<br />Value:  0.30991869<br />Value - Standard_error:  0.249174384<br />Value + Standard_error:  0.3706629907<br />Method: Coefficient","Age: 63<br />Value:  0.41629896<br />Value - Standard_error:  0.354775254<br />Value + Standard_error:  0.4778226723<br />Method: Coefficient","Age: 64<br />Value:  0.37700464<br />Value - Standard_error:  0.315444400<br />Value + Standard_error:  0.4385648846<br />Method: Coefficient","Age: 65<br />Value:  0.24760048<br />Value - Standard_error:  0.185649999<br />Value + Standard_error:  0.3095509549<br />Method: Coefficient","Age: 66<br />Value:  0.32578001<br />Value - Standard_error:  0.257104966<br />Value + Standard_error:  0.3944550539<br />Method: Coefficient","Age: 67<br />Value:  0.36452194<br />Value - Standard_error:  0.298234920<br />Value + Standard_error:  0.4308089566<br />Method: Coefficient","Age: 68<br />Value:  0.26088150<br />Value - Standard_error:  0.196570917<br />Value + Standard_error:  0.3251920899<br />Method: Coefficient","Age: 69<br />Value:  0.31898447<br />Value - Standard_error:  0.242352770<br />Value + Standard_error:  0.3956161738<br />Method: Coefficient","Age: 70<br />Value:  0.20936577<br />Value - Standard_error:  0.133926377<br />Value + Standard_error:  0.2848051577<br />Method: Coefficient","Age: 71<br />Value:  0.31889598<br />Value - Standard_error:  0.241286737<br />Value + Standard_error:  0.3965052153<br />Method: Coefficient","Age: 72<br />Value:  0.23105856<br />Value - Standard_error:  0.151727079<br />Value + Standard_error:  0.3103900505<br />Method: Coefficient","Age: 73<br />Value:  0.23326303<br />Value - Standard_error:  0.141901446<br />Value + Standard_error:  0.3246246099<br />Method: Coefficient","Age: 74<br />Value:  0.11898144<br />Value - Standard_error:  0.017305669<br />Value + Standard_error:  0.2206572127<br />Method: Coefficient","Age: 75<br />Value:  0.29848360<br />Value - Standard_error:  0.192829667<br />Value + Standard_error:  0.4041375259<br />Method: Coefficient","Age: 76<br />Value:  0.28814105<br />Value - Standard_error:  0.155113368<br />Value + Standard_error:  0.4211687364<br />Method: Coefficient","Age: 77<br />Value:  0.29844470<br />Value - Standard_error:  0.146858523<br />Value + Standard_error:  0.4500308740<br />Method: Coefficient","Age: 78<br />Value:  0.35929411<br />Value - Standard_error:  0.185171862<br />Value + Standard_error:  0.5334163668<br />Method: Coefficient","Age: 79<br />Value:  0.16118257<br />Value - Standard_error: -0.072041366<br />Value + Standard_error:  0.3944064968<br />Method: Coefficient","Age: 80<br />Value:  0.19466839<br />Value - Standard_error: -0.066783428<br />Value + Standard_error:  0.4561202116<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[0.11066565384434779,0.096141667496722816,0.10643024149630487,0.096351874923236047,0.089044071339720809,0.088153606403041262,0.079815179031137995,0.078567902145621593,0.069614996913312077,0.060707526262718026,0.070171793646855884,0.059815475930762196,0.061313330253011777,0.060246601881269346,0.058415232048535382,0.060260948449358254,0.056578941385434567,0.05907325751234177,0.056798718196342524,0.056765774194598884,0.056357087063189204,0.05928853086197905,0.060744303486334639,0.061523709228807288,0.061560242300159829,0.061950478036332551,0.068675043949285697,0.066287018068935277,0.064310586323254482,0.076631702006734359,0.075439390346685176,0.077609239143168751,0.079331485928760492,0.091361582178690587,0.10167577190242542,0.10565392933380452,0.13302768412401617,0.15158617564626026,0.17412225262420433,0.23322393122300167,0.26145181975701837],"arrayminus":[0.11066565384434779,0.096141667496722816,0.10643024149630487,0.096351874923236047,0.089044071339720809,0.088153606403041262,0.079815179031137995,0.078567902145621538,0.069614996913312133,0.060707526262718026,0.070171793646855884,0.059815475930762196,0.061313330253011833,0.060246601881269346,0.058415232048535382,0.060260948449358254,0.056578941385434567,0.05907325751234177,0.056798718196342524,0.056765774194598884,0.056357087063189204,0.05928853086197905,0.060744303486334639,0.061523709228807288,0.061560242300159829,0.061950478036332551,0.068675043949285697,0.066287018068935277,0.064310586323254482,0.076631702006734359,0.075439390346685176,0.077609239143168723,0.079331485928760465,0.091361582178690615,0.10167577190242544,0.10565392933380455,0.13302768412401619,0.15158617564626023,0.17412225262420436,0.23322393122300164,0.26145181975701837],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x3","yaxis":"y3","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.4935701292562058,1.6853520746526456,1.6411310098122609,1.560329934098585,1.37872938415712,1.1281857973287086,1.3330279863582373,1.4891615548468677,1.4520883871766073,1.3463128402070543,1.8845758278023457,1.6699030813935647,1.5951993664914226,1.1079900478097806,1.1783190862284871,1.2359410442007648,1.4233589094872972,1.338098120470903,0.99666861503402537,0.91433642468244025,1.0502227249896434,0.97663512774577144,0.8707045940775493,1.0834747975659189,0.95402381099957567,0.79915314729666809,0.48028404676042918,0.6563926658816015,0.54055766310957165,0.42783234454092411,0.67847457905989683,0.47435509761897265,0.66068668841421963,0.67521076081148756,0.26778208803901782,0.1871686074165276,0.48305498668562069,0.56809723459579742,0.58646118452199059,0.44306106424508196,0.070150165020837429],"text":["Age: 40<br />Value:  1.49357013<br />Value - Standard_error:  1.225812350<br />Value + Standard_error:  1.7613279089<br />Method: Coefficient","Age: 41<br />Value:  1.68535207<br />Value - Standard_error:  1.444706664<br />Value + Standard_error:  1.9259974852<br />Method: Coefficient","Age: 42<br />Value:  1.64113101<br />Value - Standard_error:  1.370770204<br />Value + Standard_error:  1.9114918156<br />Method: Coefficient","Age: 43<br />Value:  1.56032993<br />Value - Standard_error:  1.324106080<br />Value + Standard_error:  1.7965537880<br />Method: Coefficient","Age: 44<br />Value:  1.37872938<br />Value - Standard_error:  1.171336353<br />Value + Standard_error:  1.5861224153<br />Method: Coefficient","Age: 45<br />Value:  1.12818580<br />Value - Standard_error:  0.934444329<br />Value + Standard_error:  1.3219272655<br />Method: Coefficient","Age: 46<br />Value:  1.33302799<br />Value - Standard_error:  1.149121206<br />Value + Standard_error:  1.5169347668<br />Method: Coefficient","Age: 47<br />Value:  1.48916155<br />Value - Standard_error:  1.300906312<br />Value + Standard_error:  1.6774167977<br />Method: Coefficient","Age: 48<br />Value:  1.45208839<br />Value - Standard_error:  1.285693940<br />Value + Standard_error:  1.6184828340<br />Method: Coefficient","Age: 49<br />Value:  1.34631284<br />Value - Standard_error:  1.206925792<br />Value + Standard_error:  1.4856998880<br />Method: Coefficient","Age: 50<br />Value:  1.88457583<br />Value - Standard_error:  1.701623376<br />Value + Standard_error:  2.0675282794<br />Method: Coefficient","Age: 51<br />Value:  1.66990308<br />Value - Standard_error:  1.522397195<br />Value + Standard_error:  1.8174089673<br />Method: Coefficient","Age: 52<br />Value:  1.59519937<br />Value - Standard_error:  1.448675052<br />Value + Standard_error:  1.7417236811<br />Method: Coefficient","Age: 53<br />Value:  1.10799005<br />Value - Standard_error:  0.977899819<br />Value + Standard_error:  1.2380802764<br />Method: Coefficient","Age: 54<br />Value:  1.17831909<br />Value - Standard_error:  1.052644803<br />Value + Standard_error:  1.3039933691<br />Method: Coefficient","Age: 55<br />Value:  1.23594104<br />Value - Standard_error:  1.104016025<br />Value + Standard_error:  1.3678660638<br />Method: Coefficient","Age: 56<br />Value:  1.42335891<br />Value - Standard_error:  1.295863746<br />Value + Standard_error:  1.5508540728<br />Method: Coefficient","Age: 57<br />Value:  1.33809812<br />Value - Standard_error:  1.206695661<br />Value + Standard_error:  1.4695005804<br />Method: Coefficient","Age: 58<br />Value:  0.99666862<br />Value - Standard_error:  0.877690674<br />Value + Standard_error:  1.1156465558<br />Method: Coefficient","Age: 59<br />Value:  0.91433642<br />Value - Standard_error:  0.797040970<br />Value + Standard_error:  1.0316318790<br />Method: Coefficient","Age: 60<br />Value:  1.05022272<br />Value - Standard_error:  0.930598546<br />Value + Standard_error:  1.1698469038<br />Method: Coefficient","Age: 61<br />Value:  0.97663513<br />Value - Standard_error:  0.851156726<br />Value + Standard_error:  1.1021135299<br />Method: Coefficient","Age: 62<br />Value:  0.87070459<br />Value - Standard_error:  0.743791629<br />Value + Standard_error:  0.9976175587<br />Method: Coefficient","Age: 63<br />Value:  1.08347480<br />Value - Standard_error:  0.950410669<br />Value + Standard_error:  1.2165389257<br />Method: Coefficient","Age: 64<br />Value:  0.95402381<br />Value - Standard_error:  0.823319158<br />Value + Standard_error:  1.0847284642<br />Method: Coefficient","Age: 65<br />Value:  0.79915315<br />Value - Standard_error:  0.670210436<br />Value + Standard_error:  0.9280958585<br />Method: Coefficient","Age: 66<br />Value:  0.48028405<br />Value - Standard_error:  0.341908312<br />Value + Standard_error:  0.6186597812<br />Method: Coefficient","Age: 67<br />Value:  0.65639267<br />Value - Standard_error:  0.518685099<br />Value + Standard_error:  0.7941002328<br />Method: Coefficient","Age: 68<br />Value:  0.54055766<br />Value - Standard_error:  0.409403095<br />Value + Standard_error:  0.6717122307<br />Method: Coefficient","Age: 69<br />Value:  0.42783234<br />Value - Standard_error:  0.272843262<br />Value + Standard_error:  0.5828214269<br />Method: Coefficient","Age: 70<br />Value:  0.67847458<br />Value - Standard_error:  0.523775056<br />Value + Standard_error:  0.8331741022<br />Method: Coefficient","Age: 71<br />Value:  0.47435510<br />Value - Standard_error:  0.317770727<br />Value + Standard_error:  0.6309394679<br />Method: Coefficient","Age: 72<br />Value:  0.66068669<br />Value - Standard_error:  0.498755538<br />Value + Standard_error:  0.8226178387<br />Method: Coefficient","Age: 73<br />Value:  0.67521076<br />Value - Standard_error:  0.488903582<br />Value + Standard_error:  0.8615179396<br />Method: Coefficient","Age: 74<br />Value:  0.26778209<br />Value - Standard_error:  0.063275984<br />Value + Standard_error:  0.4722881924<br />Method: Coefficient","Age: 75<br />Value:  0.18716861<br />Value - Standard_error: -0.023318399<br />Value + Standard_error:  0.3976556137<br />Method: Coefficient","Age: 76<br />Value:  0.48305499<br />Value - Standard_error:  0.218846394<br />Value + Standard_error:  0.7472635791<br />Method: Coefficient","Age: 77<br />Value:  0.56809723<br />Value - Standard_error:  0.267230933<br />Value + Standard_error:  0.8689635357<br />Method: Coefficient","Age: 78<br />Value:  0.58646118<br />Value - Standard_error:  0.242321645<br />Value + Standard_error:  0.9306007238<br />Method: Coefficient","Age: 79<br />Value:  0.44306106<br />Value - Standard_error: -0.013778990<br />Value + Standard_error:  0.8999011180<br />Method: Coefficient","Age: 80<br />Value:  0.07015017<br />Value - Standard_error: -0.446057561<br />Value + Standard_error:  0.5863578906<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[0.2677577796857411,0.24064541057997224,0.2703608058176139,0.23622385390831413,0.20739303110841911,0.19374146816686033,0.18390678046267994,0.18825524289997242,0.16639444681470961,0.13938704779744704,0.18295245156771589,0.14750588591148328,0.14652431464441928,0.13009022858389097,0.12567428287969973,0.13192501964759806,0.12749516328519017,0.13140245996950672,0.11897794076059376,0.11729545430848798,0.1196241787724508,0.12547840214799488,0.1269129645993653,0.13306412814366086,0.13070465318162994,0.12894271123717593,0.13837573440734535,0.13770756692982056,0.13115456761875588,0.15498908231173125,0.15469952312541801,0.15658437029580596,0.16193115024718263,0.18630717881882286,0.20450610433749428,0.21048700626359365,0.26420859236849253,0.30086630113644697,0.34413953932170183,0.45684005378084691,0.5162077255791353],"arrayminus":[0.2677577796857411,0.24064541057997224,0.2703608058176139,0.23622385390831413,0.20739303110841911,0.19374146816686033,0.18390678046267994,0.18825524289997242,0.16639444681470961,0.13938704779744704,0.18295245156771567,0.14750588591148328,0.14652431464441928,0.13009022858389108,0.12567428287969973,0.13192501964759806,0.12749516328519017,0.13140245996950672,0.11897794076059387,0.11729545430848798,0.1196241787724508,0.12547840214799488,0.1269129645993653,0.13306412814366086,0.13070465318162983,0.12894271123717593,0.1383757344073453,0.13770756692982056,0.13115456761875588,0.15498908231173125,0.15469952312541801,0.15658437029580596,0.16193115024718263,0.18630717881882286,0.20450610433749428,0.21048700626359365,0.26420859236849253,0.30086630113644697,0.34413953932170188,0.45684005378084686,0.51620772557913519],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x","yaxis":"y4","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.56287487963615168,0.42820895348220461,0.30285035088035045,0.6599667838992278,0.65568223022409267,0.82635049181715714,0.32749461009024877,0.52537406371349615,0.072431788590722815,0.31923434032739467,0.098565187933281215,0.33548793014742545,0.21550033122263354,0.2826133734448808,0.14028925579099258,0.23329624248150421,0.2082702310578447,-0.088859159151175246,0.4249613624345801,0.098239530325006486,0.15265431789461961,0.19604475685812828,-0.087525072044632529,0.029998577800341077,-0.068175745479842981,0.10755642383132324,-0.22906026318950642,0.18949359514572417,0.51407546854449093,0.2253383503155687,0.157990979937121,0.13596966958345932,0.33602896623275813,0.50515343025183734,0.6753320915368386,-0.40659902153320643,0.39614906054511706,0.24771701932479981,-0.91875130703267305,0.5544463147568558,0.14115590014132451],"text":["Age: 40<br />Value:  0.56287488<br />Value - Standard_error:  0.283854607<br />Value + Standard_error:  0.8418951528<br />Method: Coefficient","Age: 41<br />Value:  0.42820895<br />Value - Standard_error:  0.179472002<br />Value + Standard_error:  0.6769459046<br />Method: Coefficient","Age: 42<br />Value:  0.30285035<br />Value - Standard_error:  0.016837085<br />Value + Standard_error:  0.5888636166<br />Method: Coefficient","Age: 43<br />Value:  0.65996678<br />Value - Standard_error:  0.428512308<br />Value + Standard_error:  0.8914212597<br />Method: Coefficient","Age: 44<br />Value:  0.65568223<br />Value - Standard_error:  0.440192249<br />Value + Standard_error:  0.8711722119<br />Method: Coefficient","Age: 45<br />Value:  0.82635049<br />Value - Standard_error:  0.621701567<br />Value + Standard_error:  1.0309994171<br />Method: Coefficient","Age: 46<br />Value:  0.32749461<br />Value - Standard_error:  0.116132943<br />Value + Standard_error:  0.5388562773<br />Method: Coefficient","Age: 47<br />Value:  0.52537406<br />Value - Standard_error:  0.329734585<br />Value + Standard_error:  0.7210135425<br />Method: Coefficient","Age: 48<br />Value:  0.07243179<br />Value - Standard_error: -0.123869877<br />Value + Standard_error:  0.2687334544<br />Method: Coefficient","Age: 49<br />Value:  0.31923434<br />Value - Standard_error:  0.159192658<br />Value + Standard_error:  0.4792760226<br />Method: Coefficient","Age: 50<br />Value:  0.09856519<br />Value - Standard_error: -0.092168694<br />Value + Standard_error:  0.2892990695<br />Method: Coefficient","Age: 51<br />Value:  0.33548793<br />Value - Standard_error:  0.182516938<br />Value + Standard_error:  0.4884589222<br />Method: Coefficient","Age: 52<br />Value:  0.21550033<br />Value - Standard_error:  0.050801883<br />Value + Standard_error:  0.3801987792<br />Method: Coefficient","Age: 53<br />Value:  0.28261337<br />Value - Standard_error:  0.123383800<br />Value + Standard_error:  0.4418429464<br />Method: Coefficient","Age: 54<br />Value:  0.14028926<br />Value - Standard_error: -0.019287336<br />Value + Standard_error:  0.2998658478<br />Method: Coefficient","Age: 55<br />Value:  0.23329624<br />Value - Standard_error:  0.071878684<br />Value + Standard_error:  0.3947138008<br />Method: Coefficient","Age: 56<br />Value:  0.20827023<br />Value - Standard_error:  0.054949170<br />Value + Standard_error:  0.3615912921<br />Method: Coefficient","Age: 57<br />Value: -0.08885916<br />Value - Standard_error: -0.262840632<br />Value + Standard_error:  0.0851223134<br />Method: Coefficient","Age: 58<br />Value:  0.42496136<br />Value - Standard_error:  0.279519925<br />Value + Standard_error:  0.5704028000<br />Method: Coefficient","Age: 59<br />Value:  0.09823953<br />Value - Standard_error: -0.063986776<br />Value + Standard_error:  0.2604658368<br />Method: Coefficient","Age: 60<br />Value:  0.15265432<br />Value - Standard_error: -0.005550713<br />Value + Standard_error:  0.3108593490<br />Method: Coefficient","Age: 61<br />Value:  0.19604476<br />Value - Standard_error:  0.032039835<br />Value + Standard_error:  0.3600496790<br />Method: Coefficient","Age: 62<br />Value: -0.08752507<br />Value - Standard_error: -0.272743741<br />Value + Standard_error:  0.0976935970<br />Method: Coefficient","Age: 63<br />Value:  0.02999858<br />Value - Standard_error: -0.151485865<br />Value + Standard_error:  0.2114830206<br />Method: Coefficient","Age: 64<br />Value: -0.06817575<br />Value - Standard_error: -0.260450201<br />Value + Standard_error:  0.1240987101<br />Method: Coefficient","Age: 65<br />Value:  0.10755642<br />Value - Standard_error: -0.075260648<br />Value + Standard_error:  0.2903734955<br />Method: Coefficient","Age: 66<br />Value: -0.22906026<br />Value - Standard_error: -0.457648511<br />Value + Standard_error: -0.0004720156<br />Method: Coefficient","Age: 67<br />Value:  0.18949360<br />Value - Standard_error:  0.003394778<br />Value + Standard_error:  0.3755924125<br />Method: Coefficient","Age: 68<br />Value:  0.51407547<br />Value - Standard_error:  0.343671494<br />Value + Standard_error:  0.6844794426<br />Method: Coefficient","Age: 69<br />Value:  0.22533835<br />Value - Standard_error:  0.001570813<br />Value + Standard_error:  0.4491058879<br />Method: Coefficient","Age: 70<br />Value:  0.15799098<br />Value - Standard_error: -0.077483445<br />Value + Standard_error:  0.3934654051<br />Method: Coefficient","Age: 71<br />Value:  0.13596967<br />Value - Standard_error: -0.105703075<br />Value + Standard_error:  0.3776424146<br />Method: Coefficient","Age: 72<br />Value:  0.33602897<br />Value - Standard_error:  0.098468669<br />Value + Standard_error:  0.5735892638<br />Method: Coefficient","Age: 73<br />Value:  0.50515343<br />Value - Standard_error:  0.240494177<br />Value + Standard_error:  0.7698126838<br />Method: Coefficient","Age: 74<br />Value:  0.67533209<br />Value - Standard_error:  0.390657077<br />Value + Standard_error:  0.9600071056<br />Method: Coefficient","Age: 75<br />Value: -0.40659902<br />Value - Standard_error: -0.869263258<br />Value + Standard_error:  0.0560652150<br />Method: Coefficient","Age: 76<br />Value:  0.39614906<br />Value - Standard_error: -0.037889484<br />Value + Standard_error:  0.8301876054<br />Method: Coefficient","Age: 77<br />Value:  0.24771702<br />Value - Standard_error: -0.279407130<br />Value + Standard_error:  0.7748411684<br />Method: Coefficient","Age: 78<br />Value: -0.91875131<br />Value - Standard_error: -1.935791426<br />Value + Standard_error:  0.0982888121<br />Method: Coefficient","Age: 79<br />Value:  0.55444631<br />Value - Standard_error: -0.195257297<br />Value + Standard_error:  1.3041499262<br />Method: Coefficient","Age: 80<br />Value:  0.14115590<br />Value - Standard_error: -0.897864062<br />Value + Standard_error:  1.1801758622<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[0.27902027312888,0.24873695107005916,0.28601326571316371,0.23145447575927314,0.21548998167284761,0.20464892530531542,0.21136166719206145,0.19563947882045607,0.19630166582602249,0.16004168223552856,0.19073388156201543,0.15297099208595366,0.16469844799887171,0.15922957294949075,0.15957659196075993,0.16141755836147448,0.15332106106409737,0.17398147255078708,0.14544143757859002,0.1622263064461878,0.15820503114183135,0.16400492214320334,0.18521866906713455,0.18148444279620335,0.19227445559810552,0.18281707171337502,0.22858824761478164,0.18609881733362404,0.17040397408547248,0.22376753763230195,0.23547442520742071,0.24167274497898419,0.23756029753054697,0.26465925355151698,0.28467501405613271,0.46266423650660921,0.43403854488686616,0.52712414908976168,1.0170401191192529,0.74970361147686748,1.0390199620317901],"arrayminus":[0.27902027312888,0.24873695107005919,0.28601326571316371,0.23145447575927314,0.21548998167284761,0.20464892530531553,0.21136166719206145,0.19563947882045607,0.19630166582602246,0.16004168223552856,0.19073388156201546,0.15297099208595366,0.16469844799887168,0.15922957294949075,0.15957659196075991,0.16141755836147451,0.15332106106409737,0.17398147255078705,0.14544143757859002,0.16222630644618782,0.15820503114183135,0.16400492214320334,0.18521866906713455,0.18148444279620335,0.19227445559810549,0.18281707171337505,0.22858824761478161,0.18609881733362404,0.17040397408547242,0.22376753763230195,0.23547442520742071,0.24167274497898417,0.23756029753054692,0.26465925355151693,0.28467501405613271,0.46266423650660921,0.43403854488686616,0.52712414908976168,1.0170401191192529,0.74970361147686737,1.0390199620317901],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x2","yaxis":"y5","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.8558164106303336,3.2700934787126328,3.971434384591634,3.1428940246021493,2.9006440245183898,2.6451021189407484,2.7051098489820644,2.3237774046408846,2.9734980318451587,2.4550894349624421,2.4482292358729061,2.5493637996549876,2.0988587357853299,2.5895875153076071,2.5192700293125156,2.5485519160903243,2.2856479863937724,2.62718912776683,2.2886448915228348,2.395861855967961,2.3930855192442064,2.2955532779807077,2.2951945411611505,2.0594422416649847,1.992879307839748,1.8485753095171806,1.9580359228089432,2.2229631693573282,1.6365226049331723,1.7900911307105793,1.2398850810818673,1.4202249816001578,1.0279113251286944,0.8627653211925056,1.0373967883584228,0.88007535064332965,0.28076408914900042,0.34065847002202082,0.44684685621636494,0.38906188611143033,0.88554753496991412],"text":["Age: 40<br />Value:  1.85581641<br />Value - Standard_error:  0.799507081<br />Value + Standard_error:  2.9121257405<br />Method: Coefficient","Age: 41<br />Value:  3.27009348<br />Value - Standard_error:  2.855664320<br />Value + Standard_error:  3.6845226378<br />Method: Coefficient","Age: 42<br />Value:  3.97143438<br />Value - Standard_error:  3.547129037<br />Value + Standard_error:  4.3957397321<br />Method: Coefficient","Age: 43<br />Value:  3.14289402<br />Value - Standard_error:  2.758602084<br />Value + Standard_error:  3.5271859654<br />Method: Coefficient","Age: 44<br />Value:  2.90064402<br />Value - Standard_error:  2.536995091<br />Value + Standard_error:  3.2642929585<br />Method: Coefficient","Age: 45<br />Value:  2.64510212<br />Value - Standard_error:  2.292235730<br />Value + Standard_error:  2.9979685074<br />Method: Coefficient","Age: 46<br />Value:  2.70510985<br />Value - Standard_error:  2.413797819<br />Value + Standard_error:  2.9964218794<br />Method: Coefficient","Age: 47<br />Value:  2.32377740<br />Value - Standard_error:  2.037133084<br />Value + Standard_error:  2.6104217257<br />Method: Coefficient","Age: 48<br />Value:  2.97349803<br />Value - Standard_error:  2.767571082<br />Value + Standard_error:  3.1794249819<br />Method: Coefficient","Age: 49<br />Value:  2.45508943<br />Value - Standard_error:  2.257503348<br />Value + Standard_error:  2.6526755215<br />Method: Coefficient","Age: 50<br />Value:  2.44822924<br />Value - Standard_error:  2.251939710<br />Value + Standard_error:  2.6445187618<br />Method: Coefficient","Age: 51<br />Value:  2.54936380<br />Value - Standard_error:  2.386521079<br />Value + Standard_error:  2.7122065207<br />Method: Coefficient","Age: 52<br />Value:  2.09885874<br />Value - Standard_error:  1.921873055<br />Value + Standard_error:  2.2758444166<br />Method: Coefficient","Age: 53<br />Value:  2.58958752<br />Value - Standard_error:  2.436526842<br />Value + Standard_error:  2.7426481885<br />Method: Coefficient","Age: 54<br />Value:  2.51927003<br />Value - Standard_error:  2.374519038<br />Value + Standard_error:  2.6640210202<br />Method: Coefficient","Age: 55<br />Value:  2.54855192<br />Value - Standard_error:  2.404286331<br />Value + Standard_error:  2.6928175015<br />Method: Coefficient","Age: 56<br />Value:  2.28564799<br />Value - Standard_error:  2.150800802<br />Value + Standard_error:  2.4204951707<br />Method: Coefficient","Age: 57<br />Value:  2.62718913<br />Value - Standard_error:  2.497209318<br />Value + Standard_error:  2.7571689374<br />Method: Coefficient","Age: 58<br />Value:  2.28864489<br />Value - Standard_error:  2.160751490<br />Value + Standard_error:  2.4165382926<br />Method: Coefficient","Age: 59<br />Value:  2.39586186<br />Value - Standard_error:  2.271970785<br />Value + Standard_error:  2.5197529272<br />Method: Coefficient","Age: 60<br />Value:  2.39308552<br />Value - Standard_error:  2.272557497<br />Value + Standard_error:  2.5136135411<br />Method: Coefficient","Age: 61<br />Value:  2.29555328<br />Value - Standard_error:  2.169029119<br />Value + Standard_error:  2.4220774370<br />Method: Coefficient","Age: 62<br />Value:  2.29519454<br />Value - Standard_error:  2.166265902<br />Value + Standard_error:  2.4241231803<br />Method: Coefficient","Age: 63<br />Value:  2.05944224<br />Value - Standard_error:  1.929769068<br />Value + Standard_error:  2.1891154149<br />Method: Coefficient","Age: 64<br />Value:  1.99287931<br />Value - Standard_error:  1.864010185<br />Value + Standard_error:  2.1217484312<br />Method: Coefficient","Age: 65<br />Value:  1.84857531<br />Value - Standard_error:  1.718528092<br />Value + Standard_error:  1.9786225274<br />Method: Coefficient","Age: 66<br />Value:  1.95803592<br />Value - Standard_error:  1.815742037<br />Value + Standard_error:  2.1003298083<br />Method: Coefficient","Age: 67<br />Value:  2.22296317<br />Value - Standard_error:  2.081591877<br />Value + Standard_error:  2.3643344617<br />Method: Coefficient","Age: 68<br />Value:  1.63652260<br />Value - Standard_error:  1.503884677<br />Value + Standard_error:  1.7691605328<br />Method: Coefficient","Age: 69<br />Value:  1.79009113<br />Value - Standard_error:  1.631056971<br />Value + Standard_error:  1.9491252904<br />Method: Coefficient","Age: 70<br />Value:  1.23988508<br />Value - Standard_error:  1.085364468<br />Value + Standard_error:  1.3944056944<br />Method: Coefficient","Age: 71<br />Value:  1.42022498<br />Value - Standard_error:  1.262002093<br />Value + Standard_error:  1.5784478700<br />Method: Coefficient","Age: 72<br />Value:  1.02791133<br />Value - Standard_error:  0.865892445<br />Value + Standard_error:  1.1899302054<br />Method: Coefficient","Age: 73<br />Value:  0.86276532<br />Value - Standard_error:  0.674642424<br />Value + Standard_error:  1.0508882181<br />Method: Coefficient","Age: 74<br />Value:  1.03739679<br />Value - Standard_error:  0.829272922<br />Value + Standard_error:  1.2455206549<br />Method: Coefficient","Age: 75<br />Value:  0.88007535<br />Value - Standard_error:  0.665184946<br />Value + Standard_error:  1.0949657548<br />Method: Coefficient","Age: 76<br />Value:  0.28076409<br />Value - Standard_error: -0.006259045<br />Value + Standard_error:  0.5677872236<br />Method: Coefficient","Age: 77<br />Value:  0.34065847<br />Value - Standard_error:  0.015331733<br />Value + Standard_error:  0.6659852071<br />Method: Coefficient","Age: 78<br />Value:  0.44684686<br />Value - Standard_error:  0.086018348<br />Value + Standard_error:  0.8076753641<br />Method: Coefficient","Age: 79<br />Value:  0.38906189<br />Value - Standard_error: -0.114908776<br />Value + Standard_error:  0.8930325480<br />Method: Coefficient","Age: 80<br />Value:  0.88554753<br />Value - Standard_error:  0.361975370<br />Value + Standard_error:  1.4091196996<br />Method: Coefficient"],"type":"scatter","mode":"lines","opacity":1,"line":{"color":"transparent"},"error_y":{"array":[1.0563093298243507,0.4144291591298388,0.42430534746561621,0.38429194082547324,0.36364893399463671,0.35286638847363205,0.29131203037291353,0.28664432106734239,0.20592695003599504,0.19758608654950116,0.19628952589214377,0.16284272104663211,0.17698568080437616,0.15306067316462491,0.14475099086072962,0.14426558536726342,0.13484718433756493,0.12997980960863842,0.12789340105411107,0.12389107128020749,0.12052802187891709,0.12652415899178981,0.12892863918338149,0.12967317320896754,0.12886912332000278,0.13004721787959883,0.1422938854818887,0.14137129233506096,0.13263792786592243,0.15903415967887846,0.15452061335737355,0.15822288840122734,0.16201888032089107,0.18812289688997652,0.20812386656268167,0.21489040417801908,0.28702313446038086,0.32532673706447229,0.3608285078746401,0.5039706618843196,0.52357216466776479],"arrayminus":[1.0563093298243507,0.4144291591298388,0.42430534746561666,0.38429194082547324,0.36364893399463671,0.35286638847363205,0.29131203037291353,0.28664432106734239,0.20592695003599504,0.19758608654950116,0.19628952589214377,0.16284272104663211,0.17698568080437593,0.15306067316462491,0.14475099086072962,0.14426558536726342,0.13484718433756493,0.12997980960863842,0.12789340105411107,0.12389107128020749,0.12052802187891709,0.12652415899178981,0.12892863918338149,0.12967317320896776,0.12886912332000278,0.13004721787959883,0.1422938854818887,0.14137129233506096,0.13263792786592243,0.15903415967887846,0.15452061335737355,0.15822288840122734,0.16201888032089107,0.18812289688997663,0.20812386656268167,0.21489040417801908,0.28702313446038086,0.32532673706447235,0.36082850787464016,0.5039706618843196,0.52357216466776468],"type":"data","width":1.1369275885404808,"symmetric":false,"color":"rgba(248,118,109,1)"},"name":"Coefficient","legendgroup":"Coefficient","showlegend":false,"xaxis":"x3","yaxis":"y6","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[-8.8909478796510157,-8.7513021306359491,-8.6214302740290858,-8.5004174840282101,-8.3872341723453854,-8.2808351576961083,-8.1832920699924898,-8.0667264127087925,-7.9564608200296991,-7.8523115543327018,-7.7545473957187498,-7.663194807511811,-7.5783570596088454,-7.5000715493982657,-7.4280640482346278,-7.361669076120287,-7.3000746846121238,-7.242585360430315,-7.1881853122035997,-7.1356048983067391,-7.0835253197666708,-7.0309851263611121,-6.9774849356320212,-6.9227824883157227,-6.8667542163027564,-6.8090922669557523,-6.7492221589965515,-6.6864618810681726,-6.6200140621091865,-6.5486890659837158,-6.4713043522504829,-6.3876321380616066,-6.2976311179859312,-6.2011082050211463,-6.097891879526772,-6.0461760683161678,-5.9621052611601044,-5.8720032312447392,-5.7749642672447887,-5.6702767477127205,-5.5574282640128674],"text":["Age: 40<br />Value: -8.89094788<br />Method: Custom_LOESS","Age: 41<br />Value: -8.75130213<br />Method: Custom_LOESS","Age: 42<br />Value: -8.62143027<br />Method: Custom_LOESS","Age: 43<br />Value: -8.50041748<br />Method: Custom_LOESS","Age: 44<br />Value: -8.38723417<br />Method: Custom_LOESS","Age: 45<br />Value: -8.28083516<br />Method: Custom_LOESS","Age: 46<br />Value: -8.18329207<br />Method: Custom_LOESS","Age: 47<br />Value: -8.06672641<br />Method: Custom_LOESS","Age: 48<br />Value: -7.95646082<br />Method: Custom_LOESS","Age: 49<br />Value: -7.85231155<br />Method: Custom_LOESS","Age: 50<br />Value: -7.75454740<br />Method: Custom_LOESS","Age: 51<br />Value: -7.66319481<br />Method: Custom_LOESS","Age: 52<br />Value: -7.57835706<br />Method: Custom_LOESS","Age: 53<br />Value: -7.50007155<br />Method: Custom_LOESS","Age: 54<br />Value: -7.42806405<br />Method: Custom_LOESS","Age: 55<br />Value: -7.36166908<br />Method: Custom_LOESS","Age: 56<br />Value: -7.30007468<br />Method: Custom_LOESS","Age: 57<br />Value: -7.24258536<br />Method: Custom_LOESS","Age: 58<br />Value: -7.18818531<br />Method: Custom_LOESS","Age: 59<br />Value: -7.13560490<br />Method: Custom_LOESS","Age: 60<br />Value: -7.08352532<br />Method: Custom_LOESS","Age: 61<br />Value: -7.03098513<br />Method: Custom_LOESS","Age: 62<br />Value: -6.97748494<br />Method: Custom_LOESS","Age: 63<br />Value: -6.92278249<br />Method: Custom_LOESS","Age: 64<br />Value: -6.86675422<br />Method: Custom_LOESS","Age: 65<br />Value: -6.80909227<br />Method: Custom_LOESS","Age: 66<br />Value: -6.74922216<br />Method: Custom_LOESS","Age: 67<br />Value: -6.68646188<br />Method: Custom_LOESS","Age: 68<br />Value: -6.62001406<br />Method: Custom_LOESS","Age: 69<br />Value: -6.54868907<br />Method: Custom_LOESS","Age: 70<br />Value: -6.47130435<br />Method: Custom_LOESS","Age: 71<br />Value: -6.38763214<br />Method: Custom_LOESS","Age: 72<br />Value: -6.29763112<br />Method: Custom_LOESS","Age: 73<br />Value: -6.20110821<br />Method: Custom_LOESS","Age: 74<br />Value: -6.09789188<br />Method: Custom_LOESS","Age: 75<br />Value: -6.04617607<br />Method: Custom_LOESS","Age: 76<br />Value: -5.96210526<br />Method: Custom_LOESS","Age: 77<br />Value: -5.87200323<br />Method: Custom_LOESS","Age: 78<br />Value: -5.77496427<br />Method: Custom_LOESS","Age: 79<br />Value: -5.67027675<br />Method: Custom_LOESS","Age: 80<br />Value: -5.55742826<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.7105918703396548,1.6810452352085268,1.655627088220903,1.6341777214432827,1.616360703161571,1.6017073975831084,1.6201346668687138,1.5984132601757386,1.5776826491346612,1.558050336416134,1.5394300560831167,1.5220088728146799,1.5062077746142883,1.492420151782073,1.4807642943728307,1.4712596915336851,1.4635397202736096,1.4570086072699107,1.4510387230467736,1.4450385439926225,1.4383999312773366,1.4306898782485939,1.4216437193728679,1.4107570361575936,1.3975558389593861,1.3814223000480164,1.3615020729396221,1.3367920864956648,1.3061191775598537,1.268081164479117,1.2211525449121083,1.1646829590644003,1.0983173122851042,1.0213207200029792,0.93181411636944844,0.91032690560132679,0.84153540464315846,0.76521178106875709,0.68027693569291259,0.58555085586757016,0.4796959499895479],"text":["Age: 40<br />Value:  1.71059187<br />Method: Custom_LOESS","Age: 41<br />Value:  1.68104524<br />Method: Custom_LOESS","Age: 42<br />Value:  1.65562709<br />Method: Custom_LOESS","Age: 43<br />Value:  1.63417772<br />Method: Custom_LOESS","Age: 44<br />Value:  1.61636070<br />Method: Custom_LOESS","Age: 45<br />Value:  1.60170740<br />Method: Custom_LOESS","Age: 46<br />Value:  1.62013467<br />Method: Custom_LOESS","Age: 47<br />Value:  1.59841326<br />Method: Custom_LOESS","Age: 48<br />Value:  1.57768265<br />Method: Custom_LOESS","Age: 49<br />Value:  1.55805034<br />Method: Custom_LOESS","Age: 50<br />Value:  1.53943006<br />Method: Custom_LOESS","Age: 51<br />Value:  1.52200887<br />Method: Custom_LOESS","Age: 52<br />Value:  1.50620777<br />Method: Custom_LOESS","Age: 53<br />Value:  1.49242015<br />Method: Custom_LOESS","Age: 54<br />Value:  1.48076429<br />Method: Custom_LOESS","Age: 55<br />Value:  1.47125969<br />Method: Custom_LOESS","Age: 56<br />Value:  1.46353972<br />Method: Custom_LOESS","Age: 57<br />Value:  1.45700861<br />Method: Custom_LOESS","Age: 58<br />Value:  1.45103872<br />Method: Custom_LOESS","Age: 59<br />Value:  1.44503854<br />Method: Custom_LOESS","Age: 60<br />Value:  1.43839993<br />Method: Custom_LOESS","Age: 61<br />Value:  1.43068988<br />Method: Custom_LOESS","Age: 62<br />Value:  1.42164372<br />Method: Custom_LOESS","Age: 63<br />Value:  1.41075704<br />Method: Custom_LOESS","Age: 64<br />Value:  1.39755584<br />Method: Custom_LOESS","Age: 65<br />Value:  1.38142230<br />Method: Custom_LOESS","Age: 66<br />Value:  1.36150207<br />Method: Custom_LOESS","Age: 67<br />Value:  1.33679209<br />Method: Custom_LOESS","Age: 68<br />Value:  1.30611918<br />Method: Custom_LOESS","Age: 69<br />Value:  1.26808116<br />Method: Custom_LOESS","Age: 70<br />Value:  1.22115254<br />Method: Custom_LOESS","Age: 71<br />Value:  1.16468296<br />Method: Custom_LOESS","Age: 72<br />Value:  1.09831731<br />Method: Custom_LOESS","Age: 73<br />Value:  1.02132072<br />Method: Custom_LOESS","Age: 74<br />Value:  0.93181412<br />Method: Custom_LOESS","Age: 75<br />Value:  0.91032691<br />Method: Custom_LOESS","Age: 76<br />Value:  0.84153540<br />Method: Custom_LOESS","Age: 77<br />Value:  0.76521178<br />Method: Custom_LOESS","Age: 78<br />Value:  0.68027694<br />Method: Custom_LOESS","Age: 79<br />Value:  0.58555086<br />Method: Custom_LOESS","Age: 80<br />Value:  0.47969595<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.72155320430128023,0.70143987456539436,0.68154463915292174,0.6618671769018758,0.64241424838781402,0.62319872666975917,0.60513208533086515,0.58829586715422522,0.57106482350559162,0.55342221673932035,0.53561479546065449,0.51793449840120898,0.50065930529628533,0.48390077068383824,0.4677579018029015,0.45229713564432861,0.43752286223362702,0.42326832119401825,0.40929359767137685,0.3953493704796881,0.38122987420696752,0.3668767608032617,0.35251808492089642,0.33851383980444472,0.32532977965335941,0.31334837152589601,0.30273781489804352,0.29352264744896672,0.28557630059085293,0.27862544434818548,0.27252857334705416,0.26717701987852061,0.26211634753372626,0.25682679460892222,0.25134824025039304,0.24314282029411038,0.23931299848106624,0.23654231878812726,0.23498158458084362,0.23478813081626315,0.23611383390501262],"text":["Age: 40<br />Value:  0.72155320<br />Method: Custom_LOESS","Age: 41<br />Value:  0.70143987<br />Method: Custom_LOESS","Age: 42<br />Value:  0.68154464<br />Method: Custom_LOESS","Age: 43<br />Value:  0.66186718<br />Method: Custom_LOESS","Age: 44<br />Value:  0.64241425<br />Method: Custom_LOESS","Age: 45<br />Value:  0.62319873<br />Method: Custom_LOESS","Age: 46<br />Value:  0.60513209<br />Method: Custom_LOESS","Age: 47<br />Value:  0.58829587<br />Method: Custom_LOESS","Age: 48<br />Value:  0.57106482<br />Method: Custom_LOESS","Age: 49<br />Value:  0.55342222<br />Method: Custom_LOESS","Age: 50<br />Value:  0.53561480<br />Method: Custom_LOESS","Age: 51<br />Value:  0.51793450<br />Method: Custom_LOESS","Age: 52<br />Value:  0.50065931<br />Method: Custom_LOESS","Age: 53<br />Value:  0.48390077<br />Method: Custom_LOESS","Age: 54<br />Value:  0.46775790<br />Method: Custom_LOESS","Age: 55<br />Value:  0.45229714<br />Method: Custom_LOESS","Age: 56<br />Value:  0.43752286<br />Method: Custom_LOESS","Age: 57<br />Value:  0.42326832<br />Method: Custom_LOESS","Age: 58<br />Value:  0.40929360<br />Method: Custom_LOESS","Age: 59<br />Value:  0.39534937<br />Method: Custom_LOESS","Age: 60<br />Value:  0.38122987<br />Method: Custom_LOESS","Age: 61<br />Value:  0.36687676<br />Method: Custom_LOESS","Age: 62<br />Value:  0.35251808<br />Method: Custom_LOESS","Age: 63<br />Value:  0.33851384<br />Method: Custom_LOESS","Age: 64<br />Value:  0.32532978<br />Method: Custom_LOESS","Age: 65<br />Value:  0.31334837<br />Method: Custom_LOESS","Age: 66<br />Value:  0.30273781<br />Method: Custom_LOESS","Age: 67<br />Value:  0.29352265<br />Method: Custom_LOESS","Age: 68<br />Value:  0.28557630<br />Method: Custom_LOESS","Age: 69<br />Value:  0.27862544<br />Method: Custom_LOESS","Age: 70<br />Value:  0.27252857<br />Method: Custom_LOESS","Age: 71<br />Value:  0.26717702<br />Method: Custom_LOESS","Age: 72<br />Value:  0.26211635<br />Method: Custom_LOESS","Age: 73<br />Value:  0.25682679<br />Method: Custom_LOESS","Age: 74<br />Value:  0.25134824<br />Method: Custom_LOESS","Age: 75<br />Value:  0.24314282<br />Method: Custom_LOESS","Age: 76<br />Value:  0.23931300<br />Method: Custom_LOESS","Age: 77<br />Value:  0.23654232<br />Method: Custom_LOESS","Age: 78<br />Value:  0.23498158<br />Method: Custom_LOESS","Age: 79<br />Value:  0.23478813<br />Method: Custom_LOESS","Age: 80<br />Value:  0.23611383<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":false,"xaxis":"x3","yaxis":"y3","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.5307090967400692,1.5360467921554011,1.5359730432145036,1.5308500456288281,1.5211060256586404,1.5072066272211091,1.4918878256713253,1.4815940016966422,1.4661310488826329,1.446850891152053,1.42470148638807,1.4001108480527806,1.3726919735412189,1.3419069993896695,1.3071546409471431,1.268301443419011,1.2258471889025748,1.1803919602975261,1.132255991354699,1.0816474766694988,1.0290016477181507,0.97509813567629378,0.92106457905560968,0.86820664888899035,0.81768444921832861,0.77005146429762794,0.72514702048702384,0.68259262878905114,0.64202938141446442,0.6029506921185348,0.56516989926759642,0.52986867984559627,0.49861395361982286,0.47229390933191429,0.45079393233565135,0.38450391097480541,0.35050476766983407,0.32080820911684449,0.29621718801796604,0.27737728673822382,0.26468665641819999],"text":["Age: 40<br />Value:  1.53070910<br />Method: Custom_LOESS","Age: 41<br />Value:  1.53604679<br />Method: Custom_LOESS","Age: 42<br />Value:  1.53597304<br />Method: Custom_LOESS","Age: 43<br />Value:  1.53085005<br />Method: Custom_LOESS","Age: 44<br />Value:  1.52110603<br />Method: Custom_LOESS","Age: 45<br />Value:  1.50720663<br />Method: Custom_LOESS","Age: 46<br />Value:  1.49188783<br />Method: Custom_LOESS","Age: 47<br />Value:  1.48159400<br />Method: Custom_LOESS","Age: 48<br />Value:  1.46613105<br />Method: Custom_LOESS","Age: 49<br />Value:  1.44685089<br />Method: Custom_LOESS","Age: 50<br />Value:  1.42470149<br />Method: Custom_LOESS","Age: 51<br />Value:  1.40011085<br />Method: Custom_LOESS","Age: 52<br />Value:  1.37269197<br />Method: Custom_LOESS","Age: 53<br />Value:  1.34190700<br />Method: Custom_LOESS","Age: 54<br />Value:  1.30715464<br />Method: Custom_LOESS","Age: 55<br />Value:  1.26830144<br />Method: Custom_LOESS","Age: 56<br />Value:  1.22584719<br />Method: Custom_LOESS","Age: 57<br />Value:  1.18039196<br />Method: Custom_LOESS","Age: 58<br />Value:  1.13225599<br />Method: Custom_LOESS","Age: 59<br />Value:  1.08164748<br />Method: Custom_LOESS","Age: 60<br />Value:  1.02900165<br />Method: Custom_LOESS","Age: 61<br />Value:  0.97509814<br />Method: Custom_LOESS","Age: 62<br />Value:  0.92106458<br />Method: Custom_LOESS","Age: 63<br />Value:  0.86820665<br />Method: Custom_LOESS","Age: 64<br />Value:  0.81768445<br />Method: Custom_LOESS","Age: 65<br />Value:  0.77005146<br />Method: Custom_LOESS","Age: 66<br />Value:  0.72514702<br />Method: Custom_LOESS","Age: 67<br />Value:  0.68259263<br />Method: Custom_LOESS","Age: 68<br />Value:  0.64202938<br />Method: Custom_LOESS","Age: 69<br />Value:  0.60295069<br />Method: Custom_LOESS","Age: 70<br />Value:  0.56516990<br />Method: Custom_LOESS","Age: 71<br />Value:  0.52986868<br />Method: Custom_LOESS","Age: 72<br />Value:  0.49861395<br />Method: Custom_LOESS","Age: 73<br />Value:  0.47229391<br />Method: Custom_LOESS","Age: 74<br />Value:  0.45079393<br />Method: Custom_LOESS","Age: 75<br />Value:  0.38450391<br />Method: Custom_LOESS","Age: 76<br />Value:  0.35050477<br />Method: Custom_LOESS","Age: 77<br />Value:  0.32080821<br />Method: Custom_LOESS","Age: 78<br />Value:  0.29621719<br />Method: Custom_LOESS","Age: 79<br />Value:  0.27737729<br />Method: Custom_LOESS","Age: 80<br />Value:  0.26468666<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":false,"xaxis":"x","yaxis":"y4","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.66627778805196436,0.62199955920015526,0.57819686542533288,0.53535381577649144,0.49387977989336518,0.45409051060384797,0.4173724737561344,0.38736747501972868,0.36006063733831084,0.33407745357391239,0.30759759077059901,0.28020175068907438,0.25267307234544267,0.22607511416522108,0.20117396696110301,0.1784185781871277,0.15823285377384089,0.14130902488317876,0.12820715802602223,0.1193857789517212,0.11497202540081108,0.11448484275321302,0.11692845641994687,0.12122129808783377,0.12686161237169014,0.13407709886597452,0.14372501450776376,0.15651671937573752,0.17321383442207949,0.19394114741010782,0.21843979397359092,0.24594514731303985,0.27531613784934006,0.30440455064634353,0.32960498670684579,0.36134577650659772,0.39851693476582284,0.43812315762538034,0.47982265478879871,0.52319684310693848,0.56789400566743264],"text":["Age: 40<br />Value:  0.66627779<br />Method: Custom_LOESS","Age: 41<br />Value:  0.62199956<br />Method: Custom_LOESS","Age: 42<br />Value:  0.57819687<br />Method: Custom_LOESS","Age: 43<br />Value:  0.53535382<br />Method: Custom_LOESS","Age: 44<br />Value:  0.49387978<br />Method: Custom_LOESS","Age: 45<br />Value:  0.45409051<br />Method: Custom_LOESS","Age: 46<br />Value:  0.41737247<br />Method: Custom_LOESS","Age: 47<br />Value:  0.38736748<br />Method: Custom_LOESS","Age: 48<br />Value:  0.36006064<br />Method: Custom_LOESS","Age: 49<br />Value:  0.33407745<br />Method: Custom_LOESS","Age: 50<br />Value:  0.30759759<br />Method: Custom_LOESS","Age: 51<br />Value:  0.28020175<br />Method: Custom_LOESS","Age: 52<br />Value:  0.25267307<br />Method: Custom_LOESS","Age: 53<br />Value:  0.22607511<br />Method: Custom_LOESS","Age: 54<br />Value:  0.20117397<br />Method: Custom_LOESS","Age: 55<br />Value:  0.17841858<br />Method: Custom_LOESS","Age: 56<br />Value:  0.15823285<br />Method: Custom_LOESS","Age: 57<br />Value:  0.14130902<br />Method: Custom_LOESS","Age: 58<br />Value:  0.12820716<br />Method: Custom_LOESS","Age: 59<br />Value:  0.11938578<br />Method: Custom_LOESS","Age: 60<br />Value:  0.11497203<br />Method: Custom_LOESS","Age: 61<br />Value:  0.11448484<br />Method: Custom_LOESS","Age: 62<br />Value:  0.11692846<br />Method: Custom_LOESS","Age: 63<br />Value:  0.12122130<br />Method: Custom_LOESS","Age: 64<br />Value:  0.12686161<br />Method: Custom_LOESS","Age: 65<br />Value:  0.13407710<br />Method: Custom_LOESS","Age: 66<br />Value:  0.14372501<br />Method: Custom_LOESS","Age: 67<br />Value:  0.15651672<br />Method: Custom_LOESS","Age: 68<br />Value:  0.17321383<br />Method: Custom_LOESS","Age: 69<br />Value:  0.19394115<br />Method: Custom_LOESS","Age: 70<br />Value:  0.21843979<br />Method: Custom_LOESS","Age: 71<br />Value:  0.24594515<br />Method: Custom_LOESS","Age: 72<br />Value:  0.27531614<br />Method: Custom_LOESS","Age: 73<br />Value:  0.30440455<br />Method: Custom_LOESS","Age: 74<br />Value:  0.32960499<br />Method: Custom_LOESS","Age: 75<br />Value:  0.36134578<br />Method: Custom_LOESS","Age: 76<br />Value:  0.39851693<br />Method: Custom_LOESS","Age: 77<br />Value:  0.43812316<br />Method: Custom_LOESS","Age: 78<br />Value:  0.47982265<br />Method: Custom_LOESS","Age: 79<br />Value:  0.52319684<br />Method: Custom_LOESS","Age: 80<br />Value:  0.56789401<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":false,"xaxis":"x2","yaxis":"y5","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[2.8405031973780801,2.8058271016547698,2.7799758500668661,2.7607154835114822,2.7459534245639134,2.733849051585389,2.793590729953138,2.7341759367096614,2.6874637156922501,2.6494333333751285,2.6168097710220168,2.5873209411350402,2.5600165755598963,2.5342432610046135,2.509600172558633,2.4853347174489304,2.4601652006543313,2.4327527991880222,2.401972350398168,2.3665942407368767,2.3252314803770311,2.2765648407082377,2.2197892023254227,2.1547094374029285,2.0812624432028368,1.9993907646303199,1.9090593375046119,1.8104275843686253,1.70392218455736,1.5905031553851359,1.4708471475067419,1.3453640113322081,1.2142926058376275,1.0777174346128575,0.93648356859552351,0.81117036523422925,0.65581361196936427,0.49145209302439952,0.31819937704212009,0.13653968357098378,-0.052632906305447591],"text":["Age: 40<br />Value:  2.84050320<br />Method: Custom_LOESS","Age: 41<br />Value:  2.80582710<br />Method: Custom_LOESS","Age: 42<br />Value:  2.77997585<br />Method: Custom_LOESS","Age: 43<br />Value:  2.76071548<br />Method: Custom_LOESS","Age: 44<br />Value:  2.74595342<br />Method: Custom_LOESS","Age: 45<br />Value:  2.73384905<br />Method: Custom_LOESS","Age: 46<br />Value:  2.79359073<br />Method: Custom_LOESS","Age: 47<br />Value:  2.73417594<br />Method: Custom_LOESS","Age: 48<br />Value:  2.68746372<br />Method: Custom_LOESS","Age: 49<br />Value:  2.64943333<br />Method: Custom_LOESS","Age: 50<br />Value:  2.61680977<br />Method: Custom_LOESS","Age: 51<br />Value:  2.58732094<br />Method: Custom_LOESS","Age: 52<br />Value:  2.56001658<br />Method: Custom_LOESS","Age: 53<br />Value:  2.53424326<br />Method: Custom_LOESS","Age: 54<br />Value:  2.50960017<br />Method: Custom_LOESS","Age: 55<br />Value:  2.48533472<br />Method: Custom_LOESS","Age: 56<br />Value:  2.46016520<br />Method: Custom_LOESS","Age: 57<br />Value:  2.43275280<br />Method: Custom_LOESS","Age: 58<br />Value:  2.40197235<br />Method: Custom_LOESS","Age: 59<br />Value:  2.36659424<br />Method: Custom_LOESS","Age: 60<br />Value:  2.32523148<br />Method: Custom_LOESS","Age: 61<br />Value:  2.27656484<br />Method: Custom_LOESS","Age: 62<br />Value:  2.21978920<br />Method: Custom_LOESS","Age: 63<br />Value:  2.15470944<br />Method: Custom_LOESS","Age: 64<br />Value:  2.08126244<br />Method: Custom_LOESS","Age: 65<br />Value:  1.99939076<br />Method: Custom_LOESS","Age: 66<br />Value:  1.90905934<br />Method: Custom_LOESS","Age: 67<br />Value:  1.81042758<br />Method: Custom_LOESS","Age: 68<br />Value:  1.70392218<br />Method: Custom_LOESS","Age: 69<br />Value:  1.59050316<br />Method: Custom_LOESS","Age: 70<br />Value:  1.47084715<br />Method: Custom_LOESS","Age: 71<br />Value:  1.34536401<br />Method: Custom_LOESS","Age: 72<br />Value:  1.21429261<br />Method: Custom_LOESS","Age: 73<br />Value:  1.07771743<br />Method: Custom_LOESS","Age: 74<br />Value:  0.93648357<br />Method: Custom_LOESS","Age: 75<br />Value:  0.81117037<br />Method: Custom_LOESS","Age: 76<br />Value:  0.65581361<br />Method: Custom_LOESS","Age: 77<br />Value:  0.49145209<br />Method: Custom_LOESS","Age: 78<br />Value:  0.31819938<br />Method: Custom_LOESS","Age: 79<br />Value:  0.13653968<br />Method: Custom_LOESS","Age: 80<br />Value: -0.05263291<br />Method: Custom_LOESS"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(124,174,0,1)","dash":"solid"},"hoveron":"points","name":"Custom_LOESS","legendgroup":"Custom_LOESS","showlegend":false,"xaxis":"x3","yaxis":"y6","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[-9.0255349877343569,-8.8790829214587781,-8.7378060620370288,-8.6016673098349976,-8.4706295652185766,-8.3446557285536507,-8.2235717311413836,-8.1073217495669478,-7.9960460521222663,-7.8898849070992521,-7.7889785827898219,-7.6947012735818019,-7.6075098020174368,-7.5261683786202811,-7.4494412139138895,-7.3760925184218156,-7.3089031750953994,-7.2493310132975077,-7.194155663168992,-7.1401567548507012,-7.0841139184834869,-7.0346115927427331,-6.996636350473608,-6.9615710230716381,-6.9207984419323498,-6.8657014384512713,-6.7966769087600696,-6.7212348973543961,-6.6414279581757629,-6.5593086451656761,-6.4769295122656452,-6.3933029026783572,-6.3063210445833384,-6.2163563193873568,-6.1237811084971803,-6.0289677933195778,-5.9320453491666356,-5.8328423304512906,-5.7312804872315848,-5.62728156956556,-5.5207673275112592],"text":["Age: 40<br />Value: -9.02553499<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value: -8.87908292<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value: -8.73780606<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value: -8.60166731<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value: -8.47062957<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value: -8.34465573<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value: -8.22357173<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value: -8.10732175<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value: -7.99604605<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value: -7.88988491<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value: -7.78897858<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value: -7.69470127<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value: -7.60750980<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value: -7.52616838<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value: -7.44944121<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value: -7.37609252<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value: -7.30890318<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value: -7.24933101<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value: -7.19415566<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value: -7.14015675<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value: -7.08411392<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value: -7.03461159<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value: -6.99663635<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value: -6.96157102<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value: -6.92079844<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value: -6.86570144<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value: -6.79667691<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value: -6.72123490<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value: -6.64142796<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value: -6.55930865<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value: -6.47692951<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value: -6.39330290<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value: -6.30632104<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value: -6.21635632<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value: -6.12378111<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value: -6.02896779<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value: -5.93204535<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value: -5.83284233<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value: -5.73128049<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value: -5.62728157<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value: -5.52076733<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.6665323993069032,1.6503456552242566,1.634631719930066,1.6193817782100688,1.6045870148500034,1.5902386146356082,1.5763666931222322,1.5630056458655284,1.5501530776516921,1.5378065932669176,1.5259637974974001,1.5149573163652665,1.5047953916672843,1.4949890518516098,1.4850493253664003,1.474487240659812,1.4635367361601359,1.4527817972062134,1.442258522612029,1.4320030111915674,1.422051361758812,1.4197280155550365,1.4268322094211439,1.4351122355705637,1.436316386216727,1.4221929535730624,1.3973297415313692,1.3693937258513402,1.3347519565482482,1.2897714836373668,1.2308193571339685,1.1596865007939627,1.0802160724060041,0.99185347303448501,0.89404410374379761,0.78623336559833423,0.66835510656311647,0.54077133561226964,0.40356969532384096,0.25683782827587831,0.10066337704642926],"text":["Age: 40<br />Value:  1.66653240<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value:  1.65034566<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value:  1.63463172<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value:  1.61938178<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value:  1.60458701<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value:  1.59023861<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value:  1.57636669<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value:  1.56300565<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value:  1.55015308<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value:  1.53780659<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value:  1.52596380<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value:  1.51495732<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value:  1.50479539<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value:  1.49498905<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value:  1.48504933<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value:  1.47448724<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value:  1.46353674<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value:  1.45278180<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value:  1.44225852<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value:  1.43200301<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value:  1.42205136<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value:  1.41972802<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value:  1.42683221<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value:  1.43511224<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value:  1.43631639<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value:  1.42219295<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value:  1.39732974<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value:  1.36939373<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value:  1.33475196<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value:  1.28977148<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value:  1.23081936<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value:  1.15968650<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value:  1.08021607<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value:  0.99185347<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value:  0.89404410<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value:  0.78623337<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value:  0.66835511<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value:  0.54077134<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value:  0.40356970<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value:  0.25683783<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value:  0.10066338<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.71960537407505809,0.69936251241482983,0.67952362935649979,0.66008131994947083,0.64102817924314681,0.62235680228693124,0.60399076608873681,0.58587589618704372,0.56803816042710664,0.55050352665417979,0.5332979627135177,0.51698213593209486,0.50179377399725378,0.48727443529480197,0.4729656782105468,0.45840906113029567,0.44258848814000412,0.42546289659530329,0.40803639478651421,0.39131309100395806,0.37629709353795576,0.36276110700320879,0.3498310305458277,0.33754076425324803,0.32592420821290485,0.31501526251223355,0.30508546822375493,0.29625296867019568,0.28832156731430042,0.28109506761881325,0.27437727304647869,0.26820348315817832,0.26269137171025875,0.2577683034586622,0.2533616431593308,0.24939875556820659,0.24591385111085082,0.24299703709023912,0.24065952357843504,0.23891252064750237,0.23776723836950481],"text":["Age: 40<br />Value:  0.71960537<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value:  0.69936251<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value:  0.67952363<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value:  0.66008132<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value:  0.64102818<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value:  0.62235680<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value:  0.60399077<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value:  0.58587590<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value:  0.56803816<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value:  0.55050353<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value:  0.53329796<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value:  0.51698214<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value:  0.50179377<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value:  0.48727444<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value:  0.47296568<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value:  0.45840906<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value:  0.44258849<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value:  0.42546290<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value:  0.40803639<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value:  0.39131309<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value:  0.37629709<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value:  0.36276111<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value:  0.34983103<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value:  0.33754076<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value:  0.32592421<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value:  0.31501526<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value:  0.30508547<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value:  0.29625297<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value:  0.28832157<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value:  0.28109507<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value:  0.27437727<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value:  0.26820348<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value:  0.26269137<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value:  0.25776830<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value:  0.25336164<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value:  0.24939876<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value:  0.24591385<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value:  0.24299704<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value:  0.24065952<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value:  0.23891252<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value:  0.23776724<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":false,"xaxis":"x3","yaxis":"y3","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.5053754344678383,1.5123521840172112,1.5164419113357841,1.5176115218241633,1.5158279208829561,1.5110580139127694,1.5031569765737114,1.4920698340714642,1.4778982661249984,1.4607439524532844,1.440708572775292,1.4195414290813422,1.3977387496741327,1.3735226037412012,1.3451150604700843,1.3107381890483194,1.264713829067899,1.2066889638772571,1.1428733782985934,1.0794768571541076,1.022709185266,0.96989342476481499,0.91553061616696119,0.86159751187343514,0.81007086428523312,0.76292742580335138,0.71925995983992463,0.67719033113109861,0.63723894406388748,0.59992620302530508,0.56577251240236548,0.5345053145307942,0.50546555097666213,0.47859387497250133,0.45383093975084393,0.43111739854422204,0.41043844320539241,0.39183933012805305,0.37535080935614762,0.36100363093362015,0.34882854490441451],"text":["Age: 40<br />Value:  1.50537543<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value:  1.51235218<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value:  1.51644191<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value:  1.51761152<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value:  1.51582792<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value:  1.51105801<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value:  1.50315698<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value:  1.49206983<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value:  1.47789827<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value:  1.46074395<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value:  1.44070857<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value:  1.41954143<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value:  1.39773875<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value:  1.37352260<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value:  1.34511506<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value:  1.31073819<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value:  1.26471383<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value:  1.20668896<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value:  1.14287338<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value:  1.07947686<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value:  1.02270919<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value:  0.96989342<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value:  0.91553062<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value:  0.86159751<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value:  0.81007086<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value:  0.76292743<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value:  0.71925996<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value:  0.67719033<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value:  0.63723894<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value:  0.59992620<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value:  0.56577251<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value:  0.53450531<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value:  0.50546555<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value:  0.47859387<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value:  0.45383094<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value:  0.43111740<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value:  0.41043844<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value:  0.39183933<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value:  0.37535081<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value:  0.36100363<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value:  0.34882854<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":false,"xaxis":"x","yaxis":"y4","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.58685914001154493,0.55639422893123891,0.52639562075526514,0.49688008904365627,0.46786440735644558,0.43936534925366616,0.41139774104041549,0.38396737589574453,0.35707747769061648,0.33073127029599442,0.30493197758284157,0.27812932235237464,0.2498712225937425,0.22180819495980708,0.1955907561034301,0.17286942267747346,0.1522043388960104,0.13209570991737232,0.11410414381080844,0.099790248645567778,0.090714632490899519,0.087362281773866665,0.088440096369440641,0.092841554518733202,0.099460134462856106,0.10718931444292104,0.11991767761501682,0.13879657082063915,0.15861361782901032,0.17415644240935257,0.18021266833088817,0.17971356529452642,0.17840847752481206,0.17531214057642067,0.1694392900040278,0.15980466136230903,0.14613274036312862,0.12893968061262034,0.10842771950686389,0.08479909444193913,0.05825604281392583],"text":["Age: 40<br />Value:  0.58685914<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value:  0.55639423<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value:  0.52639562<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value:  0.49688009<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value:  0.46786441<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value:  0.43936535<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value:  0.41139774<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value:  0.38396738<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value:  0.35707748<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value:  0.33073127<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value:  0.30493198<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value:  0.27812932<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value:  0.24987122<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value:  0.22180819<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value:  0.19559076<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value:  0.17286942<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value:  0.15220434<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value:  0.13209571<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value:  0.11410414<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value:  0.09979025<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value:  0.09071463<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value:  0.08736228<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value:  0.08844010<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value:  0.09284155<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value:  0.09946013<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value:  0.10718931<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value:  0.11991768<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value:  0.13879657<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value:  0.15861362<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value:  0.17415644<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value:  0.18021267<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value:  0.17971357<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value:  0.17840848<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value:  0.17531214<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value:  0.16943929<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value:  0.15980466<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value:  0.14613274<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value:  0.12893968<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value:  0.10842772<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value:  0.08479909<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value:  0.05825604<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":false,"xaxis":"x2","yaxis":"y5","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[2.9833623184891556,2.9431850844965566,2.9034467374579136,2.8640431996372926,2.8248703932987591,2.78582424070638,2.7465513611364303,2.7069668669430382,2.6673694200070512,2.6280576822093167,2.5893303154306806,2.5532628834877364,2.520854638186719,2.4907897733929376,2.4617524829717023,2.4324269607883249,2.4099387125685312,2.3966585180893833,2.3841384822931944,2.3639307101222786,2.3275873065189496,2.278883739339375,2.2256318189053217,2.165438163857508,2.0959093928366492,2.0146521244834625,1.915998020693932,1.8012423410573126,1.67843710075423,1.5556343149653089,1.4408859988711749,1.3304699554246973,1.2163537577739763,1.1001240763924856,0.98336758175369787,0.86767094433108582,0.75327735009868779,0.63915297073145605,0.52496895525423382,0.41039645269186553,0.29510661206919458],"text":["Age: 40<br />Value:  2.98336232<br />Method: Standard_LOESS_Unweighted","Age: 41<br />Value:  2.94318508<br />Method: Standard_LOESS_Unweighted","Age: 42<br />Value:  2.90344674<br />Method: Standard_LOESS_Unweighted","Age: 43<br />Value:  2.86404320<br />Method: Standard_LOESS_Unweighted","Age: 44<br />Value:  2.82487039<br />Method: Standard_LOESS_Unweighted","Age: 45<br />Value:  2.78582424<br />Method: Standard_LOESS_Unweighted","Age: 46<br />Value:  2.74655136<br />Method: Standard_LOESS_Unweighted","Age: 47<br />Value:  2.70696687<br />Method: Standard_LOESS_Unweighted","Age: 48<br />Value:  2.66736942<br />Method: Standard_LOESS_Unweighted","Age: 49<br />Value:  2.62805768<br />Method: Standard_LOESS_Unweighted","Age: 50<br />Value:  2.58933032<br />Method: Standard_LOESS_Unweighted","Age: 51<br />Value:  2.55326288<br />Method: Standard_LOESS_Unweighted","Age: 52<br />Value:  2.52085464<br />Method: Standard_LOESS_Unweighted","Age: 53<br />Value:  2.49078977<br />Method: Standard_LOESS_Unweighted","Age: 54<br />Value:  2.46175248<br />Method: Standard_LOESS_Unweighted","Age: 55<br />Value:  2.43242696<br />Method: Standard_LOESS_Unweighted","Age: 56<br />Value:  2.40993871<br />Method: Standard_LOESS_Unweighted","Age: 57<br />Value:  2.39665852<br />Method: Standard_LOESS_Unweighted","Age: 58<br />Value:  2.38413848<br />Method: Standard_LOESS_Unweighted","Age: 59<br />Value:  2.36393071<br />Method: Standard_LOESS_Unweighted","Age: 60<br />Value:  2.32758731<br />Method: Standard_LOESS_Unweighted","Age: 61<br />Value:  2.27888374<br />Method: Standard_LOESS_Unweighted","Age: 62<br />Value:  2.22563182<br />Method: Standard_LOESS_Unweighted","Age: 63<br />Value:  2.16543816<br />Method: Standard_LOESS_Unweighted","Age: 64<br />Value:  2.09590939<br />Method: Standard_LOESS_Unweighted","Age: 65<br />Value:  2.01465212<br />Method: Standard_LOESS_Unweighted","Age: 66<br />Value:  1.91599802<br />Method: Standard_LOESS_Unweighted","Age: 67<br />Value:  1.80124234<br />Method: Standard_LOESS_Unweighted","Age: 68<br />Value:  1.67843710<br />Method: Standard_LOESS_Unweighted","Age: 69<br />Value:  1.55563431<br />Method: Standard_LOESS_Unweighted","Age: 70<br />Value:  1.44088600<br />Method: Standard_LOESS_Unweighted","Age: 71<br />Value:  1.33046996<br />Method: Standard_LOESS_Unweighted","Age: 72<br />Value:  1.21635376<br />Method: Standard_LOESS_Unweighted","Age: 73<br />Value:  1.10012408<br />Method: Standard_LOESS_Unweighted","Age: 74<br />Value:  0.98336758<br />Method: Standard_LOESS_Unweighted","Age: 75<br />Value:  0.86767094<br />Method: Standard_LOESS_Unweighted","Age: 76<br />Value:  0.75327735<br />Method: Standard_LOESS_Unweighted","Age: 77<br />Value:  0.63915297<br />Method: Standard_LOESS_Unweighted","Age: 78<br />Value:  0.52496896<br />Method: Standard_LOESS_Unweighted","Age: 79<br />Value:  0.41039645<br />Method: Standard_LOESS_Unweighted","Age: 80<br />Value:  0.29510661<br />Method: Standard_LOESS_Unweighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,191,196,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Unweighted","legendgroup":"Standard_LOESS_Unweighted","showlegend":false,"xaxis":"x3","yaxis":"y6","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[-9.0042770997012838,-8.8534261491344495,-8.7081558112663551,-8.5685770358127407,-8.434800772489357,-8.3069379710119442,-8.1848691970427989,-8.0683961183770609,-7.9575113379297546,-7.8522074586158981,-7.7524770833505103,-7.65954474247029,-7.5738643355225985,-7.4942725192384536,-7.4196059503488758,-7.3487012855848839,-7.2842710991413027,-7.2275928809329404,-7.1753506612708042,-7.1242284704658925,-7.0709103388292114,-7.0219209181552076,-6.9814640180827237,-6.9427424056893647,-6.8989588480527351,-6.8433161122504362,-6.7779662682618733,-6.7091506907232707,-6.636206103697476,-6.5584692312473329,-6.4752767974356855,-6.3872195836646766,-6.2951505920212893,-6.1987998775956372,-6.0978974954778327,-5.9921735007579882,-5.8817912586371381,-5.7670642150299507,-5.6479475460969812,-5.5243964279987869,-5.3963660368959276],"text":["Age: 40<br />Value: -9.00427710<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value: -8.85342615<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value: -8.70815581<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value: -8.56857704<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value: -8.43480077<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value: -8.30693797<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value: -8.18486920<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value: -8.06839612<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value: -7.95751134<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value: -7.85220746<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value: -7.75247708<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value: -7.65954474<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value: -7.57386434<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value: -7.49427252<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value: -7.41960595<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value: -7.34870129<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value: -7.28427110<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value: -7.22759288<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value: -7.17535066<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value: -7.12422847<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value: -7.07091034<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value: -7.02192092<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value: -6.98146402<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value: -6.94274241<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value: -6.89895885<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value: -6.84331611<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value: -6.77796627<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value: -6.70915069<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value: -6.63620610<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value: -6.55846923<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value: -6.47527680<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value: -6.38721958<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value: -6.29515059<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value: -6.19879988<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value: -6.09789750<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value: -5.99217350<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value: -5.88179126<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value: -5.76706422<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value: -5.64794755<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value: -5.52439643<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value: -5.39636604<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.7651771902227336,1.7387375915705996,1.7133992274501166,1.6890009207990029,1.6653814945549781,1.6423797716557615,1.6199223886607987,1.5982009802886707,1.5774518667158015,1.5579113681186141,1.5398158046735324,1.5230553946471461,1.507281937096447,1.4923741233834642,1.4782106448702261,1.4646701929187611,1.4529194362282074,1.4435420390837645,1.4355421862265558,1.4279240623977043,1.4196918523383322,1.4161817351176451,1.4192760761631462,1.4227983397534074,1.4205719901670013,1.4064204916824985,1.3827120039050504,1.3546755554947709,1.3204259143126762,1.2780778482197834,1.2257461250771091,1.163898553176073,1.0942109428910898,1.0166100652076711,0.93102269111132785,0.83737559158757091,0.73430162367497165,0.62115772462028296,0.49895678572128777,0.36871169827577011,0.2314353535815134],"text":["Age: 40<br />Value:  1.76517719<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value:  1.73873759<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value:  1.71339923<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value:  1.68900092<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value:  1.66538149<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value:  1.64237977<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value:  1.61992239<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value:  1.59820098<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value:  1.57745187<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value:  1.55791137<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value:  1.53981580<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value:  1.52305539<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value:  1.50728194<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value:  1.49237412<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value:  1.47821064<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value:  1.46467019<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value:  1.45291944<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value:  1.44354204<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value:  1.43554219<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value:  1.42792406<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value:  1.41969185<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value:  1.41618174<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value:  1.41927608<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value:  1.42279834<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value:  1.42057199<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value:  1.40642049<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value:  1.38271200<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value:  1.35467556<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value:  1.32042591<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value:  1.27807785<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value:  1.22574613<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value:  1.16389855<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value:  1.09421094<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value:  1.01661007<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value:  0.93102269<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value:  0.83737559<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value:  0.73430162<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value:  0.62115772<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value:  0.49895679<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value:  0.36871170<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value:  0.23143535<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.71450503857868419,0.69558646757532649,0.67690165879703723,0.6584810216969148,0.64035496572805828,0.62255390034356684,0.60498250669877318,0.58755026011153044,0.57029476127871814,0.5532536108972157,0.5364644096639023,0.52010164380898449,0.50422310329280884,0.48869134440746531,0.47336892344504417,0.45811839669763549,0.44182807432469778,0.42419593918516385,0.40629905662033555,0.38921449197151442,0.37401931058000221,0.36053684378967182,0.34783680082793195,0.33586581386138853,0.32457051505664725,0.31389753658031383,0.30410728626547812,0.29535968006461993,0.28745061232343061,0.28017597738760108,0.27333166960282262,0.26697919812374882,0.26129720584256488,0.25625728771125955,0.25183103868182133,0.24799005370623897,0.24479213388109328,0.24230091333917725,0.24049673658679765,0.23935994813026137,0.2388708924758752],"text":["Age: 40<br />Value:  0.71450504<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value:  0.69558647<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value:  0.67690166<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value:  0.65848102<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value:  0.64035497<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value:  0.62255390<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value:  0.60498251<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value:  0.58755026<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value:  0.57029476<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value:  0.55325361<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value:  0.53646441<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value:  0.52010164<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value:  0.50422310<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value:  0.48869134<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value:  0.47336892<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value:  0.45811840<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value:  0.44182807<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value:  0.42419594<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value:  0.40629906<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value:  0.38921449<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value:  0.37401931<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value:  0.36053684<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value:  0.34783680<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value:  0.33586581<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value:  0.32457052<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value:  0.31389754<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value:  0.30410729<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value:  0.29535968<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value:  0.28745061<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value:  0.28017598<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value:  0.27333167<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value:  0.26697920<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value:  0.26129721<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value:  0.25625729<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value:  0.25183104<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value:  0.24799005<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value:  0.24479213<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value:  0.24230091<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value:  0.24049674<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value:  0.23935995<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value:  0.23887089<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":false,"xaxis":"x3","yaxis":"y3","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[1.4688092502168664,1.4808625871568797,1.4896008340653417,1.4948461745825865,1.4964207923489465,1.4941468710047558,1.487759170709209,1.4773895329331861,1.4634557632845473,1.4463756673711541,1.4265670508008672,1.4038047735497092,1.3775875138866363,1.347918804858911,1.3148021795137956,1.2782411708985524,1.2349487515748998,1.1840018437798752,1.1289499050737219,1.0733423930166825,1.020728765169,0.96963738325444859,0.91725302854235491,0.86510978791129045,0.81474174823982703,0.76768299640653626,0.72285141289504329,0.67883739234037599,0.63668379284821075,0.59743347252422385,0.5621292894740918,0.53041814070046511,0.50131898530866259,0.47493277455836425,0.45136045970924976,0.43070299202099877,0.41349523063640176,0.3999278385405779,0.38958547275669991,0.38205279030794065,0.37691444821747278],"text":["Age: 40<br />Value:  1.46880925<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value:  1.48086259<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value:  1.48960083<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value:  1.49484617<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value:  1.49642079<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value:  1.49414687<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value:  1.48775917<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value:  1.47738953<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value:  1.46345576<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value:  1.44637567<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value:  1.42656705<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value:  1.40380477<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value:  1.37758751<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value:  1.34791880<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value:  1.31480218<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value:  1.27824117<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value:  1.23494875<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value:  1.18400184<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value:  1.12894991<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value:  1.07334239<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value:  1.02072877<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value:  0.96963738<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value:  0.91725303<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value:  0.86510979<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value:  0.81474175<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value:  0.76768300<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value:  0.72285141<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value:  0.67883739<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value:  0.63668379<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value:  0.59743347<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value:  0.56212929<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value:  0.53041814<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value:  0.50131899<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value:  0.47493277<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value:  0.45136046<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value:  0.43070299<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value:  0.41349523<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value:  0.39992784<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value:  0.38958547<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value:  0.38205279<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value:  0.37691445<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":false,"xaxis":"x","yaxis":"y4","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[0.63381512808808982,0.59473603382846607,0.55694543375123295,0.52052396171167159,0.48555225156506321,0.45211093716668904,0.42037849173939995,0.39029918409998537,0.36160234149463449,0.33401729116953632,0.30727336037087999,0.28124452068158629,0.25622557445039895,0.23257709507224245,0.21065965594204084,0.19083383045471844,0.17212304858282421,0.15416437973672792,0.13823885646808515,0.12562751132855149,0.11761137686978257,0.11127573289077888,0.1046830072530392,0.10057995460196657,0.10171332958296397,0.11082988684143441,0.1269759669748122,0.14679357930781908,0.16942298157678948,0.19400443151805791,0.21967818686795856,0.24586578482893176,0.27286812188382492,0.30114449468958382,0.33115419990315409,0.36335653418148139,0.39488073699155063,0.42388253296823403,0.45236094652030806,0.48231500205654942,0.51574372398573465],"text":["Age: 40<br />Value:  0.63381513<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value:  0.59473603<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value:  0.55694543<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value:  0.52052396<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value:  0.48555225<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value:  0.45211094<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value:  0.42037849<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value:  0.39029918<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value:  0.36160234<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value:  0.33401729<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value:  0.30727336<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value:  0.28124452<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value:  0.25622557<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value:  0.23257710<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value:  0.21065966<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value:  0.19083383<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value:  0.17212305<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value:  0.15416438<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value:  0.13823886<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value:  0.12562751<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value:  0.11761138<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value:  0.11127573<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value:  0.10468301<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value:  0.10057995<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value:  0.10171333<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value:  0.11082989<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value:  0.12697597<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value:  0.14679358<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value:  0.16942298<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value:  0.19400443<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value:  0.21967819<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value:  0.24586578<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value:  0.27286812<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value:  0.30114449<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value:  0.33115420<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value:  0.36335653<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value:  0.39488074<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value:  0.42388253<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value:  0.45236095<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value:  0.48231500<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value:  0.51574372<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":false,"xaxis":"x2","yaxis":"y5","hoverinfo":"text","frame":null},{"x":[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80],"y":[3.2104653644724168,3.1309719991322829,3.05272774883086,2.9780352381159321,2.9091970915352889,2.8485159336367154,2.7940664549550709,2.7425991435715167,2.6944303203532995,2.6498763061676631,2.6092534218818533,2.5747470749704902,2.5466182409867848,2.5222965929158678,2.4992118037428726,2.4747935464529287,2.4507311622419405,2.4279368436334616,2.4026745406041021,2.3712082031304722,2.3298017811891807,2.2800256087824398,2.2247808645002016,2.1623277652006889,2.0909265277421252,2.0088373689827326,1.915956550761347,1.8142455054824753,1.7050622058528493,1.589764624579201,1.4697107343682621,1.3452729793706535,1.215627215069162,1.0803365311687692,0.9389640173744549,0.79107276339120047,0.63783503303661571,0.48020301703846135,0.31740969546694375,0.14868804839227029,-0.026728944115352274],"text":["Age: 40<br />Value:  3.21046536<br />Method: Standard_LOESS_Weighted","Age: 41<br />Value:  3.13097200<br />Method: Standard_LOESS_Weighted","Age: 42<br />Value:  3.05272775<br />Method: Standard_LOESS_Weighted","Age: 43<br />Value:  2.97803524<br />Method: Standard_LOESS_Weighted","Age: 44<br />Value:  2.90919709<br />Method: Standard_LOESS_Weighted","Age: 45<br />Value:  2.84851593<br />Method: Standard_LOESS_Weighted","Age: 46<br />Value:  2.79406645<br />Method: Standard_LOESS_Weighted","Age: 47<br />Value:  2.74259914<br />Method: Standard_LOESS_Weighted","Age: 48<br />Value:  2.69443032<br />Method: Standard_LOESS_Weighted","Age: 49<br />Value:  2.64987631<br />Method: Standard_LOESS_Weighted","Age: 50<br />Value:  2.60925342<br />Method: Standard_LOESS_Weighted","Age: 51<br />Value:  2.57474707<br />Method: Standard_LOESS_Weighted","Age: 52<br />Value:  2.54661824<br />Method: Standard_LOESS_Weighted","Age: 53<br />Value:  2.52229659<br />Method: Standard_LOESS_Weighted","Age: 54<br />Value:  2.49921180<br />Method: Standard_LOESS_Weighted","Age: 55<br />Value:  2.47479355<br />Method: Standard_LOESS_Weighted","Age: 56<br />Value:  2.45073116<br />Method: Standard_LOESS_Weighted","Age: 57<br />Value:  2.42793684<br />Method: Standard_LOESS_Weighted","Age: 58<br />Value:  2.40267454<br />Method: Standard_LOESS_Weighted","Age: 59<br />Value:  2.37120820<br />Method: Standard_LOESS_Weighted","Age: 60<br />Value:  2.32980178<br />Method: Standard_LOESS_Weighted","Age: 61<br />Value:  2.28002561<br />Method: Standard_LOESS_Weighted","Age: 62<br />Value:  2.22478086<br />Method: Standard_LOESS_Weighted","Age: 63<br />Value:  2.16232777<br />Method: Standard_LOESS_Weighted","Age: 64<br />Value:  2.09092653<br />Method: Standard_LOESS_Weighted","Age: 65<br />Value:  2.00883737<br />Method: Standard_LOESS_Weighted","Age: 66<br />Value:  1.91595655<br />Method: Standard_LOESS_Weighted","Age: 67<br />Value:  1.81424551<br />Method: Standard_LOESS_Weighted","Age: 68<br />Value:  1.70506221<br />Method: Standard_LOESS_Weighted","Age: 69<br />Value:  1.58976462<br />Method: Standard_LOESS_Weighted","Age: 70<br />Value:  1.46971073<br />Method: Standard_LOESS_Weighted","Age: 71<br />Value:  1.34527298<br />Method: Standard_LOESS_Weighted","Age: 72<br />Value:  1.21562722<br />Method: Standard_LOESS_Weighted","Age: 73<br />Value:  1.08033653<br />Method: Standard_LOESS_Weighted","Age: 74<br />Value:  0.93896402<br />Method: Standard_LOESS_Weighted","Age: 75<br />Value:  0.79107276<br />Method: Standard_LOESS_Weighted","Age: 76<br />Value:  0.63783503<br />Method: Standard_LOESS_Weighted","Age: 77<br />Value:  0.48020302<br />Method: Standard_LOESS_Weighted","Age: 78<br />Value:  0.31740970<br />Method: Standard_LOESS_Weighted","Age: 79<br />Value:  0.14868805<br />Method: Standard_LOESS_Weighted","Age: 80<br />Value: -0.02672894<br />Method: Standard_LOESS_Weighted"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(199,124,255,1)","dash":"solid"},"hoveron":"points","name":"Standard_LOESS_Weighted","legendgroup":"Standard_LOESS_Weighted","showlegend":false,"xaxis":"x3","yaxis":"y6","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":55.452054794520549,"r":7.3059360730593621,"b":40.182648401826498,"l":37.260273972602747},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"title":{"text":"Health_to_Cad_Coefficients","font":{"color":"rgba(0,0,0,1)","family":"","size":17.534246575342465},"x":0,"xref":"paper"},"xaxis":{"domain":[0,0.28767123287671231],"automargin":true,"type":"linear","autorange":false,"range":[37.835000000000001,82.165000000000006],"tickmode":"array","ticktext":["40","50","60","70","80"],"tickvals":[40,50,60,70,80],"categoryorder":"array","categoryarray":["40","50","60","70","80"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"y4","title":"","hoverformat":".2f"},"annotations":[{"text":"Age","x":0.5,"y":0,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"top","annotationType":"axis","yshift":-21.917808219178081},{"text":"Coefficients","x":0,"y":0.5,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xref":"paper","yref":"paper","textangle":-90,"xanchor":"right","yanchor":"center","annotationType":"axis","xshift":-21.917808219178088},{"text":"(Intercept)","x":0.14383561643835616,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"antihtn_now","x":0.5,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"cad.prs","x":0.85616438356164382,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"f.31.0.01","x":0.14383561643835616,"y":0.4604261796042618,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"smoke","x":0.5,"y":0.4604261796042618,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"statin_now","x":0.85616438356164382,"y":0.4604261796042618,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.68949771689498},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"}],"yaxis":{"domain":[0.5395738203957382,1],"automargin":true,"type":"linear","autorange":false,"range":[-9.4170594381429247,-5.0490598259301658],"tickmode":"array","ticktext":["-9","-8","-7","-6"],"tickvals":[-9,-8,-7,-6],"categoryorder":"array","categoryarray":["-9","-8","-7","-6"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x","title":"","hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.28767123287671231,"y0":0.5395738203957382,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.28767123287671231,"y0":0,"y1":23.37899543378996,"yanchor":1,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.37899543378995432,"x1":0.62100456621004563,"y0":0.5395738203957382,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.37899543378995432,"x1":0.62100456621004563,"y0":0,"y1":23.37899543378996,"yanchor":1,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.71232876712328763,"x1":1,"y0":0.5395738203957382,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.71232876712328763,"x1":1,"y0":0,"y1":23.37899543378996,"yanchor":1,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.28767123287671231,"y0":0,"y1":0.4604261796042618},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.28767123287671231,"y0":0,"y1":23.37899543378996,"yanchor":0.4604261796042618,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.37899543378995432,"x1":0.62100456621004563,"y0":0,"y1":0.4604261796042618},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.37899543378995432,"x1":0.62100456621004563,"y0":0,"y1":23.37899543378996,"yanchor":0.4604261796042618,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.71232876712328763,"x1":1,"y0":0,"y1":0.4604261796042618},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.71232876712328763,"x1":1,"y0":0,"y1":23.37899543378996,"yanchor":0.4604261796042618,"ysizemode":"pixel"}],"xaxis2":{"type":"linear","autorange":false,"range":[37.835000000000001,82.165000000000006],"tickmode":"array","ticktext":["40","50","60","70","80"],"tickvals":[40,50,60,70,80],"categoryorder":"array","categoryarray":["40","50","60","70","80"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.37899543378995432,0.62100456621004563],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"y5","title":"","hoverformat":".2f"},"yaxis2":{"type":"linear","autorange":false,"range":[-1.1327370767812868,2.7216578216836202],"tickmode":"array","ticktext":["-1","0","1","2"],"tickvals":[-1,0,1,2],"categoryorder":"array","categoryarray":["-1","0","1","2"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.5395738203957382,1],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x2","title":"","hoverformat":".2f"},"xaxis3":{"type":"linear","autorange":false,"range":[37.835000000000001,82.165000000000006],"tickmode":"array","ticktext":["40","50","60","70","80"],"tickvals":[40,50,60,70,80],"categoryorder":"array","categoryarray":["40","50","60","70","80"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.71232876712328763,1],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"y6","title":"","hoverformat":".2f"},"yaxis3":{"type":"linear","autorange":false,"range":[-0.12159106390141934,0.968502297482005],"tickmode":"array","ticktext":["0.00","0.25","0.50","0.75"],"tickvals":[1.3877787807814457e-17,0.25,0.5,0.75],"categoryorder":"array","categoryarray":["0.00","0.25","0.50","0.75"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.5395738203957382,1],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x3","title":"","hoverformat":".2f"},"yaxis4":{"type":"linear","autorange":false,"range":[-0.57173685255471574,2.1932075713664796],"tickmode":"array","ticktext":["-0.5","0.0","0.5","1.0","1.5","2.0"],"tickvals":[-0.5,0,0.5,1,1.5,2],"categoryorder":"array","categoryarray":["-0.5","0.0","0.5","1.0","1.5","2.0"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0,0.4604261796042618],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x","title":"","hoverformat":".2f"},"yaxis5":{"type":"linear","autorange":false,"range":[-2.0977884937712084,1.4661469938530058],"tickmode":"array","ticktext":["-2","-1","0","1"],"tickvals":[-2,-1,0,1],"categoryorder":"array","categoryarray":["-2","-1","0","1"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0,0.4604261796042618],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x2","title":"","hoverformat":".2f"},"yaxis6":{"type":"linear","autorange":false,"range":[-0.34044120116439625,4.6212721574487574],"tickmode":"array","ticktext":["0","1","2","3","4"],"tickvals":[0,1,2,3,4],"categoryorder":"array","categoryarray":["0","1","2","3","4"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0,0.4604261796042618],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176002,"zeroline":false,"anchor":"x3","title":"","hoverformat":".2f"},"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.68949771689498},"title":{"text":"Method","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"17b0b39243443":{"x":{},"y":{},"colour":{},"type":"scatter"},"17b0b77e33803":{"x":{},"y":{},"ymin":{},"ymax":{},"colour":{}},"17b0b66728a72":{"x":{},"y":{},"colour":{}}},"cur_data":"17b0b39243443","visdat":{"17b0b39243443":["function (y) ","x"],"17b0b77e33803":["function (y) ","x"],"17b0b66728a72":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>coefs=b$custom_smooth
+agesint=seq(40,70,by=5)
+
+test=data.frame(test)
+prs_quants=c(data.frame(test%&gt;%group_by(int)%&gt;%summarise(median(cad.prs),mean(cad.prs)))[c(2,4,6),3])
+
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=ten.year.new=lifetime.new=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
+test=data.table(test)
+
+for(i in 1:length(agesint)) {
+  age = agesint[i]
+  for (j in 1:length(levels(test$int))) {
+    cat = levels(test$int)[j]
+    
+    atrisk = test[age &lt; Cad_0_censor_age &amp;
+                    age &lt; Ht_0_censor_age &amp;
+                    age &lt; HyperLip_0_censor_age &amp;
+                    age &lt; Dm_0_censor_age &amp; int == cat, ]
+    #  ar = data.frame(
+    #   &quot;intercept&quot; = 1,
+    #    &quot;cad.prs&quot; = atrisk$cad.prs,
+    #    &quot;sex&quot; = atrisk$f.31.0.0)
+    # #   &quot;smoke&quot; = atrisk$smoke,
+    # #   &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+    # #                            atrisk$htn_age &lt; age, 1, 0)
+    # # )
+     ar = data.frame(
+      &quot;intercept&quot; = 1,
+      &quot;cad.prs&quot; = atrisk$cad.prs,
+      &quot;sex&quot; = atrisk$f.31.0.0,
+      &quot;smoke&quot; = atrisk$smoke,
+      &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                              atrisk$htn_age &lt; age, 1, 0),
+      &quot;statin_now&quot; = ifelse(atrisk$statin == 1 &amp;
+                               atrisk$statin_age &lt; age, 1, 0)
+      )
+# 
+#     ar = data.frame(
+#       &quot;intercept&quot; = 1,
+#       &quot;cad.prs&quot; = atrisk$cad.prs,
+#       &quot;sex&quot; = atrisk$f.31.0.0,
+#       &quot;smoke&quot; = atrisk$smoke
+#     )
+#       ar = data.frame(
+#       &quot;intercept&quot; = 1,
+#       #&quot;cad.prs&quot; = atrisk$cad.prs,
+#       &quot;sex&quot; = atrisk$f.31.0.0
+#       #&quot;smoke&quot; = atrisk$smoke
+#     )
+#     ar=data.frame(&quot;intercept&quot;=1,&quot;cad.prs&quot;=atrisk$cad.prs,&quot;sex&quot;=atrisk$f.31.0.0)
+    ten.year.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(age + 10)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    lifetime.new[i, j] = mean(
+      compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(80)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    )
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                       atrisk = atrisk)
+    # #
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+#
+    dat = data.frame(
+      &quot;id&quot; = atrisk$identifier,
+      &quot;mysex&quot; = as.factor(atrisk$sex),
+      &quot;myage&quot; = rep(age, nrow(atrisk)),
+      &quot;mysbp&quot; = atrisk$sbp,
+      &quot;mytreat&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                           atrisk$htn_age &lt; age, 1, 0),
+      &quot;mysmoking&quot; = atrisk$smoke,
+      &quot;mydiabetes&quot; = ifelse(atrisk$Dm_0_Any == 2 &amp;
+                              atrisk$Dm_0_censor_age &lt; age, 1, 0),
+      &quot;mytotalchol&quot; = atrisk$choladj,
+      &quot;myhdl&quot; = atrisk$hdladj,
+      &quot;Race&quot; = atrisk$Race,
+      &quot;mystatnow&quot; = ifelse(atrisk$statin == 1 &amp; atrisk$statin_age &lt; age, 1, 0)
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = &quot;id&quot;,
+      sex = &quot;mysex&quot;,
+      age = &quot;myage&quot;,
+      sbp = &quot;mysbp&quot;,
+      treat = &quot;mytreat&quot;,
+      smoking = &quot;mysmoking&quot;,
+      diabetes = &quot;mydiabetes&quot;,
+      totalchol = &quot;mytotalchol&quot;,
+      hdl = &quot;myhdl&quot;
+    )
+    ascvd.30.year[i, j] = mean(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = mean(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = &quot;as2&quot;,
+        age = &quot;myage&quot;,
+        gender = &quot;mysex&quot;,
+        race = &quot;Race&quot;,
+        totchol = &quot;mytotalchol&quot;,
+        sbp = &quot;mysbp&quot;,
+        hdl = &quot;myhdl&quot;,
+        bp_med = &quot;mytreat&quot;,
+        diabetes = &quot;mydiabetes&quot;,
+        smoker = &quot;mysmoking&quot;,
+        lipid_med = &quot;mystatnow&quot;
+      )$as2
+    )
+  }
+}
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ten.year.new=as.matrix(ten.year.new)
+lifetime.new=as.matrix(lifetime.new)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+
+
+
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+# 6.083
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.new*100))
+#0.866
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+#6.12
+
+(pclife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year[c(1:2),])))</code></pre>
+<pre><code>[1] 16.262</code></pre>
+<pre class="r"><code>15.074</code></pre>
+<pre><code>[1] 15.074</code></pre>
+<pre class="r"><code>(mslife=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(lifetime.new[c(1:2),]*100)))</code></pre>
+<pre><code>[1] 5.446</code></pre>
+<pre class="r"><code>0.981</code></pre>
+<pre><code>[1] 0.981</code></pre>
+<pre class="r"><code>(pclife2=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),])))</code></pre>
+<pre><code>[1] 5.687</code></pre>
+<pre class="r"><code>5.688</code></pre>
+<pre><code>[1] 5.688</code></pre>
+<pre class="r"><code>(pclife3=gofRMSE(Obs = as.vector(emp.lifetime[c(1:2),]*100),Prd = as.vector(ascvd.30.year.rc[c(1:2),]/1.83)))</code></pre>
+<pre><code>[1] 8.464</code></pre>
+<pre class="r"><code>#8.565
+
+
+### overall
+(pclife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year)))</code></pre>
+<pre><code>[1] 35.225</code></pre>
+<pre class="r"><code>#34.226
+
+(pclife=gofRMSE(Obs = as.vector(emp.lifetime[,c(1,3,5)]*100),Prd = as.vector(ascvd.30.year[,c(1,3,5)])))</code></pre>
+<pre><code>[1] 32.748</code></pre>
+<pre class="r"><code>(pclife=gofRMSE(Obs = as.vector(emp.lifetime[,c(2,4,6)]*100),Prd = as.vector(ascvd.30.year[,c(2,4,6)])))</code></pre>
+<pre><code>[1] 37.538</code></pre>
+<pre class="r"><code>(mslife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(lifetime.new*100)))</code></pre>
+<pre><code>[1] 3.806</code></pre>
+<pre class="r"><code>(pclife1=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc)))</code></pre>
+<pre><code>[1] 12.306</code></pre>
+<pre class="r"><code>#11.546
+## males
+(mslife=gofRMSE(Obs = as.vector(emp.lifetime[,c(2,4,6)]*100),Prd = as.vector(lifetime.new[,c(2,4,6)]*100)))</code></pre>
+<pre><code>[1] 5.278</code></pre>
+<pre class="r"><code>#1.041
+gofRMSE(Obs = as.vector(emp.lifetime[,c(2,4,6)]*100),Prd = as.vector(ascvd.30.year.rc[,c(2,4,6)]))</code></pre>
+<pre><code>[1] 12.841</code></pre>
+<pre class="r"><code>#12.127
+### feamles
+
+(mslife=gofRMSE(Obs = as.vector(emp.lifetime[,c(1,3,5)]*100),Prd = as.vector(lifetime.new[,c(1,3,5)]*100)))</code></pre>
+<pre><code>[1] 1.053</code></pre>
+<pre class="r"><code>#1.087% 
+
+
+(pclife2=gofRMSE(Obs = as.vector(emp.lifetime[,c(1,3,5)]*100),Prd = as.vector(ascvd.30.year.rc[,c(1,3,5)])))</code></pre>
+<pre><code>[1] 11.746</code></pre>
+<pre class="r"><code>#10.93
+
+(pclife2=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc)/1.83))</code></pre>
+<pre><code>[1] 7.007</code></pre>
+<pre class="r"><code>#6.675
+
+a1=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle(&quot;FRS 30 year,Male&quot;)+labs(y=&quot;RMSE %, 30 year&quot;)+ylim(c(0,0.60))
+
+a1f=plotfuncrmse(ascvd.ten.year = ascvd.30.year,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$f+ggtitle(&quot;FRS 30 year, Female&quot;)+labs(y=&quot;RMSE %, 30 year&quot;)+ylim(c(0,0.60))
+
+a2=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ylim(c(0,0.60))+ggtitle(&quot;FRS, RC Male&quot;)+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+a2f=plotfuncrmse(ascvd.ten.year = ascvd.30.year.rc,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$f+ylim(c(0,0.60))+ggtitle(&quot;FRS, RC Female&quot;)+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+
+a3=ascvd.30.year.rc/1.83
+
+a4=plotfuncrmse(ascvd.ten.year = a3,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$m+ggtitle(&quot;FRS rc/div&quot;)+ylim(c(0,0.60))+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+a5=plotfuncrmse(ascvd.ten.year = a3,emp.ten.year = emp.lifetime,mstate.ten.year = lifetime.new)$f+ggtitle(&quot;FRS rc/div&quot;)+ylim(c(0,0.60))+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.title = element_blank())
+
+library(ggpubr)
+library(grid)
+
+figure &lt;- ggarrange(a1 + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), a1f + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), a2 + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;),a2f + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;),
+labels = NULL,
+ncol = 2, nrow = 2,
+common.legend = TRUE, legend = &quot;top&quot;,
+align = &quot;hv&quot;,
+font.label = list(size = 10, color = &quot;black&quot;, face = &quot;bold&quot;, family = NULL, position = &quot;top&quot;))
+fig=annotate_figure(figure, left = textGrob(&quot;RMSE (30 year), %&quot;, rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob(&quot;Age at Calculation&quot;, gp = gpar(cex = 1.3)))
+ggsave(plot = fig,file=&quot;~/multistate2/output/sharedrmse_mfnodiv_small.pdf&quot;,dpi=300,width=12,heigh=10,units=&quot;in&quot;)</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.3.1 (2023-06-16)
+Platform: aarch64-apple-darwin20 (64-bit)
+Running under: macOS Ventura 13.5.2
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: America/New_York
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] ehaGoF_0.1.1       CVrisk_1.1.0       reshape2_1.4.4     babynames_1.0.1   
+ [5] gapminder_1.0.0    carData_3.0-5      plotly_4.10.2      DT_0.28           
+ [9] gt_0.9.0           RColorBrewer_1.1-3 data.table_1.14.8  pROC_1.18.4       
+[13] rsq_2.5            survMisc_0.5.6     gridExtra_2.3      ggfortify_0.4.16  
+[17] reshape_0.8.9      eulerr_7.0.0       survminer_0.4.9    ggpubr_0.6.0      
+[21] survival_3.5-5     lubridate_1.9.2    forcats_1.0.0      stringr_1.5.0     
+[25] purrr_1.0.1        readr_2.1.4        tidyr_1.3.0        tibble_3.2.1      
+[29] ggplot2_3.4.3      tidyverse_2.0.0    dplyr_1.1.3        ggsci_3.0.0       
+
+loaded via a namespace (and not attached):
+ [1] rlang_1.1.1       magrittr_2.0.3    git2r_0.32.0      compiler_4.3.1   
+ [5] systemfonts_1.0.4 vctrs_0.6.3       pkgconfig_2.0.3   fastmap_1.1.1    
+ [9] ellipsis_0.3.2    backports_1.4.1   labeling_0.4.2    KMsurv_0.1-5     
+[13] utf8_1.2.3        promises_1.2.0.1  rmarkdown_2.23    tzdb_0.4.0       
+[17] nloptr_2.0.3      ragg_1.2.5        xfun_0.39         cachem_1.0.8     
+[21] jsonlite_1.8.7    highr_0.10        later_1.3.1       Deriv_4.1.3      
+[25] broom_1.0.5       R6_2.5.1          bslib_0.5.0       stringi_1.7.12   
+[29] car_3.1-2         boot_1.3-28.1     jquerylib_0.1.4   Rcpp_1.0.11      
+[33] knitr_1.43        zoo_1.8-12        httpuv_1.6.11     Matrix_1.6-0     
+[37] splines_4.3.1     timechange_0.2.0  tidyselect_1.2.0  rstudioapi_0.15.0
+[41] abind_1.4-5       yaml_2.3.7        lattice_0.21-8    plyr_1.8.8       
+[45] withr_2.5.0       evaluate_0.21     xml2_1.3.5        pillar_1.9.0     
+[49] generics_0.1.3    rprojroot_2.0.3   hms_1.1.3         munsell_0.5.0    
+[53] scales_1.2.1      minqa_1.2.5       xtable_1.8-4      glue_1.6.2       
+[57] lazyeval_0.2.2    tools_4.3.1       lme4_1.1-34       ggsignif_0.6.4   
+[61] fs_1.6.3          cowplot_1.1.1     crosstalk_1.2.0   colorspace_2.1-0 
+[65] nlme_3.1-162      cli_3.6.1         km.ci_0.5-6       textshaping_0.3.6
+[69] workflowr_1.7.0   fansi_1.0.4       viridisLite_0.4.2 gtable_0.3.3     
+[73] rstatix_0.7.2     sass_0.4.7        digest_0.6.33     htmlwidgets_1.6.2
+[77] farver_2.1.1      htmltools_0.5.5   lifecycle_1.0.3   httr_1.4.6       
+[81] MASS_7.3-60      </code></pre>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

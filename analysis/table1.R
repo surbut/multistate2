@@ -50,6 +50,8 @@ label(dat$as2) <- "ASCVD at Enrollment"
 label(dat$agerec) <- "Age First Enrolled in NHS"
 label(dat$Durationfollowed) <- "Years Followed"
 
+
+
 f=table1(~ f.31.0.0 + agerec+Durationfollowed+Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+antihtn+smoke|cad.prs.lev, data=dat)
 
 library(xtable)
@@ -77,24 +79,57 @@ library(khsverse)
 i=intersect(g2$eid,dfh$identifier)
 nrow(dfh)-length(i)
 
+
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+  
+traindim=221351-nrow(test)
+
+  
+length(intersect(dfh$identifier,dfascvd$sample_id))
+#400552 
 design <- tibble::tribble(
   ~left,~n_left, ~right,~n_right,
   "Study base with Outcome Data", 502461 ,"Lack QC Genotype, Sex, Birthdate or Smoking information", 20534,
-  "Contain baseline covariates",  481927,    "Excluded from GP Records atlas", 259930,
+  "Contain baseline covariates",  481927,    "Not present in GP records", 259930,
   "Individuals in GP Records", 221997,   "With CAD at baseline",   646,
-  "PRS, Pheno, Covariate info", 221351,  "",  NA_integer_)
-
-
+  "PRS, Pheno, Covariate info", 221351,  "",  NA_integer_,
+  "Training Set", 142234, "", NA_integer_,
+  "Testing Set", 79117, "", NA_integer_
+)
 
 
 
 ##
 
 e=exclusion_flowchart(design, width = 2)
-e
+export_svg(
+  
 e %>%
   export_svg() %>%
   read_xml() %>%
-  write_xml("Figs/Flowcharts/flowchart_msgene.svg")
+  write_xml("../output/flowchart_msgene.svg")
 ###
+
+
+length(intersect(dfh$identifier,dfascvd$sample_id))
+#400552 
+design <- tibble::tribble(
+  ~left,~n_left, ~right,~n_right,
+  "Study base with Outcome Data", 502461 ,"Lack QC Genotype, Sex, Birthdate or Smoking information", 20534,
+  "Contain baseline covariates",  481927,    "80% for training", 385541,
+  "Remain for testing", 96386,   "With CAD at baseline or lacking TC, SBP or HDL",   17269,
+  "Available for testing", 79117 ,  "",  NA_integer_,
+ 
+)
+
+e=exclusion_flowchart(design, width = 2)
+export_svg(
+  
+e %>%
+    export_svg() %>%
+    read_xml() %>%
+    write_xml("../output/flowchart_msgenereal.svg")
+  
 
