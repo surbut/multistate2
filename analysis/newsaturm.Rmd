@@ -62,7 +62,9 @@ colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
 mer$`PRS Category`=factor(mer$`PRS Category`,labels = -2:2)
 mermelt=melt(mer,id.vars=c("Age","PRS Category"))
 
+tenlifarray[,c("2.1","-2.1"),"Ten"]
 
+netben[,c("2.1","-2.1")]
 ## dot point
 
 g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.001,ymax=`Lifetime`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line()+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime")

@@ -446,12 +446,12 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 # Plot using ggplot2
 library(ggplot2)
 
-df_cindex <- data.frame(
+(df_cindex <- data.frame(
   Score = c("MSGene","30 Year"),
   Cindex = c(results_score2$mean,results_score1$mean),
   ymin = c(ci_score2[1], ci_score1[1]),
   ymax = c(ci_score2[2], ci_score1[2])
-)
+))
 
 # df_cindex
 #     Score    Cindex      ymin      ymax
@@ -587,12 +587,12 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 # Plot using ggplot2
 library(ggplot2)
 
-df_cindex <- data.frame(
+(df_cindex <- data.frame(
   Score = c( "MSGene","30 Year"),
   Cindex = c(results_score1$mean, results_score2$mean),
   ymin = c(ci_score1[1], ci_score2[1]),
   ymax = c(ci_score1[2], ci_score2[2])
-)
+))
 
 p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
   geom_bar(stat = "identity", position = position_dodge()) +

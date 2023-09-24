@@ -388,7 +388,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-09-23
+<strong>Last updated:</strong> 2023-09-24
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -426,10 +426,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -668,15 +668,15 @@ output/continuosums_lifetime_small.rds
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree273d0249cf12cd31640a6c5b71c5c9f94d1122cbtargetblank273d024a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treefd12a3a1f4daa5c5fe720ef8b2b8bd20a075269btargetblankfd12a3aa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/273d0249cf12cd31640a6c5b71c5c9f94d1122cb" target="_blank">273d024</a>
+<a href="https://github.com/surbut/multistate2/tree/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b" target="_blank">fd12a3a</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree273d0249cf12cd31640a6c5b71c5c9f94d1122cbtargetblank273d024a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treefd12a3a1f4daa5c5fe720ef8b2b8bd20a075269btargetblankfd12a3aa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -686,7 +686,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/273d0249cf12cd31640a6c5b71c5c9f94d1122cb" target="_blank">273d024</a>.
+<a href="https://github.com/surbut/multistate2/tree/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b" target="_blank">fd12a3a</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -708,12 +708,9 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
-Untracked files:
-    Untracked:  analysis/code.Rmd
-    Untracked:  analysis/rmsenew.Rmd
-
 Unstaged changes:
-    Modified:   analysis/table1.R
+    Modified:   analysis/code.Rmd
+    Modified:   analysis/rmseanalysis.Rmd
 
 </code></pre>
 <p>
@@ -728,10 +725,73 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/code.Rmd</code>) and HTML
+(<code>docs/code.html</code>) files. If you’ve configured a remote Git
+repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
+in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b/analysis/code.Rmd" target="_blank">fd12a3a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-23
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b/docs/code.html" target="_blank">fd12a3a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-23
+</td>
+<td>
+Update
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -1233,7 +1293,47 @@ Removed 2 rows containing missing values (`geom_bar()`).</code></pre>
 <div id="including-plots-1" class="section level2">
 <h2>Including Plots</h2>
 <p>You can also embed plots, for example:</p>
+<pre><code>    Score    Cindex      ymin      ymax
+1  MSGene 0.7150884 0.7074376 0.7227391
+2 30 Year 0.5304665 0.5270539 0.5338790</code></pre>
 <p><img src="figure/code.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b/docs/figure/code.Rmd/unnamed-chunk-5-1.png" target="_blank">fd12a3a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-23
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre><code>AIC for FRS.30y: 82401.31 </code></pre>
 <pre><code>AIC for msGene: 79215.49 </code></pre>
 <pre><code>Saving 7 x 5 in image</code></pre>
@@ -1332,14 +1432,16 @@ ci_score2 &lt;- c(results_score2$mean - 1.96*results_score2$se, results_score2$m
 # Plot using ggplot2
 library(ggplot2)
 
-df_cindex &lt;- data.frame(
+(df_cindex &lt;- data.frame(
   Score = c( &quot;MSGene&quot;,&quot;30 Year&quot;),
   Cindex = c(results_score1$mean, results_score2$mean),
   ymin = c(ci_score1[1], ci_score2[1]),
   ymax = c(ci_score1[2], ci_score2[2])
-)
-
-p &lt;- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
+))</code></pre>
+<pre><code>    Score    Cindex      ymin      ymax
+1  MSGene 0.7295848 0.7209862 0.7381835
+2 30 Year 0.6739113 0.6653272 0.6824955</code></pre>
+<pre class="r"><code>p &lt;- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
   geom_bar(stat = &quot;identity&quot;, position = position_dodge()) +
   geom_errorbar(aes(ymin=ymin, ymax=ymax), width=0.1, position=position_dodge(0.9)) +
   ylim(0,0.8 ) +
@@ -1353,6 +1455,43 @@ p &lt;- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 
 print(p)</code></pre>
 <p><img src="figure/code.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/fd12a3a1f4daa5c5fe720ef8b2b8bd20a075269b/docs/figure/code.Rmd/unnamed-chunk-6-1.png" target="_blank">fd12a3a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-23
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>saveRDS(p,&quot;~/multistate2/output/continuosums_lifetime_small.rds&quot;)
 
 ####</code></pre>
@@ -1404,15 +1543,16 @@ loaded via a namespace (and not attached):
 [33] zoo_1.8-12        httpuv_1.6.11     Matrix_1.6-0      splines_4.3.1    
 [37] timechange_0.2.0  tidyselect_1.2.0  rstudioapi_0.15.0 abind_1.4-5      
 [41] yaml_2.3.7        lattice_0.21-8    plyr_1.8.8        withr_2.5.0      
-[45] evaluate_0.21     xml2_1.3.5        pillar_1.9.0      generics_0.1.3   
-[49] rprojroot_2.0.3   hms_1.1.3         munsell_0.5.0     scales_1.2.1     
-[53] minqa_1.2.5       xtable_1.8-4      glue_1.6.2        lazyeval_0.2.2   
-[57] tools_4.3.1       lme4_1.1-34       ggsignif_0.6.4    fs_1.6.3         
-[61] cowplot_1.1.1     grid_4.3.1        colorspace_2.1-0  nlme_3.1-162     
-[65] cli_3.6.1         km.ci_0.5-6       textshaping_0.3.6 workflowr_1.7.0  
-[69] fansi_1.0.4       viridisLite_0.4.2 gtable_0.3.3      rstatix_0.7.2    
-[73] sass_0.4.7        digest_0.6.33     htmlwidgets_1.6.2 farver_2.1.1     
-[77] htmltools_0.5.5   lifecycle_1.0.3   httr_1.4.6        MASS_7.3-60      </code></pre>
+[45] evaluate_0.21     xml2_1.3.5        pillar_1.9.0      whisker_0.4.1    
+[49] generics_0.1.3    rprojroot_2.0.3   hms_1.1.3         munsell_0.5.0    
+[53] scales_1.2.1      minqa_1.2.5       xtable_1.8-4      glue_1.6.2       
+[57] lazyeval_0.2.2    tools_4.3.1       lme4_1.1-34       ggsignif_0.6.4   
+[61] fs_1.6.3          cowplot_1.1.1     grid_4.3.1        colorspace_2.1-0 
+[65] nlme_3.1-162      cli_3.6.1         km.ci_0.5-6       textshaping_0.3.6
+[69] workflowr_1.7.0   fansi_1.0.4       viridisLite_0.4.2 gtable_0.3.3     
+[73] rstatix_0.7.2     sass_0.4.7        digest_0.6.33     htmlwidgets_1.6.2
+[77] farver_2.1.1      htmltools_0.5.5   lifecycle_1.0.3   httr_1.4.6       
+[81] MASS_7.3-60      </code></pre>
 </div>
 </div>
 

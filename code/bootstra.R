@@ -472,13 +472,21 @@ untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
 treated=readRDS("../output/predictedrsiskboot_fixed_benefit.rds")
 # Assuming `array1` is predicted risk and `array2` is risk under treatment
 diff_array <- untreated[,,,] - treated[,,,] 
-#diff_array <- untreated[,c(1:40),,] - treated[,c(1:0),,] 
+#diff_array <- untreated[,c(1:20),,] - treated[,c(1:20),,] 
 
+## high risk male not on AH at 40 vs 79
+
+colMeans(diff_array[,10,"40",]); 
+colMeans(diff_array[,10,"79",])
 
 df <- as.data.frame(as.table(apply(diff_array, c(3,4), mean)))
+dfs <- as.data.frame(as.table(apply(diff_array, c(3,4), sd)))
 
 median(df[df$Var1==40,"Freq"])
+sd(df[df$Var1==40,"Freq"])
+
 median(df[df$Var1==79,"Freq"])
+sd(df[df$Var1==79,"Freq"])
 
 ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) +
 geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
@@ -488,7 +496,7 @@ labs(x = "Mean Difference in Risk", y = "Years")
 benefit=ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) + 
 geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
 theme_ridges() + scale_fill_viridis()+
-labs(x = "Mean Difference in Risk", y = "Years",fill="Absolute Risk Deifference")
+labs(x = "Mean Difference in Risk", y = "Years",fill="Absolute Risk Difference")
 
 saveRDS(benefit,file = "../output/benefit_good.rds")
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
