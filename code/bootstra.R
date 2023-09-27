@@ -470,6 +470,7 @@ library(ggplot2)
 library(ggridges)
 untreated=readRDS("../output/predictedrsiskboot_fixed.rds")
 treated=readRDS("../output/predictedrsiskboot_fixed_benefit.rds")
+tenun=readRDS("../output/predictedrsiskboot_fixed_ten.rds")
 # Assuming `array1` is predicted risk and `array2` is risk under treatment
 diff_array <- untreated[,,,] - treated[,,,] 
 #diff_array <- untreated[,c(1:20),,] - treated[,c(1:20),,] 
@@ -481,6 +482,32 @@ colMeans(diff_array[,10,"79",])
 
 df <- as.data.frame(as.table(apply(diff_array, c(3,4), mean)))
 dfs <- as.data.frame(as.table(apply(diff_array, c(3,4), sd)))
+
+
+dfu <- as.data.frame(as.table(apply(untreated[,c(6:10),,], c(2,3), mean)))
+df2 <- as.data.frame(as.table(apply(diff_array[,c(6:10),,], c(2,3), mean)))
+dft = as.data.frame(as.table(apply(tenun[,c(6:10),,], c(2,3), mean)))
+mer=merge(dfu,df2,by=c("Var1","Var2"))
+mtr=merge(dft,df2,by=c("Var1","Var2"))
+
+mg=ggplot(mer[mer$Var2%in%c(40,50,60,70),],aes(Freq.x,Freq.y,col=Var1,group=Var2))+geom_line(size=1)+geom_point()+
+  facet_wrap(~Var2,nrow=4,ncol=1)+
+  labs(x="Projected Lifetime Risk",y="Absolute Risk Reduction")+
+  theme_classic(base_size = 20)
+
+mtr$Var1=factor(mtr$Var1,levels = c("A","B","C","D","E"),labels=c(-2:2))
+mt=ggplot(mtr[mtr$Var2%in%c(40,50,60,70),],aes(Freq.x,Freq.y,col=Var1,group=Var2))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(x="Projected Ten Year Risk",y="Absolute Risk Reduction",col="PRS SD")+
+  theme_classic(base_size = 20)
+ggsave(mt,file="../output/projectedtenvb.pdf",dpi=600)
+
+saveRDS(mt,file="../output/projectedtenvb.rds")
+saveRDS(mg,file="../output/projectedlifetimerisk.rds")
+ggsave(mg,file="../output/projectedlifetimerisk.pdf",dpi=600)
+
+
 
 median(df[df$Var1==40,"Freq"])
 sd(df[df$Var1==40,"Freq"])

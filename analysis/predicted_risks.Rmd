@@ -423,7 +423,7 @@ get_risk_profile <- function(data_array,
 # change_age_cov = 55, new_cov_profile = 10,
 # start_model = 2, change_ages_model = c(50, 60), new_models = c(5, 6))
 
-
+saveRDS(predicted_risk,"../output/predicted_risks_array_fulltest.rds")
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 s2=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
 
@@ -631,14 +631,14 @@ plot_data <- data %>%
 
 
 
-# Plot the ECDF
-statage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
-  geom_step() +
+statage = ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
+  geom_step(size = 1.5) +  # Setting the line size for the plot
   labs(title = "eCDF of PRS by Statin Start Age",
        x = "PRS",
        y = "eCDF",
-       color="First Age (prescription or diagnosis)") + scale_color_aaas()+
-  theme_classic()
+       color = "First Age (prescription or diagnosis)") + scale_color_aaas() +
+  theme_classic(base_size = 20) +
+  guides(color = guide_legend(override.aes = list(size = 1.5)))  # Setting the line size for the legend
 
 
 ###
@@ -673,19 +673,17 @@ plot_data <- d2 %>%
 
 
 
-# Plot the ECDF
-cadage=ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
-  geom_step() +
-  labs(title = "empirical CDF of PRS by Age of 1st CAD Diagnosis",
-       x = "CAD-PRS",
+cadage = ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) + geom_step(size = 1.5) +  # Setting the line size for the plot
+  labs(title = "eCDF of PRS by CAD Diag Age",
+       x = "PRS",
        y = "eCDF",
-       color="CAD Age") + scale_color_aaas()+
-  theme_classic()
+       color = "First Age (prescription or diagnosis)") + scale_color_aaas() +
+  theme_classic(base_size = 20) +
+  guides(color = guide_legend(override.aes = list(size = 1.5)))  # Setting the line size for the legend
 
 
 g=ggarrange(statage,cadage,common.legend = T)
-
-save
+ggsave(g,file="../output/ecdf.pdf")
 library(dplyr)
 
 pm=readRDS("../output/predictedrsiskboot.rds")

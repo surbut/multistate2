@@ -147,9 +147,9 @@ tenlb = function(start,
   
   df <-
     inner_join(lookup_table, lookup_table_treat, by = c("age", "variable"))
-  colors <- c("darkred", "red", "lightcoral", "darkblue", "blue", "lightblue")
-
-  
+  # colors <- c("darkred", "red", "lightcoral", "darkblue", "blue", "lightblue")
+  # 
+  # 
 
 
   d = df[, c(1, 2, 3, 4)]
@@ -174,9 +174,9 @@ tenlb = function(start,
       linetype = "untreated"
     )) +
     labs(
-      title = "Predicted Ten Year Risk Curves",
+      
       x = "Age",
-      y = "Risk (%)",
+      y = "Predicted Ten year risk (%)",
       fill = "Strata",
       color = "Strata",
       linetype = "Strategy"
@@ -237,17 +237,16 @@ tenlb = function(start,
   #     linetype = "Strategy"
   #   ) +
   #   theme_classic()
-  
+
   
     gltreat <- ggplot(d, aes(x=year)) +
   geom_ribbon(aes(ymin=treated_risk, ymax=untreated_risk, fill=strata), alpha=0.3) +
   geom_line(aes(y=treated_risk, color=strata, linetype="treated")) +
-  geom_line(aes(y=untreated_risk, color=strata, linetype="untreated")) +
-  scale_fill_manual(values = colors) +
-  scale_color_manual(values = colors) +
-  labs(title="Predicted Lifetime Risk Curves", x="Age", y="Risk", fill="Strata", color="Strata", linetype="Strategy") +
+  geom_line(aes(y=untreated_risk, color=strata, linetype="untreated"))+
+  labs(x="Age", y="Predicted Lifetime Risk (%)", fill="Strata", color="Strata", linetype="Strategy") +
   theme_classic()
   
+
   
   names(lookup_table2)[3] = "lifetime"
   glife = ggplot(lookup_table2, aes(age, y = lifetime, color = as.factor(variable))) +
@@ -270,8 +269,8 @@ tenlb = function(start,
 
 ten=tenlb(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$gtentreat
 
-scaled_colors <- colorRampPalette(c("blue", "red"))(10)
-print(scaled_colors)
+#scaled_colors <- colorRampPalette(c("blue", "red"))(10)
+#print(scaled_colors)
 
 ggsave(ten,file="../output/tenlifehealth.pdf",dpi=600)
 
@@ -281,9 +280,71 @@ l=tenlb(start="Health",
                   agesmooth = c(40:80),
                   prs_quants=prs_quants,
                   agesint = c(40:79),
-                  atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifetreat+theme_classic()
+                  atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifetreat
+
+install.packages("RColorBrewer")
+library(RColorBrewer)
+
+    
+d=l$data
+
+d <- d %>%
+  separate(strata, into = c("Risk", "Sex"), sep = ":")
+
+d$Risk <- recode(d$Risk, 
+                 '-1.4' = "Low", 
+                 '0' = "Medium", 
+                 '1.3' = "High")
 
 
+d$RiskSex <- with(d, interaction(Risk, Sex, sep=""))
+d$RiskSex <- factor(d$RiskSex, levels = c("Lowfemale",
+                                          "Mediumfemale","Highfemale", "Lowmale","Mediummale",
+                                          "Highmale"))
+
+label_names <- c("Lowfemale" = "Low Female",
+                 "Lowmale" = "Low Male",
+                 "Mediumfemale" = "Middle Female",
+                 "Mediummale" = "Middle Male",
+                 "Highfemale" = "High Female",
+                 "Highmale" = "High Male")
+
+
+
+colors <- brewer.pal(8, "Pastel1")
+female_colors <- colors[c(2, 3, 4)] # Selecting appropriate shades of pink
+male_colors <- colors[c(5, 6, 7)]   # Selecting shades of blue 
+
+names(female_colors) <- c("Lowfemale", "Mediumfemale", "Highfemale")
+names(male_colors) <- c("Lowmale", "Mediummale", "Highmale")
+
+all_colors <- c(female_colors, male_colors)
+
+female_colors <- c("Lowfemale" = "#FFC0CB",  # Light Pink
+                   "Mediumfemale" = "#FF69B4",  # Hot Pink
+                   "Highfemale" = "#C71585")   # Medium Violet Red
+
+male_colors <- c("Lowmale" = "#ADD8E6",  # Light Blue
+                 "Mediummale" = "#0000FF",  # Blue
+                 "Highmale" = "#00008B")    # Dark Blue
+
+all_colors <- c(female_colors, male_colors)
+
+
+
+gltreat <- ggplot(d, aes(x=year)) +
+  geom_ribbon(aes(ymin=treated_risk, ymax=untreated_risk, fill=RiskSex), alpha=0.3) +
+  geom_line(aes(y=treated_risk, color=RiskSex, linetype="treated")) +
+  geom_line(aes(y=untreated_risk, color=RiskSex, linetype="untreated")) +
+  scale_fill_manual(values=all_colors, breaks=c("Lowfemale", "Mediumfemale",  "Highfemale","Lowmale", "Mediummale", "Highmale"), labels=label_names) +
+  scale_color_manual(values=all_colors, breaks=c("Lowfemale", "Mediumfemale",  "Highfemale","Lowmale", "Mediummale", "Highmale"), labels=label_names) +
+  labs(x="Age", y="Predicted Lifetime Risk (%)", fill="Strata", color="Strata", linetype="Strategy") +
+  theme_classic()
+
+gltreat
+
+ggsave(gltreat+theme_classic(base_size = 20),file="../output/lifewithtreat.pdf",dpi=600,width = 10)
+gltreat
 # We compare this to FRS30 projections3 and note that while remaining lifetime risk declines with age, the extended fixed window approach shows monotonically increasing risk across genetic strata, from 13.4% for a high genetic-risk male in our cohort at age 40 to 33.0% at age 70 using the recalibrated measure (Figure 2b) and 31.1% to 65.7% using the original FRS equation. When imputing RCT benefit (Equation 2), predicted absolute risk for a high-genetic-risk male declines by 4.12% to 18.7% (18.69-18.71%) over the 40-year span when compared to 1.96% (from 10.21% to 8.25%) at age 70. 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 # ### l$data[l$data$year==40,]
@@ -334,6 +395,38 @@ colnames(a2)=c(paste0(rep("F:",3),round(prs_quants,2)),paste0(rep("M:",3),round(
 rownames(a2)=ages
 a2$ages=ages
 m=melt(a2,id.vars="ages")
+
+m <- m %>%
+  separate(variable, into = c("Sex", "Strata"), sep = ":")
+
+m <- m %>%
+mutate(StrataLabel = case_when(
+Sex == "F" & Strata == "-1.41" ~ "Female Low",
+Sex == "F" & Strata == "-0.04" ~ "Female Medium",
+Sex == "F" & Strata == "1.34"  ~ "Female High",
+Sex == "M" & Strata == "-1.41" ~ "Male Low",
+Sex == "M" & Strata == "-0.04" ~ "Male Medium",
+Sex == "M" & Strata == "1.34"  ~ "Male High",
+TRUE                           ~ as.character(Strata)  # default case, should not be reached
+))
+
+s=ggplot(m, aes(x = ages, y = value, color = StrataLabel)) +
+geom_line(size = 1.5) +
+geom_point(size = 3) +
+scale_color_manual(values = c(
+"Female Low" = "lightpink",
+"Female Medium" = "pink",
+"Female High" = "hotpink",
+"Male Low" = "lightblue",
+"Male Medium" = "cornflowerblue",
+"Male High" = "royalblue")) +
+labs(title = "Predicted Survival Over 40 Years",
+x = "Age",
+y = "Survival Rate",
+color = "Sex and Genetic Risk (PRS) Level") +
+theme_classic(base_size = 20)
+ggsave(s,file="../output/survoverall.pdf",dpi=600)
+
 
 survplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="CAD free survival from 40",x="Ages")
 

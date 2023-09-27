@@ -98,7 +98,11 @@ agesint=c(40:80)
 thresh=5;
 ten=apply(pce.reverse.tenyear,1,function(x){min(agesint[x>thresh])})
 thresh=10;
-thirty=apply(ascvd.30.year.rc,1,function(x){
+# #thirty=apply(ascvd.30.year.rc,1,function(x){
+#   w=which(x>thresh)
+#   ifelse(length(w)>0,min(agesint[w]),100)})
+
+thirty=apply(ascvd.30.year,1,function(x){
   w=which(x>thresh)
   ifelse(length(w)>0,min(agesint[w]),100)})
 
@@ -132,9 +136,9 @@ data <- data.frame(t_val = thirty)
 p3 <- ggplot(data, aes(x = t_val)) +
 geom_histogram(bins = length(ages) - 1, fill = "green", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
 labs(title = "Histogram of Age Exceeding Risk: 30-year",
-x = "Value of t",y = "Density")+theme_classic()+lims(y=c(0,0.30))
+x = "Value of t",y = "Density")+theme_classic()
 
- gathresh=ggarrange(p,p2,p3,nrow = 3)
+gathresh=ggarrange(p,p2,p3,nrow = 3)
 # 
 # 
 # ggsave(gathresh,file="../output/threshold.pdf",dpi=600)
@@ -221,6 +225,7 @@ bootstrap_cindex <- function(fit_function, data, n_iter=10) {
 fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
 fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
 
+fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data)
 
 # Bootstrap C-index
 
@@ -285,9 +290,18 @@ Now do for continous variable brier score:
 
 
 ```{r}
+
+
+# Fit functions for score1 and score2
+fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
+fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
+
+fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data)
+
 df=test
 score1_list=states
 score2=ascvd.30.year.rc
+score3=ascvd.30.year
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
 df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
@@ -300,6 +314,9 @@ score1_list=states
 names(states)=df$identifier
 score2=ascvd.30.year.rc
 rownames(score2)=df$identifier
+
+score3=ascvd.30.year
+rownames(score3)=df$identifier
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
 df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
 
@@ -311,6 +328,8 @@ score1_list <- score1_list[-bad_indices]
 # Removing the bad IDs from score2 dataframe
 score2 <- score2[-bad_indices, ]
 
+# Removing the bad IDs from score2 dataframe
+score3 <- score3[-bad_indices, ]
 
 df=df[-which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1),]
 dim(df)
@@ -318,6 +337,8 @@ dim(df)
 all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))
 
 all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score3)),as.numeric(df$identifier))
 # Initialize a list to store the results
 expanded_list <- vector("list", length = nrow(df))
 
@@ -335,6 +356,7 @@ for(i in 1:nrow(df)) {
   age_range <- 40:(40 + length(score1_list[[i]]) - 1)
   score1_values <- score1_list[[i]]
   score2_values <- score2[i, age_range - 39]
+  score3_values <- score3[i, age_range - 39]
   
   # If there's an event and score1 is shorter than expected
   if (event == 1 && max(age_range) < max_age) {
@@ -343,6 +365,8 @@ for(i in 1:nrow(df)) {
     score1_values <- c(score1_list[[i]], score1_last_value)
     score2_last_value <- score2[i,(extended_age_range-39)]
     score2_values <- c(score2_values, score2_last_value)
+    score3_last_value <- score3[i,(extended_age_range-39)]
+    score3_values <- c(score3_values, score3_last_value)
     age_range <- c(age_range, extended_age_range)
   }
   
@@ -351,6 +375,7 @@ for(i in 1:nrow(df)) {
                                    age = age_range,
                                    score1 = score1_values,
                                    score2 = score2_values,
+                                   score3 = score3_values,
                                    event = ifelse(age_range == max_age, event, 0))
 }
 
@@ -366,10 +391,12 @@ print(dim(expanded_df))
 # Bootstrap C-index
 results_score1 <- bootstrap_cindex(fit_function_score1, expanded_df)
 results_score2 <- bootstrap_cindex(fit_function_score2, expanded_df)
+results_score3 <- bootstrap_cindex(fit_function_score3, expanded_df)
 
 # Confidence intervals (95%)
 ci_score1 <- c(results_score1$mean - 1.96*results_score1$se, results_score1$mean + 1.96*results_score1$se)
 ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean + 1.96*results_score2$se)
+ci_score3 <- c(results_score3$mean - 1.96*results_score3$se, results_score3$mean + 1.96*results_score3$se)
 
 # Plot using ggplot2
 library(ggplot2)

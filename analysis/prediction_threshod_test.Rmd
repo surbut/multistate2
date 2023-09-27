@@ -114,7 +114,7 @@ df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"
 data <- data.frame(t_val = t)
 # Create the ggplot histogram
 p <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "red", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+geom_histogram(bins = length(ages) - 1, fill = "red3", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
 labs(title = "Histogram of Age Exceeding Risk: MSGene LT",
 x = "Value of t",
 y = "Density")+theme_classic()+lims(y=c(0,0.30))
@@ -123,14 +123,14 @@ y = "Density")+theme_classic()+lims(y=c(0,0.30))
 data <- data.frame(t_val = ten)
 # Create the ggplot histogram
 p2 <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "blue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+geom_histogram(bins = length(ages) - 1, fill = "darkblue", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
 labs(title = "Histogram of Age Exceeding Risk: Ten year",
 x = "Value of t",y = "Density")+theme_classic()+xlim(39,80)+lims(y=c(0,0.30))
 
 data <- data.frame(t_val = thirty)
 # Create the ggplot histogram
 p3 <- ggplot(data, aes(x = t_val)) +
-geom_histogram(bins = length(ages) - 1, fill = "green", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
+geom_histogram(bins = length(ages) - 1, fill = "darkgreen", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
 labs(title = "Histogram of Age Exceeding Risk: 30-year",
 x = "Value of t",y = "Density")+theme_classic()+lims(y=c(0,0.30))
 
@@ -254,6 +254,7 @@ df_cindex <- data.frame(
 #   ymax = c(ci_score1[2], ci_score2[2])
 # )
 
+
 cp <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_errorbar(aes(ymin=ymin, ymax=ymax), width=0.1, position=position_dodge(0.9)) +
@@ -264,7 +265,7 @@ cp <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
     y = "C-index Value",
     x = ""
   ) +
-  theme_classic()+scale_fill_aaas()
+  theme_classic()+scale_fill_manual(values = c("darkblue","darkgreen","red3"))
 
 print(cp)
 fit1 <- coxph(Surv(start, stop, event) ~ score1, data = df_expanded)
@@ -280,6 +281,8 @@ cat("AIC for FRS.30y:", aic1, "\n")
 cat("AIC for msGene:", aic2, "\n")
 
 ggsave(ggarrange(p,p2,p3,cp,nrow=2,ncol=2),file="../output/thresholdexceeded.pdf",dpi=900,width = 12,height = 11,units = "in")
+
+ggsave(ggarrange(p,p2,p3,cp,nrow=1,ncol=4),file="../output/thresholdexceededlong.pdf",dpi=900,width = 15,height = 5,units = "in")
 ```
 
 
