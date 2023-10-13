@@ -1,0 +1,99 @@
+---
+title: "upsetplots"
+output: html_document
+date: "2023-10-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library("VennDiagram")
+
+ht=fread("~/Desktop/output_gp/Hypertension.tab.tsv.gz")
+hyperlip=fread("~/Desktop/output_gp/Hypercholesterolemia.tab.tsv.gz")
+cad=fread("~/Desktop/output_gp/Coronary_Artery_Disease_INTERMEDIATE.tab.tsv.gz")
+dm2=fread("~/Desktop/output_gp/Diabetes_Type_2.tab.tsv.gz")
+dm1=fread("~/Desktop/output_gp/Diabetes_Type_1.tab.tsv.gz")
+
+g=merge(dfh[c("identifier","Ht_0_Any","HyperLip_0_Any","Cad_0_Any","antihtn","statin")],ht[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g2=merge(g,hyperlip[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g3=merge(g2,cad[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g4=merge(dfh[,c("identifier","Dm_0_Any","statin")],dm1[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g4=merge(g4,dm2[,c("sample_id","has_disease")],by.x="identifier",by.y="sample_id")
+g4$lab=ifelse(g4$has_disease.x==1|g4$has_disease.y==1,1,0)
+```
+
+## HT
+
+```{r pressure, echo=FALSE}
+list_input <- list(
+  "UkbPheno" = which(g2$Ht_0_Any == 2),
+  "Lab" = which(g2$has_disease.x == 1),
+  "AntiHtn" = which(g2$antihtn == 1)
+)
+upset_data <- fromList(list_input)
+
+pdf("../output/htpdf.pdf")
+upset(upset_data, sets = c("UkbPheno", "Lab", "AntiHtn"))
+dev.off()
+```
+
+## HyperLip
+
+```{r pressure, echo=FALSE}
+list_input <- list(
+  "UkbPheno" = which(g2$HyperLip_0_Any == 2),
+  "Lab" = which(g2$has_disease.y == 1),
+  "Statin" = which(g2$statin == 1)
+)
+upset_data <- fromList(list_input)
+pdf("../output/hlpdf.pdf")
+upset(upset_data, sets = c("UkbPheno", "Lab", "Statin"))
+dev.off()
+```
+
+# CAD
+
+```{r}
+# UpSet Plot
+list_input <- list(
+  "UkbPheno" = which(g3$Cad_0_Any == 2),
+  "Lab" = which(g3$has_disease == 1),
+  "Statin" = which(g3$statin == 1)
+)
+upset_data <- fromList(list_input)
+pdf("../output/cadpdf.pdf")
+upset(upset_data, sets = c("UkbPheno", "Lab", "Statin"))
+dev.off()
+```
+
+# DM
+
+```{r}
+
+list_input <- list(
+  "UkbPheno" = which(g4$Dm_0_Any == 2),
+  "Lab" = which(g4$has_disease.y == 1), 
+  "Statin" = which(g4$statin == 1)
+)
+
+list_input <- list(
+  "UkbPheno" = which(g4$Dm_0_Any == 2),
+  "Lab" = which(g4$lab == 1), 
+  "Statin" = which(g4$statin == 1)
+)
+upset_data <- fromList(list_input)
+pdf("../output/dm.pdf", width = 10, height = 7)
+upset(upset_data, sets = c("UkbPheno", "Lab"))
+dev.off()
+```
+
+

@@ -630,7 +630,7 @@ ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 
 ### For LT
 
-```{R}
+```{r}
 rm(list=ls())
 test=readRDS("~/multistate2/output/test.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")

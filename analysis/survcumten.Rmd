@@ -338,7 +338,7 @@ gltreat <- ggplot(d, aes(x=year)) +
   geom_line(aes(y=untreated_risk, color=RiskSex, linetype="untreated")) +
   scale_fill_manual(values=all_colors, breaks=c("Lowfemale", "Mediumfemale",  "Highfemale","Lowmale", "Mediummale", "Highmale"), labels=label_names) +
   scale_color_manual(values=all_colors, breaks=c("Lowfemale", "Mediumfemale",  "Highfemale","Lowmale", "Mediummale", "Highmale"), labels=label_names) +
-  labs(x="Age", y="Predicted Lifetime Risk (%)", fill="Strata", color="Strata", linetype="Strategy") +
+  labs(x="Age", y="Remaining Lifetime Risk (%)", fill="Strata", color="Strata", linetype="Strategy") +
   theme_classic()
 
 gltreat
@@ -410,22 +410,27 @@ Sex == "M" & Strata == "1.34"  ~ "Male High",
 TRUE                           ~ as.character(Strata)  # default case, should not be reached
 ))
 
-s=ggplot(m, aes(x = ages, y = value, color = StrataLabel)) +
-geom_line(size = 1.5) +
-geom_point(size = 3) +
-scale_color_manual(values = c(
-"Female Low" = "lightpink",
-"Female Medium" = "pink",
-"Female High" = "hotpink",
-"Male Low" = "lightblue",
-"Male Medium" = "cornflowerblue",
-"Male High" = "royalblue")) +
-labs(title = "Predicted Survival Over 40 Years",
-x = "Age",
-y = "Survival Rate",
-color = "Sex and Genetic Risk (PRS) Level") +
-theme_classic(base_size = 20)
-ggsave(s,file="../output/survoverall.pdf",dpi=600)
+# The same colors we defined earlier
+female_colors <- c("Female Low" = "#FFC0CB",  # Light Pink
+                   "Female Medium" = "#FF69B4",  # Hot Pink
+                   "Female High" = "#C71585")   # Medium Violet Red
+
+male_colors <- c("Male Low" = "#ADD8E6",  # Light Blue
+                 "Male Medium" = "#0000FF",  # Blue
+                 "Male High" = "#00008B")    # Dark Blue
+
+all_colors <- c(female_colors, male_colors)
+
+m$StrataLabel <- factor(m$StrataLabel, levels = c("Female Low", "Female Medium", "Female High",
+                                                  "Male Low", "Male Medium", "Male High"))
+
+gplot_m <- ggplot(m, aes(x=ages, y=value, color=StrataLabel, group=StrataLabel)) +
+  geom_line(size=1) +
+  scale_color_manual(values=all_colors) +
+  labs(x="Age", y="Survival Probability", color="Sex and Genetic Risk (PRS)") +
+  theme_classic(base_size = 20)
+
+ggsave(gplot_m,file="../output/survoverall.pdf",dpi=600,width = 10)
 
 
 survplot=ggplot(m,aes(ages,value,col=variable))+geom_smooth()+theme_classic()+labs(y="CAD free survival from 40",x="Ages")
@@ -489,10 +494,28 @@ df_mean <- df_mean %>%
   )
 
 
-gf=ggplot(df_mean[df_mean$metric=="30yRC",],aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape="metric"))+geom_smooth()+
-  labs(x = "Age", y = "Predicted FRS 30 year Risk",col="Sex, PRS Percent",shape="FRS") +theme_classic()
+# Map percentile to risk labels
+risk_mapping <- c("0.2" = "Low", "0.5" = "Medium", "0.8" = "High")
+
+# Create the combined RiskGroup column
+df_mean$RiskGroup <- paste(df_mean$gender, sapply(df_mean$percentile, function(p) risk_mapping[p]))
+risk_mapping <- c("0.2" = "Low", "0.5" = "Medium", "0.8" = "High")
+
+df_mean$percentile <- as.character(df_mean$percentile)
+df_mean$RiskGroup <- paste0(df_mean$gender, " ", sapply(df_mean$percentile, function(p) risk_mapping[p]))
 
 
+df_mean$RiskGroup <- factor(df_mean$RiskGroup, levels = c("Female Low", "Female Medium", "Female High",
+                                                "Male Low", "Male Medium", "Male High"))
+
+
+gplot_df <- ggplot(df_mean[df_mean$metric=="30y",], aes(x=variable, y=mean_value, group=RiskGroup)) +
+  geom_line(aes(color=RiskGroup), size=1) +
+  labs(x="Age", y="30 Year Risk", color="Sex Genetic Risk") +
+  theme_classic(base_size = 20)
+
+ggsave(gplot_df,file="../output/gfuncal.pdf",dpi=600)
+gplot_df
 
 gfall=ggplot(df_mean,aes(x=variable,y = mean_value,col=interaction(gender,percentile),shape=as.factor(metric)))+geom_point()+
   labs(x = "Age", y = "Predicted FRS 30 year Risk",col="Sex, PRS Percent",shape="FRS") +theme_classic()

@@ -75,7 +75,7 @@ g1=ggplot(mer,aes(`Ten Year`,y=`Lifetime`,ymin = `Lifetime`-0.01,ymax=`Lifetime`
 
 ggsave(plot = g1,filename = "../output/MStenvsMslifesaturn.pdf",dpi=300,height = 4,width = 6)
 
-g2=ggplot(mer,aes(`Ten Year`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+g2=ggplot(mer,aes(`Ten Year`*100,y = `Net Ben`*100,ymin=`Net Ben`+0.1,ymax=`Net Ben`+0.1,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk (%)",y="MS Lifetime Benefit (% ARR)",color="PRS Percentile")
 
 ggsave(plot = g2,filename = "../output/MStenvsMslifebenefit.pdf",dpi=300,height = 4,width = 6)
 
@@ -92,12 +92,13 @@ g3 <- ggplot(mer[mer$Age %in% c(40,50,60,70),], aes(`Lifetime`, y = `Net Ben`, y
 fac+
  theme(strip.text.x = element_blank())
 
+benefit=readRDS("../output/benefit.rds")
 
 ggsave(
-ggarrange(g1,g2,benefit,ncol=2,nrow=2,common.legend = T),file="../output/saturnbenefit_better.pdf",dpi=600,height = 12,width=10)
+ggarrange(g2,mg,benefit,ncol=2,nrow=2,common.legend = T),file="../output/saturnbenefit_better.pdf",dpi=600,height = 14,width=12)
 
 
-g2=ggplot(mer[mer$Age%in%c(40,50,60,70),],aes(`Lifetime`,y = `Net Ben`,ymin=`Net Ben` -0.001,ymax=`Net Ben`+0.001,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+facet_wrap(~Age,nrow =4)+theme_classic(base_size = 20)+labs(x="MS Predicted Lifetime Risk",y="MS Lifetime Benefit",color="PRS Percentile")
+mg=ggplot(mer[mer$Age%in%c(40,50,60,70),],aes(`Lifetime`*100,y = 100*`Net Ben`,ymin=100*`Net Ben` -0.1,ymax=100*`Net Ben`+0.1,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+facet_wrap(~Age,nrow =4)+theme_classic(base_size = 20)+labs(x="MS Predicted Lifetime Risk (%)",y="MS Lifetime Benefit (% ARR)",color="PRS Percentile")
 
 ggsave(g2,file=
          "../output/facetlifeben.pdf",dpi=600)
@@ -106,4 +107,6 @@ ggsave(ggarrange(g2,g3,common.legend = T),file="../output/gtenvbenlfevben.pdf",d
 
 
 
+
 ggsave(ggarrange(g2,mg,common.legend = T),file="../output/gtenvbenlfevben_array.pdf",dpi=600,width = 10,height = 8,units = "in")
+ggsave(ggarrange(mt,mg,common.legend = T),file="../output/gtenvbenlfevben_array_all.pdf",dpi=600,width = 10,height = 8,units = "in")

@@ -49,14 +49,14 @@ for(i in 1:length(age_range)) {
 
   # For cases (Cad_0_Any == 2)
   cases <- which(df$Cad_0_Any == 2)
-  correctly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] > 0.10 & score2[cases] <= 10)
-  incorrectly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] <= 0.10 & score2[cases] > 10)
+  correctly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] > 0.10 & score2[cases] <= 5)
+  incorrectly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] <= 0.10 & score2[cases] > 5)
   NRI_e[i] <- (correctly_classified_cases - incorrectly_classified_cases) / length(cases)
 
   # For controls (Cad_0_Any == 1)
   controls <- which(df$Cad_0_Any == 1)
-  correctly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] <= 0.10 & score2[controls] > 10)
-  incorrectly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] > 0.10 & score2[controls] <= 10)
+  correctly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] <= 0.10 & score2[controls] > 5)
+  incorrectly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] > 0.10 & score2[controls] <= 5)
   NRI_ne[i] <- (correctly_classified_controls - incorrectly_classified_controls) / length(controls)
 }
 
@@ -77,11 +77,23 @@ ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) +
        x = "Age",
        color = "Group") +
   theme_minimal()
+
+saveRDS(df_plot,file = "../output/tennri.rds")
+
+ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
+  geom_line(size = 1) +
+  labs(title = "Net Reclassification Index (NRI) over Age, MS Life, PCE10",
+       subtitle = "By Cases and Controls",
+       y = "NRI Value",
+       x = "Age",
+       color = "Group") +
+  theme_minimal(),file="../output/tenri.pdf")
 ```
 
 ```{r}
 ms=readRDS("../output/state_occupancy_risk.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
 
 pce=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
 df=data.table(readRDS("~/multistate2/output/test.rds"))
@@ -107,37 +119,52 @@ for(i in 1:length(age_range)) {
 
   # Get the score2 for this age for all people from the ascvd matrix
   score2 <- ascvd.30.year.rc[, i]
+ #score2 <- ascvd.30.year[, i]
  
   
  
 
   # For cases (Cad_0_Any == 2)
   cases <- which(df$Cad_0_Any == 2)
-  correctly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] > 0.10 & score2[cases] <= 5)
-  incorrectly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] <= 0.10 & score2[cases] > 5)
+  correctly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] > 0.10 & score2[cases] <= 10)
+  incorrectly_classified_cases <- sum(!is.na(score1[cases]) & score1[cases] <= 0.10 & score2[cases] > 10)
   NRI_e[i] <- (correctly_classified_cases - incorrectly_classified_cases) / length(cases)
 
   # For controls (Cad_0_Any == 1)
   controls <- which(df$Cad_0_Any == 1)
-  correctly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] <= 0.10 & score2[controls] > 5)
-  incorrectly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] > 0.10 & score2[controls] <= 5)
+  correctly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] <= 0.10 & score2[controls] > 10)
+  incorrectly_classified_controls <- sum(!is.na(score1[controls]) & score1[controls] > 0.10 & score2[controls] <= 10)
   NRI_ne[i] <- (correctly_classified_controls - incorrectly_classified_controls) / length(controls)
 }
 
 print(data.frame(Age = age_range, NRI_e = NRI_e, NRI_ne = NRI_ne))
 
 
+sum=NRI_ne+NRI_e
+
 # Convert the data to a tidy format
 df_plot <- data.frame(Age = age_range, 
-                      NRI = c(NRI_e, NRI_ne), 
-                      Group = factor(rep(c("Cases", "Controls"), each = length(age_range))))
+                      NRI = c(NRI_e, NRI_ne,sum), 
+                      Group = factor(rep(c("Cases", "Controls","Net"), each = length(age_range))))
 
 # Plot
-ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
+ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
   geom_line(size = 1) +
   labs(title = "Net Reclassification Index (NRI) over Age, MS Life, FRS30",
        subtitle = "By Cases and Controls",
        y = "NRI Value",
        x = "Age",
        color = "Group") +
-  theme_minimal()
+  theme_minimal(),file="../output/lifenri.pdf")
+
+df_plot=data.frame()
+
+
+ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
+  geom_line(size = 1) +
+  labs(title = "Net Reclassification Index (NRI) over Age, MS Life, PCE10",
+       subtitle = "By Cases and Controls",
+       y = "NRI Value",
+       x = "Age",
+       color = "Group") +
+  theme_minimal(),file="../output/tenri.pdf")

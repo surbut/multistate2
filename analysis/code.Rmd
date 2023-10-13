@@ -257,6 +257,10 @@ get_risk_profile <- function(data_array,
 s=statusarray(df_frame = data.table(test),ages = ages,nstates = nstates)
 s2=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
 
+
+s3=statusarray(df_frame = data.table(oldtest[oldtest$identifier%in%test$identifier]),ages = ages,nstates = nstates)
+s3=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
@@ -296,7 +300,7 @@ saveRDS(cr,"~/multistate2/output/crsmall.rds")
 
 
 ```{r}
-cr=readRDS("../multistate2/output/crsmall.rds")
+cr=readRDS("~/multistate2/output/crsmall.rds")
 cr3=readRDS("~/multistate2/output/cr3.rds")
 pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
@@ -608,7 +612,7 @@ p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
 
 print(p)
 
-saveRDS(p,"~/multistate2/output/continuosums_lifetime_small.rds")
+ggsave(p,file="~/multistate2/output/continuosums_lifetime_small.pdf")
 
 ####
 

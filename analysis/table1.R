@@ -3,7 +3,7 @@
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
 gpc=readRDS("~/Library/CloudStorage/Dropbox-Personal//ukbb-ehr-data/data/gp_event.rds")
 g2=gpc[!duplicated(gpc$eid),]
-
+saveRDS(g2,"~/Library/CloudStorage/Dropbox-Personal/g2.rds")
 pdf("output/barplotyears.pdf")
 barplot(table(year(g2$event_dt)),las=2,xlab="First Measurement Year",ylab="Number of Individuals")
 dev.off()
@@ -16,21 +16,23 @@ a=merge(g2,df_final,by.x="eid",by.y="identifier")
 
 a=data.frame(a)
 a$agerec=difftime(a$event_dt,a$Birthdate,units="day")/365.25
+#a$Durationfollowed=as.numeric(a$Death_Censor_Age)-as.numeric(a$agerec)
 a$Durationfollowed=as.numeric(a$Death_Censor_Age)-as.numeric(a$agerec)
 saveRDS(a,"../output/fortable1.rds")
+summary(a$Durationfollowed)
 
 df_final$cad.prs=scale(df_final$cad.prs)
 
 
 library(table1)
 dat=readRDS("../output/fortable1.rds")
-
-dat=merge(dat,df_ascvd[,c("sample_id","as2")],by.x="eid",by.y = "sample_id",all.x=TRUE)
+dat$Durationfollowed=as.numeric(dat$Death_Censor_Age)-as.numeric(40)
+#dat=merge(dat,df_ascvd[,c("sample_id","as2")],by.x="eid",by.y = "sample_id",all.x=TRUE)
 dat=dat[-which(dat$Cad_0_censor_age<40),]
 dat$agerec=as.numeric(dat$agerec)
 dat$agerec[dat$agerec<18]=18
 dat$f.31.0.0=ifelse(dat$f.31.0.0=="1","Male","Female")
-dat$as2[is.na(dat$as2)]=median(!is.na(dat$as2))
+#dat$as2[is.na(dat$as2)]=median(!is.na(dat$as2))
 dat$Birthdate=year(dat$Birthdate)
 dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
 dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
@@ -46,7 +48,7 @@ label(dat$Ht_0_Any) <- "Develop Hypertension"
 label(dat$Dm_0_Any) <- "Develop Diabetes"
 label(dat$HyperLip_0_Any) <- "Develop Hyperlipidemia"
 label(dat$Cad_0_Any) <- "Develop Coronary Disease"
-label(dat$as2) <- "ASCVD at Enrollment"
+#label(dat$as2) <- "ASCVD at Enrollment"
 label(dat$agerec) <- "Age First Enrolled in NHS"
 label(dat$Durationfollowed) <- "Years Followed"
 
@@ -118,8 +120,9 @@ length(intersect(dfh$identifier,dfascvd$sample_id))
 design <- tibble::tribble(
   ~left,~n_left, ~right,~n_right,
   "Study base with Outcome Data", 502461 ,"Lack QC Genotype, Sex, Birthdate or Smoking information", 20534,
-  "Contain baseline covariates",  481927,    "80% for training", 385541,
-  "Remain for testing", 96386,   "With CAD at baseline or lacking TC, SBP or HDL",   17269,
+  "Contain baseline covariates",  481927, "CAD at baseline", 1289,
+  "CAD Free at 40 for model fit", 480638 , "80% for training", 384510,
+  "Remain for testing", 96127,   "lacking TC, SBP or HDL for comparison with FRS",   17010,
   "Available for testing", 79117 ,  "",  NA_integer_,
  
 )
@@ -132,4 +135,78 @@ e %>%
     read_xml() %>%
     write_xml("../output/flowchart_msgenereal.svg")
   
+###
+
+load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+df_final=dfh
+dim(dfh)
+#dim(lst.harmonized.data$dfukb)[1]-dim(dfh)[1]
+a=merge(g2,df_final,by.x="eid",by.y="identifier",all.y = T)
+
+a=data.frame(a)
+a$agerec=difftime(a$event_dt,a$Birthdate,units="day")/365.25
+a$Durationfollowed=as.numeric(a$Death_Censor_Age)-as.numeric(a$agerec)
+#saveRDS(a,"../output/fortable1.rds")
+
+df_final$cad.prs=scale(df_final$cad.prs)
+
+
+library(table1)
+dat=a
+df_ascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+dat=merge(dat,df_ascvd[,c("sample_id","as2","Race")],by.x="eid",by.y = "sample_id",all.x=T)
+dat=dat[-which(dat$Cad_0_censor_age<40),]
+dat$agerec=as.numeric(dat$agerec)
+dat$agerec[dat$agerec<18]=18
+dat$f.31.0.0=ifelse(dat$f.31.0.0=="1","Male","Female")
+dat$as2[is.na(dat$as2)]=median(!is.na(dat$as2))
+dat$Birthdate=year(dat$Birthdate)
+dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
+dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
+dat$Dm_0_Any=as.factor(ifelse(dat$Dm_0_Any==2,1,0))
+dat$Cad_0_Any=as.factor(ifelse(dat$Cad_0_Any==2,1,0))
+dat$cad.prs.lev=factor(dat$cad.prs.lev,levels = c("low","mid","high"),labels=c("Low","Intermediate","High"))
+dat$gpmemb=ifelse(dat$eid%in%g2$eid,1,0)
+dat$gpmemb=factor(dat$gpmemb,levels = c(0,1),labels = c("Not Member","Member"))
+dat$race=ifelse(dat$Race=="white",1,0)
+dat$Cad_0_censor_age=as.numeric(dat$Cad_0_censor_age)
+dat$Ht_0_censor_age=as.numeric(dat$Ht_0_censor_age)
+dat$HyperLip_0_censor_age=as.numeric(dat$HyperLip_0_censor_age)
+dat$Dm_0_censor_age=as.numeric(dat$Dm_0_censor_age)
+
+library(table1)
+label(dat$f.31.0.0) <- "Sex"
+label(dat$antihtn) <- "Start an anti-Hypertensive"
+label(dat$smoke) <- "Current Smoker"
+label(dat$Ht_0_Any) <- "Develop Hypertension"
+label(dat$Dm_0_Any) <- "Develop Diabetes"
+label(dat$HyperLip_0_Any) <- "Develop Hyperlipidemia"
+label(dat$Cad_0_Any) <- "Develop Coronary Disease"
+label(dat$as2) <- "ASCVD at Enrollment"
+label(dat$agerec) <- "Age First Enrolled in NHS"
+label(dat$Durationfollowed) <- "Years Followed"
+
+
+library(table1)
+label(dat$f.31.0.0) <- "Sex"
+label(dat$antihtn) <- "Start an anti-Hypertensive"
+label(dat$smoke) <- "Current Smoker"
+label(dat$Ht_0_Any) <- "Develop Hypertension"
+label(dat$Dm_0_Any) <- "Develop Diabetes"
+label(dat$HyperLip_0_Any) <- "Develop Hyperlipidemia"
+label(dat$Cad_0_Any) <- "Develop Coronary Disease"
+
+label(dat$Ht_0_censor_age) <- "Age HT"
+label(dat$Dm_0_censor_age) <- "Age DM"
+label(dat$HyperLip_0_censor_age) <- "Age HL"
+label(dat$Cad_0_censor_age) <- "Age CAD"
+
+label(dat$agerec) <- "Age First Enrolled in NHS"
+label(dat$Durationfollowed) <- "Years Followed"
+label(dat$gpmemb) <- "GPDR Members"
+label(dat$race) <- "Proportion White"
+
+f=table1(~ f.31.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+smoke+race|cad.prs.lev, data=dat)
+f=table1(~ f.31.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+smoke+race+Ht_0_censor_age+Cad_0_censor_age+Dm_0_censor_age+HyperLip_0_censor_age|gpmemb, data=dat)
+
 

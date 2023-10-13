@@ -429,6 +429,15 @@ s2=s[c(1:40),,c(1,2,3,4,7,8,9,10)]
 
 ```
 
+```{r}
+mean(s2["40",,"Health"])
+mean(s2["40",,"Ht"])
+mean(s["40",,"Cad"])
+
+
+mean(s2["76",,"Health"])
+mean(s2["40",,"Ht"])
+mean(s["40",,"Cad"])
 ```{r,eval=F}
 # Get dimensions
 num_individuals <- length(rownames(predicted_risks))
@@ -472,6 +481,11 @@ plotfunc=function(patientriskmat,patient,ages){
 }
 
 ```
+
+
+Using our multistate approach MSGene, we describe the overall state distribution across the lifespan in our cohort, normalizing to exclude censoring at each age (Figure 2). At age 40, 94.4% of individuals are in the healthy category, with 4.1% in the hypertensive category and 0.3% with a diagnosis of CAD. By age 76, CAD occupancy peaks at 12.5% of uncensored individuals and health declines to 27.6% of uncensored individuals. Death dominates as a competing risk with time, with 7.4% of individuals having died by age 80. 
+
+# look at h
 
 ```{r}
 cr=readRDS("~/multistate2/output/cr3.rds")
@@ -530,12 +544,12 @@ get_person_summary_plot <- function(pm, s2, person_idx) {
   summary_df$risk_level=as.factor(summary_df$risk_level)
   # Create ggplot
   plot <- ggplot(summary_df, aes(x = Age, y = mean_risk*100,color=as.factor(risk_level))) +
-    geom_point(aes(color = as.factor(risk_level)), size = 3) +
+    geom_point(aes(color = as.factor(risk_level)), size = 3) +scale_color_d3()+
     geom_errorbar(aes(ymin = lower_95*100, ymax = upper_95*100), width = 0.3) +
     
     labs(title = paste("Predicted Risk by Ages for Person", person_idx),
-         y = "Predicted Risk", x = "Age") +
-    theme_classic()
+         y = "Remaining Lifetime Risk (%)", x = "Age",col="Risk Level") +
+    theme_classic(base_size = 20)
 
   return(list(plot,summary_df))
 }

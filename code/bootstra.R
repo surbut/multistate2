@@ -510,10 +510,19 @@ ggsave(mg,file="../output/projectedlifetimerisk.pdf",dpi=600)
 
 
 median(df[df$Var1==40,"Freq"])
+mean(df[df$Var1==40,"Freq"])
+IQR(df[df$Var1==40,"Freq"])
 sd(df[df$Var1==40,"Freq"])
+mean(df[df$Var1==40,"Freq"])+1.96*sd(df[df$Var1==40,"Freq"])
 
-median(df[df$Var1==79,"Freq"])
+mean(df[df$Var1==40,"Freq"])-1.96*sd(df[df$Var1==40,"Freq"])
+
+mean(df[df$Var1==79,"Freq"])
+IQR(df[df$Var1==79,"Freq"])
 sd(df[df$Var1==79,"Freq"])
+
+mean(df[df$Var1==79,"Freq"])+1.96*sd(df[df$Var1==79,"Freq"])
+mean(df[df$Var1==79,"Freq"])-1.96*sd(df[df$Var1==79,"Freq"])
 
 ggplot(df, aes(x = Freq, y = as.factor(Var1), fill = ..x..)) +
 geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
@@ -625,6 +634,7 @@ ga=ggarrange(p1,p3[[1]],o,common.legend = T,ncol =3,nrow =1)
 ggsave(ga,file="../output/predictedrisksfor5021941.pdf",width = 18,units = "in")
 
 
+ggsave(p1,file="../output/predictedrisksfor5021941_one.pdf",width = 18,units = "in")
 
 pmidx="5021917"
 p1=plot_risk_for_person(pm,pmidx)
