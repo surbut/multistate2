@@ -1,7 +1,8 @@
-### welcome to MSGene, now an R package on github
+### welcome to MSGene, now an R package on github via devtools
 ## for vignette, Rpackage, and installation, please see 
-## https://surbut.github.io/MSGene/testscript.html
-## devtools::install_github("surbut/MSGene")
+### https://github.com/surbut/MSGene/blob/main/README.md
+##  https://surbut.github.io/MSGene/testscript.html
+## 
 
 
 ### here we provide the code for creating the model fit and a sample script for using MSGene
