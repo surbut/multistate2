@@ -1,3 +1,4 @@
+
 fitfunc = function(df_frame, ages, nstates, mode,covariates) {
   nar = array(
     data = NA,
@@ -1202,4 +1203,167 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
 fitfunc2=function(df_frame,ages,nstates,mode,covariates){
   suppressWarnings(fitfunc(df_frame,ages,nstates,mode,covariates))
 }
+
+
+# ### to use
+# 
+# 
+# 
+# source("~/dynamichr/code/utils.R")
+# source("~/multistate2//code/smoothtest.R")
+# source("~/multistate2//code/newsmooth.R")
+# source("~/multistate2/code/fitarray.R")
+# library("reshape2")
+# source("~/multistate2/code/arrayindicate.R")
+# 
+# ## training data: ask for access 
+# 
+# load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+# train=dfh[1:(nrow(dfh)*0.80),]
+# ages=c(40:80)
+# nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+# 
+# modelfit = fitfunc2(
+# data.table(train),
+# ages = ages,
+# nstates = nstates,
+# mode = "binomial",
+# covariates = "cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+# 
+# ### now compute projection from healthy state for example, for a sample 40 year old
+# 
+# a = coefplotsmooth2(
+#   ages = ages,
+#   start = nstates[1],
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# healthy_coefs = a$custom_smooth
+# 
+# ## create sample matrix
+# 
+# intercept=1
+# cad.prs=c(-2,-1,0,1,2)
+# sex=c(0,1)
+# smoke=c(0,1)
+# antihtn_now=c(0,1)
+# statin_now=c(0,1)
+# atrisk=expand.grid(intercept,cad.prs,sex,smoke,antihtn_now,statin_now)
+# 
+# 
+# mso = compute_prediction_product_matrix(
+# coefmat = healthy_coefs,
+# atrisk = atrisk,
+# agepredinterval = c(40:80)
+# )
+# 
+# # remaining lifetime risk matrix starting from each 40
+# 
+# mso$PredictedIntervalrisk
+# 
+# # remaining lifetime risk matrix under treatment starting from 40
+# 
+# mso$Hazard_treated
+# 
+# 
+# 
+# ### can be repeated over all states by changing start state and extracting coefficients, 
+### can be computed for any age by changing age predinterval
+# 
+# 
+ 
+# b = coefplotsmooth2(
+#   ages = ages,
+#   start = "Ht",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 30,
+#   span = 0.75,
+#   degree = 2
+# )
+# ht_coefs = b$custom_smooth
+# 
+# c = coefplotsmooth2(
+#   ages = ages,
+#   start = "HyperLip",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# hyperlip_coefs = c$custom_smooth
+# 
+# d = coefplotsmooth2(
+#   ages = ages,
+#   start = "Dm",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# dm_coefs = d$custom_smooth
+# 
+# 
+# e = coefplotsmooth2(
+#   ages = ages,
+#   start = "Ht&HyperLip",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# HH_coefs = e$custom_smooth
+# 
+# f = coefplotsmooth2(
+#   ages = ages,
+#   start = "HyperLip&Dm",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# HD_coefs = f$custom_smooth
+# 
+# g = coefplotsmooth2(
+#   ages = ages,
+#   start = "Ht&Dm",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# TD_coefs = g$custom_smooth
+# 
+# h = coefplotsmooth2(
+#   ages = ages,
+#   start = "Ht&HyperLip&Dm",
+#   stop = "Cad",
+#   modelfit = modelfit,
+#   window_width = 20,
+#   span = 0.75,
+#   degree = 2
+# )
+# 
+# HHD_coefs = h$custom_smooth
+# 
+# coeflist = list(
+#   healthy_coefs,
+#   ht_coefs,
+#   hyperlip_coefs,
+#   dm_coefs,
+#   HH_coefs,
+#   HD_coefs,
+#   TD_coefs,
+#   HHD_coefs
+# )
+# 
+
 
