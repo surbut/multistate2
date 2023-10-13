@@ -102,6 +102,7 @@ thresh=10;
 #   w=which(x>thresh)
 #   ifelse(length(w)>0,min(agesint[w]),100)})
 
+thresh=20
 thirty=apply(ascvd.30.year,1,function(x){
   w=which(x>thresh)
   ifelse(length(w)>0,min(agesint[w]),100)})
@@ -110,7 +111,7 @@ thirty=apply(ascvd.30.year,1,function(x){
 ### this is the data frame with approportiate score
 states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
 ages=c(40:80)
-thresh=0.10;
+thresh=0.20;
 t=sapply(1:length(states),function(x){w=which(states[[x]]>thresh);ifelse(length(w)>0,min(ages[w]),100)})
 
 df=data.frame("id"=test$identifier,"Cad_0_Any"=test$Cad_0_Any,"Cad_0_censor_age"=test$Cad_0_censor_age,"sex"=test$f.31.0.0,"prs"=test$cad.prs,"ten"=ten,"thirty"=thirty,"ms"=t)
@@ -121,7 +122,7 @@ p <- ggplot(data, aes(x = t_val)) +
 geom_histogram(bins = length(ages) - 1, fill = "red", color = "black", alpha = 0.7, aes(y =after_stat(density))) +
 labs(title = "Histogram of Age Exceeding Risk: MSGene LT",
 x = "Value of t",
-y = "Density")+theme_classic()+lims(y=c(0,0.30))
+y = "Density")+theme_classic()
 
 
 data <- data.frame(t_val = ten)
@@ -223,9 +224,9 @@ bootstrap_cindex <- function(fit_function, data, n_iter=10) {
 
 # Fit functions for score1 and score2
 fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
-fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
+fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data[data$stop<(data$start+30),])
 
-fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data)
+fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data[data$stop<(data$start+30),])
 
 # Bootstrap C-index
 
@@ -241,7 +242,7 @@ ci_score2 <- c(results_score2$mean - 1.96*results_score2$se, results_score2$mean
 library(ggplot2)
 
 (df_cindex <- data.frame(
-  Score = c("MSGene","30 Year"),
+  Score = c("MSGene","30 Year","10year"),
   Cindex = c(results_score2$mean,results_score1$mean),
   ymin = c(ci_score2[1], ci_score1[1]),
   ymax = c(ci_score2[2], ci_score1[2])
@@ -294,9 +295,10 @@ Now do for continous variable brier score:
 
 # Fit functions for score1 and score2
 fit_function_score1 <- function(data) coxph(Surv(start, stop, event) ~ score1, data = data)
-fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data = data)
+fit_function_score2 <- function(data) coxph(Surv(start, stop, event) ~ score2, data)
+#[data$stop<=(data$start+30),])
 
-fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data)
+fit_function_score3 <- function(data) coxph(Surv(start, stop, event) ~ score3, data = data[data$stop<=(data$start+10),])
 
 df=test
 score1_list=states
@@ -315,7 +317,7 @@ names(states)=df$identifier
 score2=ascvd.30.year.rc
 rownames(score2)=df$identifier
 
-score3=ascvd.30.year
+score3=pce.reverse.tenyear
 rownames(score3)=df$identifier
 df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
 df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
@@ -402,10 +404,10 @@ ci_score3 <- c(results_score3$mean - 1.96*results_score3$se, results_score3$mean
 library(ggplot2)
 
 (df_cindex <- data.frame(
-  Score = c( "MSGene","30 Year"),
-  Cindex = c(results_score1$mean, results_score2$mean),
-  ymin = c(ci_score1[1], ci_score2[1]),
-  ymax = c(ci_score1[2], ci_score2[2])
+  Score = c( "MSGene","30 Year","Ten Year"),
+  Cindex = c(results_score1$mean, results_score2$mean,results_score3$mean),
+  ymin = c(ci_score1[1], ci_score2[1],ci_score3[1]),
+  ymax = c(ci_score1[2], ci_score2[2],ci_score3[2])
 ))
 
 p <- ggplot(df_cindex, aes(x = Score, y = Cindex,fill=Score)) +
