@@ -1,7 +1,7 @@
 ### welcome to MSGene, now an R package on github via devtools
 ## for vignette, Rpackage, and installation, please see 
 ### https://github.com/surbut/MSGene/blob/main/README.md
-##  https://surbut.github.io/MSGene/testscript.html
+##  https://surbut.github.io/MSGene/vignette.html
 ## 
 
 
