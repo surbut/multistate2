@@ -7,7 +7,8 @@
 
 ### here we provide the code for creating the model fit and a sample script for using MSGene
 ### here we demonstrate the maiin function
-## access to training data from UKB available by request, surbut@mgh.harvard.edu
+## access to training data from UKB available by request with IRB UKB permision
+## email surbut@mgh.harvard.edu
 #################################################################################
 fitfunc = function(df_frame, ages, nstates, mode,covariates) {
   nar = array(
