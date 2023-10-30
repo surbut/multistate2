@@ -438,6 +438,7 @@ mean(s["40",,"Cad"])
 mean(s2["76",,"Health"])
 mean(s2["40",,"Ht"])
 mean(s["40",,"Cad"])
+
 ```{r,eval=F}
 # Get dimensions
 num_individuals <- length(rownames(predicted_risks))
