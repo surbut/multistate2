@@ -289,7 +289,7 @@ $(document).ready(function () {
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+workflowr <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span>
 </button>
 </p>
@@ -300,8 +300,8 @@ aria-hidden="true"></span>
 </li>
 <li>
 <a data-toggle="tab" href="#checks"> Checks <span
-class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> </a>
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -314,9 +314,9 @@ aria-hidden="true"></span> </a>
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 1
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>multistate2/</code> <span
@@ -339,36 +339,33 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges"
+<div id="strongRMarkdownfilestronguptodate"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of
-the R Markdown file created these results, you’ll want to first commit
-it to the Git repo. If you’re still working on the analysis, you can
-ignore this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree890bf66feda982ebbb7e266c5b4ce96d621700b0targetblank890bf66a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeeb6a34a3d04d99677d5352d7f42315eb68906210targetblankeb6a34aa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/890bf66feda982ebbb7e266c5b4ce96d621700b0" target="_blank">890bf66</a>
+<a href="https://github.com/surbut/multistate2/tree/eb6a34a3d04d99677d5352d7f42315eb68906210" target="_blank">eb6a34a</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree890bf66feda982ebbb7e266c5b4ce96d621700b0targetblank890bf66a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeeb6a34a3d04d99677d5352d7f42315eb68906210targetblankeb6a34aa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -378,7 +375,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/890bf66feda982ebbb7e266c5b4ce96d621700b0" target="_blank">890bf66</a>.
+<a href="https://github.com/surbut/multistate2/tree/eb6a34a3d04d99677d5352d7f42315eb68906210" target="_blank">eb6a34a</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -400,31 +397,6 @@ Ignored files:
     Ignored:    lesliepics/.DS_Store
     Ignored:    output/
     Ignored:    plots/.DS_Store
-
-Untracked files:
-    Untracked:  Figure3.Rmd
-    Untracked:  analysis/Fig1_proportionmap.Rmd
-    Untracked:  analysis/Fig1_proportionmap.textClipping
-    Untracked:  analysis/Figure3.Rmd
-    Untracked:  analysis/Figure3.nb.html
-    Untracked:  analysis/Figure4.Rmd
-    Untracked:  analysis/Figure5.Rmd
-    Untracked:  analysis/massive_cache/
-    Untracked:  creting.R
-    Untracked:  plotsfortaks/cadage.pdf
-    Untracked:  plotsfortaks/statage_ecdf.pdf
-    Untracked:  slide6.png
-
-Unstaged changes:
-    Modified:   analysis/.Rhistory
-    Modified:   analysis/Untitled.R
-    Modified:   analysis/index.Rmd
-    Modified:   analysis/massive.Rmd
-    Modified:   analysis/missing_code.tsv
-    Modified:   analysis/predicted_risks.Rmd
-    Modified:   analysis/survcumten.Rmd
-    Modified:   analysis/table1.R
-    Modified:   code/plotting_code.R
 
 </code></pre>
 <p>
@@ -469,6 +441,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/analysis/index.Rmd" target="_blank">14698de</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-13
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/index.html" target="_blank">14698de</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-13
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
