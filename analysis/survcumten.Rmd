@@ -15,33 +15,28 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
+##code and packages
 source("~/dynamichr/code/utils.R")
-source("~/multistate2//code/smoothtest.R")
-source("~/multistate2//code/newsmooth.R")
-source("~/multistate2/code/fitarray.R")
-library("reshape2")
-source("~/multistate2/code/arrayindicate.R")
+source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
+source("~/multistate2/code/plotting_code.R")
+library(CVrisk)
+library(RColorBrewer)
 
-load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
-dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
-dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
-# Relabel the levels of the interaction variable
-levels(dfh$int) <- c(1,2,3,4,5,6)
-agesint = c(40:79)
-
-train=dfh[1:(nrow(dfh)*0.80),]
-
+## load datasets
+test=readRDS("~/multistate2/output/test.rds")
 dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
-test=dfh[!(dfh$identifier%in%train$identifier),]
 test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
 test$ascvd_10y_accaha=test$as2
 test$phenos.enrollment=test$f.21003.0.0
 test=data.table(test)
-source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
-library(CVrisk)
+```
+
+
+Indicate variables of interest
+
+```{r}
 ages=c(40:80)
 nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
-
 
 modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
 
@@ -67,204 +62,6 @@ library(ggplot2)
 
 
 
-tenlb = function(start,
-                 stop,
-                 modelfit,
-                 agesmooth,
-                 agesint,
-                 atrisk,
-                 window_width = 20,
-                 span = 0.75,
-                 degree = 2,
-                 prs_quants) {
-  mat = coefplotsmooth2(
-    agesmooth,
-    start,
-    stop,
-    modelfit,
-    window_width = window_width,
-    span = span,
-    degree = degree
-  )$custom_smooth
-  ten.year = matrix(NA,
-                    nrow = length(agesint),
-                    ncol = length(prs_quants) * 2)
-  ten.year.ben = matrix(NA,
-                        nrow = length(agesint),
-                        ncol = length(prs_quants) * 2)
-  lifetime = matrix(NA,
-                    nrow = length(agesint),
-                    ncol = length(prs_quants) * 2)
-  lifetime.ben = matrix(NA,
-                        nrow = length(agesint),
-                        ncol = length(prs_quants) * 2)
-  
-  for (i in 1:length(agesint)) {
-    age = agesint[i]
-    ten.year[i, ] = compute_prediction_product_matrix(
-      atrisk = atrisk,
-      agepredinterval = c(age:min(age + 10, 80)),
-      coefmat = mat
-    )$PredictedIntervalrisk
-    ten.year.ben[i, ] = compute_prediction_product_matrix(
-      atrisk = atrisk,
-      agepredinterval = c(age:min(age + 10, 80)),
-      coefmat = mat
-    )$Hazard_treated
-    
-    lifetime[i, ] = compute_prediction_product_matrix(
-      atrisk = atrisk,
-      agepredinterval = c(age:(80)),
-      coefmat = mat
-    )$PredictedIntervalrisk
-    lifetime.ben[i, ] = compute_prediction_product_matrix(
-      atrisk = atrisk,
-      agepredinterval = c(age:(80)),
-      coefmat = mat
-    )$Hazard_treated
-  }
-  
-  ten.year = data.frame(ten.year) * 100
-  lifetime = data.frame(lifetime) * 100
-  lifetime.ben = data.frame(lifetime.ben) * 100
-  ten.year.ben = data.frame(ten.year.ben) * 100
-  
-  e = length(prs_quants)
-  rownames(ten.year) = rownames(ten.year.ben) = agesint
-  colnames(ten.year) = colnames(ten.year.ben) = paste0(rep(round(prs_quants, 1), 2), ":", rep(c("female", "male"), each =
-                                                                                                e))
-  ten.year$age = ten.year.ben$age = agesint
-  
-  rownames(lifetime) = rownames(lifetime.ben) = agesint
-  colnames(lifetime) = colnames(lifetime.ben) = paste0(rep(round(prs_quants, 1), 2), ":", rep(c("female", "male"), each =
-                                                                                                e))
-  lifetime$age = lifetime.ben$age = agesint
-  
-  
-  lookup_table <- data.frame(melt(ten.year, id.vars = c("age")))
-  lookup_table_treat <-
-    data.frame(melt(ten.year.ben, id.vars = c("age")))
-  
-  df <-
-    inner_join(lookup_table, lookup_table_treat, by = c("age", "variable"))
-  # colors <- c("darkred", "red", "lightcoral", "darkblue", "blue", "lightblue")
-  # 
-  # 
-
-
-  d = df[, c(1, 2, 3, 4)]
-  colnames(d) = c("year", "strata", "untreated_risk", "treated_risk")
-  
-  
-  gtentreat = ggplot(d, aes(x = year)) +
-    geom_ribbon(aes(
-      ymin = treated_risk,
-      ymax = untreated_risk,
-      fill = strata
-    ),
-    alpha = 0.3) +
-    geom_line(aes(
-      y = treated_risk,
-      color = strata,
-      linetype = "treated"
-    )) +
-    geom_line(aes(
-      y = untreated_risk,
-      color = strata,
-      linetype = "untreated"
-    )) +
-    labs(
-      
-      x = "Age",
-      y = "Predicted Ten year risk (%)",
-      fill = "Strata",
-      color = "Strata",
-      linetype = "Strategy"
-    ) +
-    theme_classic()
-  
-  
-  
-  
-  
-  names(lookup_table)[3] = "ten.year"
-  gten = ggplot(lookup_table, aes(age, y = ten.year, color = as.factor(variable))) +
-    stat_smooth() + labs(
-      x = "Age",
-      y = paste0("Ten Year Risk from ", start, " to ", stop),
-      col = "PRS:Sex"
-    )
-  
-  
-  
-  lookup_table2 <- data.frame(melt(lifetime, id.vars = c("age")))
-  lookup_table2$strategy = rep("untreated_risk", nrow(lookup_table))
-  lookup_table_treat2 <-
-    data.frame(melt(lifetime.ben, id.vars = c("age")))
-  lookup_table_treat2$strategy = rep("treated_risk", nrow(lookup_table_treat2))
-  
-  df_long_me = rbind(lookup_table2, lookup_table_treat2)
-  df <-
-    inner_join(lookup_table2, lookup_table_treat2, by = c("age", "variable"))
-  
-  
-  d = df[, c(1, 2, 3, 5)]
-  colnames(d) = c("year", "strata", "untreated_risk", "treated_risk")
-  # gltreat = ggplot(d, aes(x = year)) +
-  #   geom_ribbon(aes(
-  #     ymin = treated_risk,
-  #     ymax = untreated_risk,
-  #     fill = strata
-  #   ),
-  #   alpha = 0.3) +
-  #   geom_line(aes(
-  #     y = treated_risk,
-  #     color = strata,
-  #     linetype = "treated"
-  #   )) +
-  #   geom_line(aes(
-  #     y = untreated_risk,
-  #     color = strata,
-  #     linetype = "untreated"
-  #   )) +
-  #   scale_fill_gradientn(colors = colorRampPalette(c("blue", "red"))(10)) +
-  #   labs(
-  #     title = "Predicted Lifetime Risk Curves",
-  #     x = "Age",
-  #     y = "Risk",
-  #     fill = "Strata",
-  #     color = "Strata",
-  #     linetype = "Strategy"
-  #   ) +
-  #   theme_classic()
-
-  
-    gltreat <- ggplot(d, aes(x=year)) +
-  geom_ribbon(aes(ymin=treated_risk, ymax=untreated_risk, fill=strata), alpha=0.3) +
-  geom_line(aes(y=treated_risk, color=strata, linetype="treated")) +
-  geom_line(aes(y=untreated_risk, color=strata, linetype="untreated"))+
-  labs(x="Age", y="Predicted Lifetime Risk (%)", fill="Strata", color="Strata", linetype="Strategy") +
-  theme_classic()
-  
-
-  
-  names(lookup_table2)[3] = "lifetime"
-  glife = ggplot(lookup_table2, aes(age, y = lifetime, color = as.factor(variable))) +
-    stat_smooth() + labs(
-      x = "Age",
-      y = paste0("Lifetme Risk from ", start, " to ", stop),
-      col = "PRS:Sex"
-    )
-  
-  return(
-    list(
-      "tenplot" = gten,
-      "lifeplot" = glife,
-      "gtentreat" = gtentreat,
-      "lifetreat" = gltreat
-    )
-  )
-}
 
 
 ten=tenlb(start="Health",stop="Cad",modelfit = modelfit,agesmooth = c(40:80),prs_quants=prs_quants,agesint = c(40:70),atrisk = ar,window_width = 20,span = 0.75,degree = 2)$gtentreat
@@ -282,8 +79,9 @@ l=tenlb(start="Health",
                   agesint = c(40:79),
                   atrisk = ar,window_width = 20,span = 0.75,degree = 2)$lifetreat
 
+
 install.packages("RColorBrewer")
-library(RColorBrewer)
+
 
     
 d=l$data
@@ -343,10 +141,16 @@ gltreat <- ggplot(d, aes(x=year)) +
 
 gltreat
 
+###
 ggsave(gltreat+theme_classic(base_size = 20),file="../output/lifewithtreat.pdf",dpi=600,width = 10)
 gltreat
+
+
+
 # We compare this to FRS30 projections3 and note that while remaining lifetime risk declines with age, the extended fixed window approach shows monotonically increasing risk across genetic strata, from 13.4% for a high genetic-risk male in our cohort at age 40 to 33.0% at age 70 using the recalibrated measure (Figure 2b) and 31.1% to 65.7% using the original FRS equation. When imputing RCT benefit (Equation 2), predicted absolute risk for a high-genetic-risk male declines by 4.12% to 18.7% (18.69-18.71%) over the 40-year span when compared to 1.96% (from 10.21% to 8.25%) at age 70. 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                              df_mean[df_mean$score==6&df_mean$variable==40,]
+                                                                                                                                                       df_mean[df_mean$score==6&df_mean$variable==70,]                                     
+                                                                                                                                                              
 # ### l$data[l$data$year==40,]
 #     year      strata untreated_risk treated_risk
 # 1     40 -1.4:female       3.895290     3.127979

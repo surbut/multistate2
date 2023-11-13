@@ -1,0 +1,58 @@
+---
+title: "Figure1_proportionmap"
+output: html_document
+date: "2023-11-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning =FALSE,message = FALSE)
+source("~/multistate2/code/arrayindicate.R")
+source("~/multistate2/code/utils.R")
+```
+
+## Plot the proportional occupancy
+
+* Read in our test data frame
+* Create the state array
+* Extract the proportional occupancy for each state
+
+
+```{r cars}
+
+ages = c(40:80)
+nstates = c(
+  "Health",
+  "Ht",
+  "HyperLip",
+  "Dm",
+  "Cad",
+  "death",
+  "Ht&HyperLip",
+  "HyperLip&Dm",
+  "Ht&Dm",
+  "Ht&HyperLip&Dm"
+)
+test = readRDS("~/multistate2/output/test.rds")
+s = statusarray(df_frame = data.table(test),
+                ages = ages,
+                nstates = nstates)
+s2 = s[c(1:40), , c(1, 2, 3, 4, 7, 8, 9, 10)]
+h = apply(s[, , c(1:10)], 3, function(x) {
+  colSums(t(x))
+})
+h = apply(h, 1, function(x) {
+  x / sum(x)
+})
+h = t(h)
+melt = melt(h)
+g = ggplot(melt[!(melt$Var2 %in% "out"), ], aes(Var1, value, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Age", y = "Proportional Occupancy", fill = "Current State") +
+  scale_fill_d3()
+```
+
+
+# produce plot
+```{r pressure, echo=FALSE}
+g
+```

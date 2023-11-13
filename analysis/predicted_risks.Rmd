@@ -645,6 +645,11 @@ plot_data <- data %>%
   mutate(ecdf_val = ecdf(cad.prs)(cad.prs))
 
 
+# Prepare data for plotting
+plot_data2 <- data %>%
+  group_by(age_category) %>%
+  arrange(cad.prs)
+
 
 statage = ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)) +
   geom_step(size = 1.5) +  # Setting the line size for the plot
@@ -652,8 +657,7 @@ statage = ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category)
        x = "PRS",
        y = "eCDF",
        color = "First Age (prescription or diagnosis)") + scale_color_aaas() +
-  theme_classic(base_size = 20) +
-  guides(color = guide_legend(override.aes = list(size = 1.5)))  # Setting the line size for the legend
+  theme_classic(base_size = 20) + theme(legend.position = "none")
 
 
 ###
@@ -692,12 +696,10 @@ cadage = ggplot(plot_data, aes(x = cad.prs, y = ecdf_val, color = age_category))
   labs(title = "eCDF of PRS by CAD Diag Age",
        x = "PRS",
        y = "eCDF",
-       color = "First Age (prescription or diagnosis)") + scale_color_aaas() +
-  theme_classic(base_size = 20) +
-  guides(color = guide_legend(override.aes = list(size = 1.5)))  # Setting the line size for the legend
+       color = "First Age (prescription or diagnosis)") + scale_color_aaas() + theme_classic(base_size = 20) + theme(legend.position = "none") +guides(color = guide_legend(override.aes = list(size = 1.5)))  # Setting the line size for the legend
 
 
-g=ggarrange(statage,cadage,common.legend = T)
+g=ggarrange(statage,cadage)
 ggsave(g,file="../output/ecdf.pdf")
 library(dplyr)
 

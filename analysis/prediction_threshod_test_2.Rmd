@@ -197,7 +197,7 @@ list_dt <- lapply(1:nrow(df), function(i) {
 
 df_expanded <- rbindlist(unlist(list_dt, recursive = FALSE))
 
-
+## left censor for calculation
 df_expanded=df_expanded[df_expanded$start>=df_expanded$enroll,]
 
 library(survival)
@@ -306,7 +306,7 @@ ggsave(ggarrange(p2,p3,p,cp,nrow=1,ncol=4),file="../output/thresholdexceededlong
 
 
 
-Now do for continous variable brier score:
+Now do for continous variable 
 
 
 ```{r}

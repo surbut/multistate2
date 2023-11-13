@@ -1,0 +1,150 @@
+---
+title: "Figure5"
+output: html_document
+date: "2023-11-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
+```
+
+## R Markdown
+
+We fit the model and plot the ten year versus lifetime absolute risk reduction for inddividuals starting from health.
+
+```{r livesaved}
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
+source("~/multistate2/code/fitarray.R")
+library("reshape2")
+source("~/multistate2/code/arrayindicate.R")
+source("~/multistate2//code/utils.R")
+source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
+source("~/multistate2/code/plotting_code.R")
+
+library(ggplot2)
+library(ggridges)
+detach("package:plyr", unload = TRUE)
+detach("package:reshape", unload = TRUE)
+
+load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) <- c(1,2,3,4,5,6)
+train=dfh[1:(nrow(dfh)*0.80),]
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+
+
+
+ages = c(40:80)
+nstates = c(
+  "Health",
+  "Ht",
+  "HyperLip",
+  "Dm",
+  "Cad",
+  "death",
+  "Ht&HyperLip",
+  "HyperLip&Dm",
+  "Ht&Dm",
+  "Ht&HyperLip&Dm"
+)
+ages=40:80
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+coefs=b$custom_smooth
+
+prs_quants=qnorm(c(seq(0.1,0.9,by=0.1)))
+
+prs_quants=c(-2:2)
+
+sex=c(0,1)
+
+atrisk=expand.grid(intercept=1,prs_quants=prs_quants,sex=sex,smoke=c(0,1),ah=c(0,1),stat=c(0,1))
+
+ar=atrisk[atrisk$ah==0&atrisk$smoke==0&atrisk$stat==0,]
+agesint=seq(40,70,by=5)
+
+
+tenlifarray=array(NA,dim=c(length(agesint),nrow(ar),4))
+dimnames(tenlifarray)=list(agesint,levels(interaction(prs_quants,sex)),c("Ten","Lifetime","TenBenefit","LifetimeBenefit"))
+
+
+for(g in 1:length(agesint)){
+  age=agesint[g]
+  
+  tenlifarray[g,,1]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:(age+10),coefmat = coefs,RR = 0.80)$PredictedIntervalrisk
+
+  tenlifarray[g,,2]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:80,coefmat = coefs,RR = 0.80)$PredictedIntervalrisk
+  
+  tenlifarray[g,,3]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:(age+10),coefmat = coefs,RR = 0.80)$Hazard_treated
+  
+  tenlifarray[g,,4]=compute_prediction_product_matrix(atrisk = ar,agepredinterval = age:80,coefmat = coefs,RR = 0.80)$Hazard_treated
+  
+}
+
+netben=tenlifarray[,,"Lifetime"]-tenlifarray[,,"LifetimeBenefit"]
+ben=melt(netben)
+ben2=melt(tenlifarray[,c(6:10),"LifetimeBenefit"])
+ten=melt(tenlifarray[,c(6:10),"Ten"])
+l=melt(tenlifarray[,c(6:10),"Lifetime"])
+
+mer=merge(ten,l,by=c("Var1","Var2"))
+mer=merge(mer,ben,by=c("Var1","Var2"))
+
+# colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+# mer$`PRS Category`=factor(mer$`PRS Category`,labels = c(0.01,seq(0.1,0.9,by=0.1),0.99))
+# mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
+colnames(mer)=c("Age","PRS Category","Ten Year","Lifetime","Net Ben")
+mer$`PRS Category`=factor(mer$`PRS Category`,labels = -2:2)
+mermelt=melt(mer,id.vars=c("Age","PRS Category"))
+
+# tenlifarray[,c("2.1","-2.1"),"Ten"]
+# 
+# netben[,c("2.1","-2.1")]
+## dot point
+
+g2=ggplot(mer,aes(`Ten Year`*100,y = `Net Ben`*100,ymin=`Net Ben`+0.1,ymax=`Net Ben`+0.1,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+theme_classic(base_size = 20)+labs(x="MS Predicted Ten Year Risk (%)",y="MS Lifetime Benefit (% ARR)",color="PRS SD")
+
+g2
+# ggsave(plot = g1,filename = "../output/MStenvsMslifesaturn.pdf",dpi=300,height = 4,width = 6)
+```
+
+
+## Now lifetime versus absolute risk reduction
+
+```{r}
+
+mg=ggplot(mer[mer$Age%in%c(40,50,60,70),],aes(`Lifetime`*100,y = 100*`Net Ben`,ymin=100*`Net Ben` -0.1,ymax=100*`Net Ben`+0.1,color=`PRS Category`,group=`Age`))+geom_point()+geom_pointrange()+geom_line(size=1.5)+facet_wrap(~Age,nrow =4)+theme_classic(base_size = 20)+labs(x="MS Predicted Lifetime Risk (%)",y="MS Lifetime Benefit (% ARR)",color="PRS SD")
+
+mg
+
+```
+
+
+Now marginalized across all states and covariate profiles:
+
+```{r}
+
+untreated=readRDS("output/predictedrsiskboot_fixed.rds")
+treated=readRDS("output/predictedrsiskboot_fixed_benefit.rds")
+
+
+# Assuming `array1` is predicted risk and `array2` is risk under treatment
+diff_array <- untreated[,,,] - treated[,,,] 
+#diff_array <- untreated[,c(1:20),,] - treated[,c(1:20),,] 
+df <- as.data.frame(as.table(apply(diff_array, c(3,4), mean)))
+
+ggplot(df, aes(x = Freq*100, y = as.factor(Var1), fill = ..x..)) +
+geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+theme_ridges() +
+labs(x = "Mean Difference in Risk", y = "Years")
+
+```
+
+

@@ -26,6 +26,17 @@ df_final$cad.prs=scale(df_final$cad.prs)
 
 library(table1)
 dat=readRDS("../output/fortable1.rds")
+df_ascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+dat=merge(dat,df_ascvd[,c("sample_id","Race")],by.x="eid",by.y = "sample_id",all.x=T)
+
+dat$gpmemb=ifelse(dat$eid%in%g2$eid,1,0)
+dat$gpmemb=factor(dat$gpmemb,levels = c(0,1),labels = c("Not Member","Member"))
+dat$race=as.numeric(ifelse(dat$Race=="white",1,0))
+dat$smoke=as.factor(dat$smoke)
+dat$gpm=as.factor(dat$gpmemb)
+
+dat$cad.prs=scale(dat$cad.prs)
+dat$cad.prs.lev=cut(dat$cad.prs,breaks = c(-10,qnorm(0.20),qnorm(0.80),10),labels=c("Low","Intermediate","High"))
 dat$Durationfollowed=as.numeric(dat$Death_Censor_Age)-as.numeric(40)
 #dat=merge(dat,df_ascvd[,c("sample_id","as2")],by.x="eid",by.y = "sample_id",all.x=TRUE)
 dat=dat[-which(dat$Cad_0_censor_age<40),]
@@ -38,8 +49,8 @@ dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
 dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
 dat$Dm_0_Any=as.factor(ifelse(dat$Dm_0_Any==2,1,0))
 dat$Cad_0_Any=as.factor(ifelse(dat$Cad_0_Any==2,1,0))
-dat$cad.prs.lev=factor(dat$cad.prs.lev,levels = c("low","mid","high"),labels=c("Low","Intermediate","High"))
-
+dat$smoke=as.factor(dat$smoke)
+dat
 library(table1)
 label(dat$f.31.0.0) <- "Sex"
 label(dat$antihtn) <- "Start an anti-Hypertensive"
@@ -54,7 +65,7 @@ label(dat$Durationfollowed) <- "Years Followed"
 
 
 
-f=table1(~ f.31.0.0 + agerec+Durationfollowed+Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+antihtn+smoke|cad.prs.lev, data=dat)
+f=table1(~ f.31.0.0 + agerec+Durationfollowed+Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+antihtn+smoke+race+gpmemb|cad.prs.lev, data=dat)
 
 library(xtable)
 
@@ -154,25 +165,33 @@ df_final$cad.prs=scale(df_final$cad.prs)
 library(table1)
 dat=a
 df_ascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
-dat=merge(dat,df_ascvd[,c("sample_id","as2","Race")],by.x="eid",by.y = "sample_id",all.x=T)
+dat$cad.prs=scale(dat$cad.prs)
+g2=readRDS("~/multistate2/output//g2.rds")
+dat$cad.prs.lev=cut(dat$cad.prs,breaks = c(-10,qnorm(0.20),qnorm(0.80),10),labels=c("Low","Intermediate","High"))
+dat$Durationfollowed=as.numeric(dat$Death_Censor_Age)-as.numeric(40)
+#dat=merge(dat,df_ascvd[,c("sample_id","as2")],by.x="eid",by.y = "sample_id",all.x=TRUE)
 dat=dat[-which(dat$Cad_0_censor_age<40),]
 dat$agerec=as.numeric(dat$agerec)
 dat$agerec[dat$agerec<18]=18
 dat$f.31.0.0=ifelse(dat$f.31.0.0=="1","Male","Female")
-dat$as2[is.na(dat$as2)]=median(!is.na(dat$as2))
+#dat$as2[is.na(dat$as2)]=median(!is.na(dat$as2))
 dat$Birthdate=year(dat$Birthdate)
 dat$Ht_0_Any=as.factor(ifelse(dat$Ht_0_Any==2,1,0))
 dat$HyperLip_0_Any=as.factor(ifelse(dat$HyperLip_0_Any==2,1,0))
 dat$Dm_0_Any=as.factor(ifelse(dat$Dm_0_Any==2,1,0))
 dat$Cad_0_Any=as.factor(ifelse(dat$Cad_0_Any==2,1,0))
-dat$cad.prs.lev=factor(dat$cad.prs.lev,levels = c("low","mid","high"),labels=c("Low","Intermediate","High"))
+dat$smoke=as.factor(dat$smoke)
+
+dat=merge(dat,df_ascvd[,c("sample_id","Race")],by.x="eid",by.y = "sample_id",all.x=T)
+#dat=dat[-which(dat$Cad_0_censor_age<40),]
+dat$Race=as.factor(dat$Race)
+dat$Race[is.na(dat$Race)]="white"
+dat$race=as.numeric(ifelse(dat$Race=="white",1,0))
+dat$race=as.factor(dat$race)
 dat$gpmemb=ifelse(dat$eid%in%g2$eid,1,0)
 dat$gpmemb=factor(dat$gpmemb,levels = c(0,1),labels = c("Not Member","Member"))
-dat$race=ifelse(dat$Race=="white",1,0)
-dat$Cad_0_censor_age=as.numeric(dat$Cad_0_censor_age)
-dat$Ht_0_censor_age=as.numeric(dat$Ht_0_censor_age)
-dat$HyperLip_0_censor_age=as.numeric(dat$HyperLip_0_censor_age)
-dat$Dm_0_censor_age=as.numeric(dat$Dm_0_censor_age)
+dat$smoke=as.factor(dat$smoke)
+dat$gpm=as.factor(dat$gpmemb)
 
 library(table1)
 label(dat$f.31.0.0) <- "Sex"
@@ -182,7 +201,7 @@ label(dat$Ht_0_Any) <- "Develop Hypertension"
 label(dat$Dm_0_Any) <- "Develop Diabetes"
 label(dat$HyperLip_0_Any) <- "Develop Hyperlipidemia"
 label(dat$Cad_0_Any) <- "Develop Coronary Disease"
-label(dat$as2) <- "ASCVD at Enrollment"
+#label(dat$as2) <- "ASCVD at Enrollment"
 label(dat$agerec) <- "Age First Enrolled in NHS"
 label(dat$Durationfollowed) <- "Years Followed"
 
@@ -206,7 +225,9 @@ label(dat$Durationfollowed) <- "Years Followed"
 label(dat$gpmemb) <- "GPDR Members"
 label(dat$race) <- "Proportion White"
 
-f=table1(~ f.31.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+smoke+race|cad.prs.lev, data=dat)
-f=table1(~ f.31.0.0 + Birthdate+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+smoke+race+Ht_0_censor_age+Cad_0_censor_age+Dm_0_censor_age+HyperLip_0_censor_age|gpmemb, data=dat)
+f=table1(~ f.31.0.0 + Birthdate+agerec+Durationfollowed+Ht_0_Any+Cad_0_Any+HyperLip_0_Any+smoke+race+gpmemb|cad.prs.lev, data=dat)
+
+
+f=table1(~ f.31.0.0 + Birthdate+agerec+Durationfollowed+Ht_0_Any+Cad_0_Any+Dm_0_Any+HyperLip_0_Any+smoke+race+Ht_0_censor_age+Cad_0_censor_age+Dm_0_censor_age+HyperLip_0_censor_age|gpmemb, data=dat)
 
 
