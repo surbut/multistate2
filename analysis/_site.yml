@@ -1,7 +1,7 @@
 name: multistate
 output_dir: ../docs
 navbar:
-  title: multistate
+  title: multistate2
   left:
   - text: Home
     href: index.html
@@ -12,7 +12,7 @@ navbar:
   right:
   - icon: fab fa-github
     text: Source code
-    href: https://github.com/surbut/multistate
+    href: https://github.com/surbut/multistate2
 output:
   workflowr::wflow_html:
     toc: yes
