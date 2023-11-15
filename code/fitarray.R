@@ -1,8 +1,8 @@
 ### welcome to MSGene, now an R package on github via devtools
-## for vignette, Rpackage, and installation, please see 
+## for vignette, Rpackage, and installation, please see
 ### https://github.com/surbut/MSGene/blob/main/README.md
 ##  https://surbut.github.io/MSGene/vignette.html
-## 
+##
 
 
 ### here we provide the code for creating the model fit and a sample script for using MSGene
@@ -50,6 +50,7 @@ fitfunc = function(df_frame, ages, nstates, mode,covariates) {
 
 
 
+## make sure prs is scaled
   df_frame$cad.prs = scale(df_frame$cad.prs)
 
 
