@@ -5,18 +5,17 @@ date: "2023-09-19"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
 ```
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+NRI of MSGene vs PCE
 
 ```{r cars}
+source("~/multistate2/code/utils.R")
 
-ms=readRDS("../output/state_occupancy_risk.rds")
+ms=readRDS("output/state_occupancy_risk.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 
 pce=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
@@ -60,7 +59,7 @@ for(i in 1:length(age_range)) {
   NRI_ne[i] <- (correctly_classified_controls - incorrectly_classified_controls) / length(controls)
 }
 
-print(data.frame(Age = age_range, NRI_e = NRI_e, NRI_ne = NRI_ne))
+#print(data.frame(Age = age_range, NRI_e = NRI_e, NRI_ne = NRI_ne))
 
 
 # Convert the data to a tidy format
@@ -78,20 +77,12 @@ ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) +
        color = "Group") +
   theme_minimal()
 
-saveRDS(df_plot,file = "../output/tennri.rds")
-
-ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
-  geom_line(size = 1) +
-  labs(title = "Net Reclassification Index (NRI) over Age, MS Life, PCE10",
-       subtitle = "By Cases and Controls",
-       y = "NRI Value",
-       x = "Age",
-       color = "Group") +
-  theme_minimal(),file="../output/tenri.pdf")
 ```
 
+## For FRS vs MSGene
+
 ```{r}
-ms=readRDS("../output/state_occupancy_risk.rds")
+ms=readRDS("output/state_occupancy_risk.rds")
 ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
 ascvd.30.year=readRDS("~/multistate2/output/ascvd.30year.rds")
 
@@ -137,7 +128,7 @@ for(i in 1:length(age_range)) {
   NRI_ne[i] <- (correctly_classified_controls - incorrectly_classified_controls) / length(controls)
 }
 
-print(data.frame(Age = age_range, NRI_e = NRI_e, NRI_ne = NRI_ne))
+#print(data.frame(Age = age_range, NRI_e = NRI_e, NRI_ne = NRI_ne))
 
 
 sum=NRI_ne+NRI_e
@@ -148,23 +139,14 @@ df_plot <- data.frame(Age = age_range,
                       Group = factor(rep(c("Cases", "Controls","Net"), each = length(age_range))))
 
 # Plot
-ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
+ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
   geom_line(size = 1) +
   labs(title = "Net Reclassification Index (NRI) over Age, MS Life, FRS30",
        subtitle = "By Cases and Controls",
        y = "NRI Value",
        x = "Age",
        color = "Group") +
-  theme_minimal(),file="../output/lifenri.pdf")
-
-df_plot=data.frame()
+  theme_minimal()
 
 
-ggsave(ggplot(df_plot, aes(x = Age, y = NRI, color = Group)) + 
-  geom_line(size = 1) +
-  labs(title = "Net Reclassification Index (NRI) over Age, MS Life, PCE10",
-       subtitle = "By Cases and Controls",
-       y = "NRI Value",
-       x = "Age",
-       color = "Group") +
-  theme_minimal(),file="../output/tenri.pdf")
+```

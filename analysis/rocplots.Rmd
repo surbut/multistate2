@@ -5,7 +5,7 @@ date: "2023-09-17"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE,echo=TRUE,warning = FALSE,message = FALSE)
 ```
 
 ## R Markdown

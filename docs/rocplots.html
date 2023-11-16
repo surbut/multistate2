@@ -10,9 +10,9 @@
 
 
 
-<meta name="date" content="2023-11-13" />
+<meta name="date" content="2023-09-17" />
 
-<title>Figure4</title>
+<title>rocacu</title>
 
 <script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -358,8 +358,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Figure4</h1>
-<h4 class="date">2023-11-13</h4>
+<h1 class="title toc-ignore">rocacu</h1>
+<h4 class="date">2023-09-17</h4>
 
 </div>
 
@@ -388,13 +388,13 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-11-14
+<strong>Last updated:</strong> 2023-11-15
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 2
 </p>
 <p>
 <strong>Knit directory:</strong> <code>~/multistate2/</code> <span
@@ -417,18 +417,21 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
-<span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
-</a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
+changes </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguptodate"
+<div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great! Since the R Markdown file has been committed to the Git
-repository, you know the exact version of the code that produced these
-results.</p>
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
+<code>wflow_publish</code> to commit the R Markdown file and build the
+HTML.</p>
 </div>
 </div>
 </div>
@@ -531,50 +534,58 @@ relative
 <tbody>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/test.rds
+~/multistate2//code/smoothtest.R
 </td>
 <td style="text-align:left;">
-output/test.rds
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/pce.reverse.tenyear.rds
-</td>
-<td style="text-align:left;">
-output/pce.reverse.tenyear.rds
+code/smoothtest.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rds
+~/multistate2//code/newsmooth.R
 </td>
 <td style="text-align:left;">
-output/ascvd.30year.rds
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rc.rds
-</td>
-<td style="text-align:left;">
-output/ascvd.30year.rc.rds
+code/newsmooth.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rcnew.rds
+~/multistate2/code/fitarray.R
 </td>
 <td style="text-align:left;">
-output/ascvd.30year.rcnew.rds
+code/fitarray.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/state_occupancy_risk.rds
+~/multistate2/code/arrayindicate.R
 </td>
 <td style="text-align:left;">
-output/state_occupancy_risk.rds
+code/arrayindicate.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R
+</td>
+<td style="text-align:left;">
+code/frs30_URBUT/fun.frs_30ynew.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2//output/dfascvd_newbp.rds
+</td>
+<td style="text-align:left;">
+output/dfascvd_newbp.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/frs30_URBUT/fun.frs_30y.R
+</td>
+<td style="text-align:left;">
+code/frs30_URBUT/fun.frs_30y.R
 </td>
 </tr>
 </tbody>
@@ -627,6 +638,11 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
+Unstaged changes:
+    Modified:   analysis/NRI.Rmd
+    Modified:   analysis/index.Rmd
+    Modified:   analysis/rocplots.Rmd
+
 </code></pre>
 <p>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not
@@ -643,8 +659,8 @@ have uncommitted changes.
 
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/Figure4.Rmd</code>) and HTML
-(<code>docs/Figure4.html</code>) files. If you’ve configured a remote
+made to the R Markdown (<code>analysis/rocplots.Rmd</code>) and HTML
+(<code>docs/rocplots.html</code>) files. If you’ve configured a remote
 Git repository (see <code>?wflow_git_remote</code>), click on the
 hyperlinks in the table below to view the files as they were in that
 past version.
@@ -676,13 +692,13 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/analysis/Figure4.Rmd" target="_blank">14698de</a>
+<a href="https://github.com/surbut/multistate2/blob/273d0249cf12cd31640a6c5b71c5c9f94d1122cb/analysis/rocplots.Rmd" target="_blank">273d024</a>
 </td>
 <td>
 Sarah Urbut
 </td>
 <td>
-2023-11-13
+2023-09-22
 </td>
 <td>
 Update
@@ -690,16 +706,50 @@ Update
 </tr>
 <tr>
 <td>
-html
+Rmd
 </td>
 <td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/Figure4.html" target="_blank">14698de</a>
+<a href="https://github.com/surbut/multistate2/blob/ff4307493d2d88819d8da10c8923d3b94812af2e/analysis/rocplots.Rmd" target="_blank">ff43074</a>
 </td>
 <td>
 Sarah Urbut
 </td>
 <td>
-2023-11-13
+2023-09-21
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/c14de3286552ccc2e00dd737238007c81089c96d/analysis/rocplots.Rmd" target="_blank">c14de32</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-20
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/4d7d65cde4e3bd79a02526b276e49eec2f7573d7/analysis/rocplots.Rmd" target="_blank">4d7d65c</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-17
 </td>
 <td>
 Update
@@ -712,143 +762,454 @@ Update
 </div>
 </div>
 </div>
-<div
-id="plot-age-exceeded-for-each-score-using-your-choice-of-lifetime-here-10-or-ten-year-here-5-threshold"
-class="section level2">
-<h2>Plot age exceeded for each score using your choice of lifetime (here
-10) or ten year (here 5) threshold</h2>
-<p><img src="figure/Figure4.Rmd/cars-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-cars-1">
-Past versions of cars-1.png
-</button>
-</p>
-<div id="fig-cars-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/cars-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<pre><code>        Score    Cindex      ymin      ymax
-1 PCE 10 year 0.5505647 0.5477144 0.5477144
-2     30 Year 0.5180622 0.5173015 0.5188229
-3      MSGene 0.7229674 0.7173470 0.7285878</code></pre>
-<p><img src="figure/Figure4.Rmd/pressure-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-pressure-1">
-Past versions of pressure-1.png
-</button>
-</p>
-<div id="fig-pressure-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/pressure-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Now do for continous variable:</p>
-<pre><code>[1] 78974    67</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] 2206675       9</code></pre>
-<pre><code>     Score    Cindex      ymin      ymax
-1   MSGene 0.7070994 0.6997489 0.7144499
-2  30 Year 0.6621929 0.6548162 0.6695696
-3 Ten Year 0.6689984 0.6576622 0.6803347</code></pre>
-<p><img src="figure/Figure4.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
-Past versions of unnamed-chunk-1-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-1-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/unnamed-chunk-1-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting
+syntax for authoring HTML, PDF, and MS Word documents. For more details
+on using R Markdown see <a href="http://rmarkdown.rstudio.com"
+class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be
+generated that includes both content as well as the output of any
+embedded R code chunks within the document. You can embed an R code
+chunk like this:</p>
+<p>NOw ROC</p>
+<pre class="r"><code>source(&quot;~/dynamichr/code/utils.R&quot;)
+source(&quot;~/multistate2//code/smoothtest.R&quot;)
+source(&quot;~/multistate2//code/newsmooth.R&quot;)
+source(&quot;~/multistate2/code/fitarray.R&quot;)
+library(&quot;reshape2&quot;)
+source(&quot;~/multistate2/code/arrayindicate.R&quot;)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R&quot;)
+
+load(&quot;~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds&quot;)
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) &lt;- c(1,2,3,4,5,6)
+
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS(&quot;~/multistate2//output/dfascvd_newbp.rds&quot;)
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c(&quot;age&quot;,&quot;anylipidmed0&quot;,&quot;bp_med2&quot;,&quot;smoke&quot;))],by.x=&quot;identifier&quot;,by.y=&quot;sample_id&quot;)
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30y.R&quot;)
+library(CVrisk)
+ages=c(40:80)
+nstates=c(&quot;Health&quot;, &quot;Ht&quot;,&quot;HyperLip&quot;,&quot;Dm&quot;,&quot;Cad&quot;,&quot;death&quot;,&quot;Ht&amp;HyperLip&quot;,&quot;HyperLip&amp;Dm&quot;,&quot;Ht&amp;Dm&quot;,&quot;Ht&amp;HyperLip&amp;Dm&quot;)
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = &quot;binomial&quot;,covariates =&quot;cad.prs+f.31.0.0+smoke+antihtn_now&quot;)</code></pre>
+<pre class="r"><code>set.seed(456)
+enrollments = c(41:70)
+aucmat = matrix(NA, nrow = length(enrollments), ncol = 4)
+prcmat = matrix(NA, nrow = length(enrollments), ncol = 4)
+semat = matrix(NA, nrow = length(enrollments), ncol = 4)
+pmat = matrix(NA, nrow = length(enrollments), ncol = 2)
+
+ages = 40:80
+enrollments = c(41:79)
+## return a matrix of coefficients over all ages for a given state to state transition
+b=coefplotsmooth2(ages = ages,start = &quot;Health&quot;,stop = &quot;Cad&quot;,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ggplotly(b$plot)
+coefs=b$custom_smooth
+
+
+
+for (z in 1:length(enrollments)) {
+  age = enrollments[z]
+  start = age
+  stop = 80
+  
+  df_frame = test
+  atrisk = df_frame[age &lt; Cad_0_censor_age &amp;
+                      age &lt; Ht_0_censor_age &amp;
+                      age &lt; HyperLip_0_censor_age &amp;
+                      age &lt; Dm_0_censor_age &amp; smoke == 0 , ]
+  
+  
+  df_updated = data.frame(atrisk)
+  ar = data.frame(
+    &quot;intercept&quot; = 1,
+    &quot;cad.prs&quot; = atrisk$cad.prs,
+    &quot;sex&quot; = atrisk$f.31.0.0,
+    &quot;smoke&quot; = atrisk$smoke,
+    &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                             atrisk$htn_age &lt; age, 1, 0)
+  )
+
+    # ar = data.frame(
+    #   &quot;intercept&quot; = 1,
+    #   &quot;cad.prs&quot; = atrisk$cad.prs,
+    #   &quot;sex&quot; = atrisk$f.31.0.0,
+    #   &quot;smoke&quot; = atrisk$smoke,
+    #   &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+    #                           atrisk$htn_age &lt; age, 1, 0),
+    #   &quot;statin_now&quot; = ifelse(atrisk$statin == 1 &amp;
+    #                            atrisk$statin_age &lt; age, 1, 0)
+    #   )
+  dat = data.frame(
+    &quot;id&quot; = atrisk$identifier,
+    &quot;mysex&quot; = as.factor(atrisk$sex),
+    &quot;myage&quot; = rep(age, nrow(atrisk)),
+    &quot;mysbp&quot; = atrisk$sbp,
+    &quot;mytreat&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                         atrisk$htn_age &lt; age, 1, 0),
+    &quot;mysmoking&quot; = atrisk$smoke,
+    &quot;mydiabetes&quot; = ifelse(atrisk$Dm_0_Any == 2 &amp;
+                            atrisk$Dm_0_censor_age &lt; age, 1, 0),
+    &quot;mytotalchol&quot; = atrisk$choladj,
+    &quot;myhdl&quot; = atrisk$hdladj,
+    &quot;Race&quot; = atrisk$Race,
+    &quot;mystatnow&quot; = ifelse(atrisk$statin == 1 &amp;
+                           atrisk$statin_age &lt; age, 1, 0)
+  )
+  
+  mso = compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+  
+  df_updated$ms = mso$PredictedIntervalrisk
+  f = fun.frs_30y(
+    dat,
+    id = &quot;id&quot;,
+    sex = &quot;mysex&quot;,
+    age = &quot;myage&quot;,
+    sbp = &quot;mysbp&quot;,
+    treat = &quot;mytreat&quot;,
+    smoking = &quot;mysmoking&quot;,
+    diabetes = &quot;mydiabetes&quot;,
+    totalchol = &quot;mytotalchol&quot;,
+    hdl = &quot;myhdl&quot;
+  )
+  df_updated$frs.30y = f$frs_orig
+  df_updated$frs.recal = f$frs_recali
+  ### return matrix of smoothed coefficeints
+  #library(purrr)
+  
+  rm(atrisk)
+  
+  #require(pROC)
+  df_updated$outcome = ifelse(df_updated$Cad_0_Any == 2 &amp;
+                                df_updated$Cad_0_censor_age &lt; stop,
+                              1,
+                              0)
+  #d = df_updated[round(phenos.enrollment, 0) == age, ]
+  d = df_updated
+  
+  #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  semat[z, 1] = sqrt(var(roc(d$outcome ~ d$ms)))
+  aucmat[z, 2] = roc(d$outcome ~ d$frs.30y)$auc
+  semat[z, 2] = sqrt(var(roc(d$outcome ~ d$frs.30y)))
+  aucmat[z, 3] = roc(d$outcome ~ d$frs.recal)$auc
+  semat[z, 3] = sqrt(var(roc(d$outcome ~ d$frs.recal)))
+  aucmat[z, 4] = roc(d$outcome ~ d$cad.prs)$auc
+  semat[z, 4] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
+  
+  
+  roc1 &lt;- roc(d$outcome, d$ms)
+  roc2 &lt;- roc(d$outcome,d$frs.recal)
+  roc3 &lt;- roc(d$outcome,d$cad.prs)
+  pmat[z, 1] = roc.test(roc1,roc2)$p
+  pmat[z, 2] = roc.test(roc1,roc3)$p
+ 
+  
+  require(PRROC)
+  fg &lt;- d$ms[d$outcome == 1]
+  bg &lt;- d$ms[d$outcome == 0]
+  
+  prcmat[z, 1] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+  fg &lt;- na.omit(d$frs.30y[d$outcome == 1])
+  bg &lt;- na.omit(d$frs.30y[d$outcome == 0])
+  prcmat[z, 2] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  
+  fg &lt;- na.omit(d$frs.recal[d$outcome == 1])
+  bg &lt;- na.omit(d$frs.recal[d$outcome == 0])
+  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  fg &lt;- na.omit(d$cad.prs[d$outcome == 1])
+  bg &lt;- na.omit(d$cad.prs[d$outcome == 0])
+  prcmat[z, 4] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  
+  print(paste0(&quot;Completedforage&quot;, age))
+  
+  
+  
+}
+
+saveRDS(aucmat,file = &quot;../output/auc_30year.rds&quot;)
+saveRDS(prcmat,file = &quot;../output/prc_30year.rds&quot;)
+
+rownames(aucmat) = enrollments
+colnames(aucmat)=c(&quot;MSLT&quot;,&quot;FRS30&quot;,&quot;FRSRC&quot;,&quot;PRS&quot;)
+m = melt(aucmat, id.vars = &quot;Age&quot;)
+names(m) = c(&quot;Age&quot;, &quot;Model&quot;, &quot;AUC&quot;)
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = &quot;MSGene&quot;
+levels(m$Model)[2] = &quot;FRS30y&quot;
+levels(m$Model)[3] = &quot;FRS30recal&quot;
+levels(m$Model)[4] = &quot;PRS only&quot;
+m$se=as.vector(semat)
+
+aucplot &lt;-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+  ylim(0.5, 0.8) +
+ theme_classic() + ggtitle(paste0(&quot;Lifetime risk prediction, ROC AUC&quot;))
+
+library(pROC)
+rownames(prcmat) = enrollments
+colnames(prcmat)=c(&quot;MSGene&quot;,&quot;FRS30y&quot;,&quot;FRS30.recal&quot;,&quot;PRSonly&quot;)
+prcmat=prcmat[,c(&quot;MSGene&quot;,&quot;FRS30y&quot;,&quot;FRS30.recal&quot;,&quot;PRSonly&quot;)]
+m = melt(prcmat, id.vars = &quot;Age&quot;)
+
+names(m) = c(&quot;Age&quot;, &quot;Model&quot;, &quot;AUC&quot;)
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = &quot;MSGene&quot;
+levels(m$Model)[2] = &quot;FRS30y&quot;
+levels(m$Model)[3] = &quot;FRS30.recal&quot;
+levels(m$Model)[4] = &quot;PRSonly&quot;
+m$se=as.vector(semat[,c(1,2,3,4)])/10
+#m = m[m$Model %in% c(&quot;MSGene&quot;, &quot;FRS30y&quot;, &quot;PRS only&quot;), ]
+prplot &lt;-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+ 
+ theme_classic() + ggtitle(paste0(&quot;Lifetime risk prediction, Precision Recall&quot;))
+
+
+ggarrange(aucplot,prplot,common.legend = T,legend = &quot;right&quot;)
+
+
+figure &lt;- ggarrange(aucplot + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), prplot + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), # remove axis labels from plots
+labels = NULL,
+ncol = 2, nrow = 1,
+common.legend = TRUE, legend = &quot;top&quot;,
+align = &quot;hv&quot;,
+font.label = list(size = 10, color = &quot;black&quot;, face = &quot;bold&quot;, family = NULL, position = &quot;top&quot;))
+fig=annotate_figure(figure, left = textGrob(&quot;AUC&quot;, rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob(&quot;Age at Calculation&quot;, gp = gpar(cex = 1.3)))
+
+ggsave(fig,file=&quot;../output/jointaucprc_30.pdf&quot;,dpi=600,width=10,height=8,units = &quot;in&quot;)</code></pre>
+<pre class="r"><code>enrollments = c(41:70)
+aucmat = matrix(NA, nrow = length(enrollments), ncol = 3)
+prcmat = matrix(NA, nrow = length(enrollments), ncol = 3)
+semat = matrix(NA, nrow = length(enrollments), ncol = 3)
+
+
+## return a matrix of coefficients over all ages for a given state to state transition
+b=coefplotsmooth2(ages = ages,start = &quot;Health&quot;,stop = &quot;Cad&quot;,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+ggplotly(b$plot)
+coefs=b$custom_smooth
+
+
+
+for (z in 1:length(enrollments)) {
+  age = enrollments[z]
+  start = age
+  stop = min(age+10,80)
+  #stop=80
+  df_frame = test
+  atrisk = df_frame[age &lt; Cad_0_censor_age &amp;
+                      age &lt; Ht_0_censor_age &amp;
+                      age &lt; HyperLip_0_censor_age &amp;
+                      age &lt; Dm_0_censor_age &amp; smoke == 0 , ]
+  
+  
+  df_updated = data.frame(atrisk)
+  ar = data.frame(
+    &quot;intercept&quot; = 1,
+    &quot;cad.prs&quot; = atrisk$cad.prs,
+    &quot;sex&quot; = atrisk$f.31.0.0,
+    &quot;smoke&quot; = atrisk$smoke,
+    &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                             atrisk$htn_age &lt; age, 1, 0)
+  )
+
+    # ar = data.frame(
+    #   &quot;intercept&quot; = 1,
+    #   &quot;cad.prs&quot; = atrisk$cad.prs,
+    #   &quot;sex&quot; = atrisk$f.31.0.0,
+    #   &quot;smoke&quot; = atrisk$smoke,
+    #   &quot;antihtn_now&quot; = ifelse(atrisk$antihtn == 1 &amp;
+    #                           atrisk$htn_age &lt; age, 1, 0),
+    #   &quot;statin_now&quot; = ifelse(atrisk$statin == 1 &amp;
+    #                            atrisk$statin_age &lt; age, 1, 0)
+    #   )
+  dat = data.frame(
+    &quot;id&quot; = atrisk$identifier,
+    &quot;mysex&quot; = as.factor(atrisk$sex),
+    &quot;myage&quot; = rep(age, nrow(atrisk)),
+    &quot;mysbp&quot; = atrisk$sbp,
+    &quot;mytreat&quot; = ifelse(atrisk$antihtn == 1 &amp;
+                         atrisk$htn_age &lt; age, 1, 0),
+    &quot;mysmoking&quot; = atrisk$smoke,
+    &quot;mydiabetes&quot; = ifelse(atrisk$Dm_0_Any == 2 &amp;
+                            atrisk$Dm_0_censor_age &lt; age, 1, 0),
+    &quot;mytotalchol&quot; = atrisk$choladj,
+    &quot;myhdl&quot; = atrisk$hdladj,
+    &quot;Race&quot; = atrisk$Race,
+    &quot;mystatnow&quot; = ifelse(atrisk$statin == 1 &amp;
+                           atrisk$statin_age &lt; age, 1, 0)
+  )
+  
+  mso = compute_prediction_product_matrix(
+    coefmat = coefs,
+    atrisk = ar,
+    agepredinterval = c(start:stop)
+  )
+  
+  df_updated$ms = mso$PredictedIntervalrisk
+  
+  
+pce.reverse.tenyear = 
+      compute_CVrisk2(
+        df = dat,
+        scores = &quot;as2&quot;,
+        age = &quot;myage&quot;,
+        gender = &quot;mysex&quot;,
+        race = &quot;Race&quot;,
+        totchol = &quot;mytotalchol&quot;,
+        sbp = &quot;mysbp&quot;,
+        hdl = &quot;myhdl&quot;,
+        bp_med = &quot;mytreat&quot;,
+        diabetes = &quot;mydiabetes&quot;,
+        smoker = &quot;mysmoking&quot;,
+        lipid_med = &quot;mystatnow&quot;
+      )$as2
+    
+
+  df_updated$pceten = pce.reverse.tenyear
+ 
+  rm(atrisk)
+  
+  #require(pROC)
+  df_updated$outcome = ifelse(df_updated$Cad_0_Any == 2 &amp;
+                                df_updated$Cad_0_censor_age &lt; stop,
+                              1,
+                              0)
+  #d = df_updated[round(phenos.enrollment, 0) == age, ]
+  d = df_updated
+  
+  #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  semat[z, 1] = sqrt(var(roc(d$outcome ~ d$ms)))
+  aucmat[z, 2] = roc(d$outcome ~ d$pceten)$auc
+  semat[z, 2] = sqrt(var(roc(d$outcome ~ d$pceten)))
+  aucmat[z, 3] = roc(d$outcome ~ d$cad.prs)$auc
+  semat[z, 3] = sqrt(var(roc(d$outcome ~ d$cad.prs)))
+
+  
+  pmat[z, 1] = roc(d$outcome ~ d$ms)$auc
+  
+
+  
+  
+  require(PRROC)
+  fg &lt;- d$ms[d$outcome == 1]
+  bg &lt;- d$ms[d$outcome == 0]
+  
+  prcmat[z, 1] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+  #semat[i,1]=roc(d$outcome~d$ms)$se
+  
+  #require(PRROC)
+  fg &lt;- na.omit(d$pceten[d$outcome == 1])
+  bg &lt;- na.omit(d$pceten[d$outcome == 0])
+  prcmat[z, 2] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  fg &lt;- na.omit(d$cad.prs[d$outcome == 1])
+  bg &lt;- na.omit(d$cad.prs[d$outcome == 0])
+  prcmat[z, 3] = pr.curve(scores.class0 = fg, scores.class1 = bg)$auc.integral
+  
+ 
+  
+  print(paste0(&quot;Completedforage&quot;, age))
+  
+  
+  
+}
+
+saveRDS(aucmat,file = &quot;../output/aucten.rds&quot;)
+saveRDS(prcmat,file = &quot;../output/prcten.rds&quot;)
+
+rownames(aucmat) = enrollments
+m = melt(aucmat, id.vars = &quot;Age&quot;)
+names(m) = c(&quot;Age&quot;, &quot;Model&quot;, &quot;AUC&quot;)
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = &quot;MSGene Ten&quot;
+levels(m$Model)[2] = &quot;PCE Ten&quot;
+levels(m$Model)[3] = &quot;PRS only&quot;
+m$Age=enrollments
+m$se=as.vector(semat)
+#m = m[m$Model %in% c(&quot;MSGene&quot;, &quot;FRS30y&quot;, &quot;PRS only&quot;), ]
+aucplot &lt;-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+  ylim(0.5, 0.8) +
+ theme_classic() + ggtitle(paste0(&quot;10-year risk prediction, ROC AUC&quot;))
+
+library(pROC)
+rownames(prcmat) = enrollments
+colnames(prcmat)=c(&quot;MSGene 10 year&quot;,&quot;PCE&quot;,&quot;PRSonly&quot;)
+
+m = melt(prcmat, id.vars = &quot;Age&quot;)
+
+names(m) = c(&quot;Age&quot;, &quot;Model&quot;, &quot;AUC&quot;)
+m$Model = as.factor(m$Model)
+
+levels(m$Model)[1] = &quot;MSGene 10year&quot;
+levels(m$Model)[2] = &quot;PCE 10y&quot;
+levels(m$Model)[3] = &quot;PRSonly&quot;
+m$se=as.vector(semat[,c(1,2,3)])/2
+
+prplot &lt;-
+  ggplot(m, 
+    aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
+  geom_line(aes(group = Model, color = Model), linewidth = 3) +
+  geom_pointrange() +
+ 
+ theme_classic() + ggtitle(paste0(&quot;10-year risk prediction, Precision Recall&quot;))
+
+
+ggarrange(aucplot,prplot,common.legend = T,legend = &quot;right&quot;)
+
+
+figure &lt;- ggarrange(aucplot + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), prplot + rremove(&quot;ylab&quot;) + rremove(&quot;xlab&quot;), # remove axis labels from plots
+labels = NULL,
+ncol = 2, nrow = 1,
+common.legend = TRUE, legend = &quot;top&quot;,
+align = &quot;hv&quot;,
+font.label = list(size = 10, color = &quot;black&quot;, face = &quot;bold&quot;, family = NULL, position = &quot;top&quot;))
+fig=annotate_figure(figure, left = textGrob(&quot;AUC&quot;, rot = 90, vjust = 1, gp = gpar(cex = 1.3)),
+bottom = textGrob(&quot;Age at Calculation&quot;, gp = gpar(cex = 1.3)))
+library(ggpubr)
+library(gridExtra)
+library(grid)
+ggsave(fig,file=&quot;../output/auctenyear.pdf&quot;,dpi=600,width = 10,height=8)
+
+ggarrange(aucplot,ga,nrow = 2,labels=c(&quot;A&quot;))</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -857,44 +1218,7 @@ Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<pre><code>R version 4.3.1 (2023-06-16)
-Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS Sonoma 14.0
-
-Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
-LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
-
-locale:
-[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-
-time zone: America/Chicago
-tzcode source: internal
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] survival_3.5-5    ggpubr_0.6.0      ggplot2_3.4.4     data.table_1.14.8
-[5] tidyr_1.3.0       dplyr_1.1.3       ggsci_3.0.0      
-
-loaded via a namespace (and not attached):
- [1] sass_0.4.7        utf8_1.2.4        generics_0.1.3    rstatix_0.7.2    
- [5] lattice_0.21-8    stringi_1.7.12    digest_0.6.33     magrittr_2.0.3   
- [9] evaluate_0.21     grid_4.3.1        fastmap_1.1.1     Matrix_1.6-0     
-[13] rprojroot_2.0.3   workflowr_1.7.0   jsonlite_1.8.7    whisker_0.4.1    
-[17] backports_1.4.1   promises_1.2.0.1  purrr_1.0.1       fansi_1.0.5      
-[21] scales_1.2.1      jquerylib_0.1.4   abind_1.4-5       cli_3.6.1        
-[25] rlang_1.1.1       splines_4.3.1     cowplot_1.1.1     munsell_0.5.0    
-[29] withr_2.5.2       cachem_1.0.8      yaml_2.3.7        tools_4.3.1      
-[33] ggsignif_0.6.4    colorspace_2.1-0  httpuv_1.6.11     broom_1.0.5      
-[37] vctrs_0.6.4       R6_2.5.1          lifecycle_1.0.3   git2r_0.32.0     
-[41] stringr_1.5.0     car_3.1-2         fs_1.6.3          pkgconfig_2.0.3  
-[45] pillar_1.9.0      bslib_0.5.0       later_1.3.1       gtable_0.3.3     
-[49] glue_1.6.2        Rcpp_1.0.11       xfun_0.39         tibble_3.2.1     
-[53] tidyselect_1.2.0  highr_0.10        rstudioapi_0.15.0 knitr_1.43       
-[57] farver_2.1.1      htmltools_0.5.5   labeling_0.4.2    carData_3.0-5    
-[61] rmarkdown_2.23    compiler_4.3.1   </code></pre>
+<pre class="r"><code>sessionInfo()</code></pre>
 </div>
 </div>
 

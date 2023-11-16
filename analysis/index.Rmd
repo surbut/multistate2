@@ -18,3 +18,14 @@ Welcome to my research website. Here we discuss using multistate models, phenoty
 [Here](Figure4.html) We demonstrate figure 4, the performance of MSGene versus the PCE and FRS 30 year score in a thresholding and continuous metric, after using per year predictions in a time dependent cox model.
 
 [Here](Figure5.html) We demonstrate figure 5, ten year risk versus absolute risk reduction, remaining lifetime risk versus absolute risk reduction, and absolute risk reduction versus age of initiation marginalized across states and covariate profiles..
+
+[Here](NRI.html) We demonstrate supplementary figure 1 Net Reclasiffication index
+
+[Here](rmseanalysis.html) We demonstrate the RMSE calculations over all models
+
+[Here](rocplots.html) We demonstrate the AUC-ROC over all ages.
+
+[Here](fos.html) We demonstrate the AUC-ROC over all ages in FOS.
+
+
+

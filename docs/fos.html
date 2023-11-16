@@ -10,9 +10,9 @@
 
 
 
-<meta name="date" content="2023-11-13" />
+<meta name="date" content="2023-09-17" />
 
-<title>Figure4</title>
+<title>FRSall</title>
 
 <script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -358,8 +358,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Figure4</h1>
-<h4 class="date">2023-11-13</h4>
+<h1 class="title toc-ignore">FRSall</h1>
+<h4 class="date">2023-09-17</h4>
 
 </div>
 
@@ -388,13 +388,13 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-11-14
+<strong>Last updated:</strong> 2023-11-15
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 2
 </p>
 <p>
 <strong>Knit directory:</strong> <code>~/multistate2/</code> <span
@@ -417,18 +417,21 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
-<span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
-</a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
+changes </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguptodate"
+<div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great! Since the R Markdown file has been committed to the Git
-repository, you know the exact version of the code that produced these
-results.</p>
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
+<code>wflow_publish</code> to commit the R Markdown file and build the
+HTML.</p>
 </div>
 </div>
 </div>
@@ -531,50 +534,58 @@ relative
 <tbody>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/test.rds
+~/multistate2//code/smoothtest.R
 </td>
 <td style="text-align:left;">
-output/test.rds
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/pce.reverse.tenyear.rds
-</td>
-<td style="text-align:left;">
-output/pce.reverse.tenyear.rds
+code/smoothtest.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rds
+~/multistate2//code/newsmooth.R
 </td>
 <td style="text-align:left;">
-output/ascvd.30year.rds
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rc.rds
-</td>
-<td style="text-align:left;">
-output/ascvd.30year.rc.rds
+code/newsmooth.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/ascvd.30year.rcnew.rds
+~/multistate2/code/fitarray.R
 </td>
 <td style="text-align:left;">
-output/ascvd.30year.rcnew.rds
+code/fitarray.R
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-~/multistate2/output/state_occupancy_risk.rds
+~/multistate2/code/arrayindicate.R
 </td>
 <td style="text-align:left;">
-output/state_occupancy_risk.rds
+code/arrayindicate.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2//output/dfascvd_newbp.rds
+</td>
+<td style="text-align:left;">
+output/dfascvd_newbp.rds
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/code/frs30_URBUT/fun.frs_30y.R
+</td>
+<td style="text-align:left;">
+code/frs30_URBUT/fun.frs_30y.R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/multistate2/output/fosauc.pdf
+</td>
+<td style="text-align:left;">
+output/fosauc.pdf
 </td>
 </tr>
 </tbody>
@@ -627,6 +638,12 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
+Unstaged changes:
+    Modified:   analysis/NRI.Rmd
+    Modified:   analysis/fos.Rmd
+    Modified:   analysis/index.Rmd
+    Modified:   analysis/rocplots.Rmd
+
 </code></pre>
 <p>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not
@@ -643,11 +660,10 @@ have uncommitted changes.
 
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/Figure4.Rmd</code>) and HTML
-(<code>docs/Figure4.html</code>) files. If you’ve configured a remote
-Git repository (see <code>?wflow_git_remote</code>), click on the
-hyperlinks in the table below to view the files as they were in that
-past version.
+made to the R Markdown (<code>analysis/fos.Rmd</code>) and HTML
+(<code>docs/fos.html</code>) files. If you’ve configured a remote Git
+repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
+in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -676,13 +692,13 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/analysis/Figure4.Rmd" target="_blank">14698de</a>
+<a href="https://github.com/surbut/multistate2/blob/ecd78284cb2b9ea14d86cd9cd6a45f6c9e54715f/analysis/fos.Rmd" target="_blank">ecd7828</a>
 </td>
 <td>
 Sarah Urbut
 </td>
 <td>
-2023-11-13
+2023-10-13
 </td>
 <td>
 Update
@@ -690,16 +706,33 @@ Update
 </tr>
 <tr>
 <td>
-html
+Rmd
 </td>
 <td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/Figure4.html" target="_blank">14698de</a>
+<a href="https://github.com/surbut/multistate2/blob/273d0249cf12cd31640a6c5b71c5c9f94d1122cb/analysis/fos.Rmd" target="_blank">273d024</a>
 </td>
 <td>
 Sarah Urbut
 </td>
 <td>
-2023-11-13
+2023-09-22
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/4d7d65cde4e3bd79a02526b276e49eec2f7573d7/analysis/fos.Rmd" target="_blank">4d7d65c</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-09-17
 </td>
 <td>
 Update
@@ -712,143 +745,392 @@ Update
 </div>
 </div>
 </div>
-<div
-id="plot-age-exceeded-for-each-score-using-your-choice-of-lifetime-here-10-or-ten-year-here-5-threshold"
-class="section level2">
-<h2>Plot age exceeded for each score using your choice of lifetime (here
-10) or ten year (here 5) threshold</h2>
-<p><img src="figure/Figure4.Rmd/cars-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-cars-1">
-Past versions of cars-1.png
-</button>
-</p>
-<div id="fig-cars-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/cars-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<pre><code>        Score    Cindex      ymin      ymax
-1 PCE 10 year 0.5505647 0.5477144 0.5477144
-2     30 Year 0.5180622 0.5173015 0.5188229
-3      MSGene 0.7229674 0.7173470 0.7285878</code></pre>
-<p><img src="figure/Figure4.Rmd/pressure-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-pressure-1">
-Past versions of pressure-1.png
-</button>
-</p>
-<div id="fig-pressure-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/pressure-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Now do for continous variable:</p>
-<pre><code>[1] 78974    67</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] TRUE</code></pre>
-<pre><code>[1] 2206675       9</code></pre>
-<pre><code>     Score    Cindex      ymin      ymax
-1   MSGene 0.7070994 0.6997489 0.7144499
-2  30 Year 0.6621929 0.6548162 0.6695696
-3 Ten Year 0.6689984 0.6576622 0.6803347</code></pre>
-<p><img src="figure/Figure4.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
-Past versions of unnamed-chunk-1-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-1-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/14698ded4ef2ba2282fefaab11492a9c36ceeebf/docs/figure/Figure4.Rmd/unnamed-chunk-1-1.png" target="_blank">14698de</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-13
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting
+syntax for authoring HTML, PDF, and MS Word documents. For more details
+on using R Markdown see <a href="http://rmarkdown.rstudio.com"
+class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be
+generated that includes both content as well as the output of any
+embedded R code chunks within the document. You can embed an R code
+chunk like this:</p>
+<pre class="r"><code>#rm(list=ls())
+source(&quot;multistate2/code/utils.R&quot;)
+source(&quot;~/multistate2//code/smoothtest.R&quot;)
+source(&quot;~/multistate2//code/newsmooth.R&quot;)
+source(&quot;~/multistate2/code/fitarray.R&quot;)
+library(&quot;reshape2&quot;)
+source(&quot;~/multistate2/code/arrayindicate.R&quot;)
+source(&quot;../code/frs30_URBUT/fun.frs_30ynew.R&quot;)
+load(&quot;~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds&quot;)
+
+fos=read.table(&quot;~/Desktop/sraempty/phs000007.v33.pht006027.v4.p14.c1.vr_wkthru_ex09_1_1001s.HMB-IRB-MDS.txt.gz&quot;,header = T,skip = 1,sep=&quot;\t&quot;)
+fhs=read.table(&quot;~/Desktop/sraempty/phs000007.v33.pht007777.v3.p14.c1.vr_wkthru_ex32_0_0997s.HMB-IRB-MDS.txt.gz&quot;,header = T,skip = 1,sep=&quot;\t&quot;)
+surv=read.table(&quot;/Users/sarahurbut/Desktop/sraempty/phs000007.v33.pht003316.v10.p14.c1.vr_survcvd_2019_a_1334s.HMB-IRB-MDS.txt.gz&quot;,skip=1,sep=&quot;\t&quot;,header=T)
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) &lt;- c(1,2,3,4,5,6)
+
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS(&quot;~/multistate2//output/dfascvd_newbp.rds&quot;)
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c(&quot;age&quot;,&quot;anylipidmed0&quot;,&quot;bp_med2&quot;,&quot;smoke&quot;))],by.x=&quot;identifier&quot;,by.y=&quot;sample_id&quot;)
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30y.R&quot;)
+library(CVrisk)
+ages=c(40:80)
+nstates=c(&quot;Health&quot;, &quot;Ht&quot;,&quot;HyperLip&quot;,&quot;Dm&quot;,&quot;Cad&quot;,&quot;death&quot;,&quot;Ht&amp;HyperLip&quot;,&quot;HyperLip&amp;Dm&quot;,&quot;Ht&amp;Dm&quot;,&quot;Ht&amp;HyperLip&amp;Dm&quot;)
+
+library(CVrisk)
+m=merge(fos[,c(&quot;shareid&quot;,&quot;AGE1&quot;,&quot;SBP1&quot;,&quot;HDL1&quot;,&quot;SEX&quot;,&quot;CURRSMK1&quot;,&quot;HRX1&quot;,&quot;LIPRX1&quot;,&quot;TC1&quot;,&quot;DMRX1&quot;)],surv,by = &quot;shareid&quot;)
+prs=fread(&quot;~/Library/CloudStorage/Dropbox-Personal/Fram_allchr_CAD_c1.profile&quot;)
+prs$score=scale(prs$V2)
+
+firstmeasure=na.omit(merge(m,prs[,c(&quot;V1&quot;,&quot;score&quot;)],by.x=&quot;shareid&quot;,by.y=&quot;V1&quot;))
+# in FOS, using the wkthru:
+# SEX       1   Male
+# SEX       2   Female
+# SEX       .   Unknown
+
+## for our model, female is 0, male is 1
+
+
+firstmeasure$sex=ifelse(firstmeasure$SEX==2,&quot;female&quot;,&quot;male&quot;)
+firstmeasure$sexu=ifelse(firstmeasure$SEX==2,0,1)
+firstmeasure$cad.prs.lec=cut(firstmeasure$score,breaks = c(-5.02,-0.84,0.84,5.02),labels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;))
+
+firstmeasure$int=interaction(firstmeasure$sexu,firstmeasure$cad.prs.lec)
+levels(firstmeasure$int) &lt;- c(1,2,3,4,5,6)
+
+
+firstmeasure$as2=compute_CVrisk2(firstmeasure,scores = &quot;as2&quot;,age = &quot;AGE1&quot;,gender = &quot;sex&quot;,
+                       race = &quot;white&quot;,sbp = &quot;SBP1&quot;,hdl = &quot;HDL1&quot;,
+                bp_med =&quot;HRX1&quot;,totchol = &quot;TC1&quot;,diabetes = &quot;DMRX1&quot;,smoker = &quot;CURRSMK1&quot;,lipid_med = &quot;LIPRX1&quot;)$as2
+
+    dat = data.frame(
+      &quot;id&quot; = firstmeasure$shareid,
+      &quot;mysex&quot; = as.factor(firstmeasure$sex),
+      &quot;myage&quot; = firstmeasure$AGE1,
+      &quot;mysbp&quot; = firstmeasure$SBP1,
+      &quot;mytreat&quot; = firstmeasure$HRX1,
+      &quot;mysmoking&quot; = firstmeasure$CURRSMK1,
+      &quot;mydiabetes&quot; = firstmeasure$DMRX1,
+      &quot;mytotalchol&quot; = firstmeasure$TC1,
+      &quot;myhdl&quot; = firstmeasure$HDL1,
+      &quot;Race&quot; = &quot;white&quot;,
+      &quot;mystatnow&quot; = firstmeasure$LIPRX1
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = &quot;id&quot;,
+      sex = &quot;mysex&quot;,
+      age = &quot;myage&quot;,
+      sbp = &quot;mysbp&quot;,
+      treat = &quot;mytreat&quot;,
+      smoking = &quot;mysmoking&quot;,
+      diabetes = &quot;mydiabetes&quot;,
+      totalchol = &quot;mytotalchol&quot;,
+      hdl = &quot;myhdl&quot;
+    )
+
+firstmeasure$lt=frs$frs_orig
+ages=c(20:80)
+modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = &quot;binomial&quot;,covariates =&quot;cad.prs+f.31.0.0+smoke+antihtn_now+statin_now&quot;)
+#                   
+
+firstmeasure=firstmeasure[firstmeasure$LIPRX1==0&amp;firstmeasure$HRX1==0&amp;firstmeasure$TC1&lt;240&amp;firstmeasure$DMRX1==0,]
+
+b=coefplotsmooth2(ages = ages,start = &quot;Health&quot;,stop = &quot;Cad&quot;,modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)
+coefs=b$custom_smooth
+
+ten.year.new=lifetime.new=ascvd.30.year=ascvd.10.year=emp.ten.year=emp.lifetime=vector()
+agesint=seq(40,55,by=5)
+aucmat=semat=matrix(NA,nrow=length(agesint),ncol=4)
+firstmeasure$round5=round_any(firstmeasure$AGE1,5,f = round)
+
+
+for(i in 1:length(agesint)){
+  age=agesint[i]
+  
+
+  atrisk=firstmeasure[which(firstmeasure$round5==age),]
+  
+   ar = data.frame(
+      &quot;intercept&quot; = 1,
+      &quot;cad.prs&quot; = atrisk$score,
+      &quot;sex&quot; = atrisk$sexu,
+      &quot;smoke&quot; = atrisk$CURRSMK1,
+      &quot;antihtn_now&quot; = atrisk$HRX1,
+      &quot;statin_now&quot; = atrisk$LIPRX1
+      )
+   
+   ar=na.omit(ar)
+
+    
+    atrisk$msten= compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(age + 10)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    
+     ten.year.new[i] = mean(atrisk$msten)
+
+    
+    atrisk$mslifetime=compute_prediction_product_matrix(
+        atrisk = ar,
+        agepredinterval = c(age:(80)),
+        coefmat = coefs
+      )$PredictedIntervalrisk
+    lifetime.new[i] = mean(atrisk$mslifetime)
+    emp.ten.year[i] = mean(atrisk$chd==1&amp;atrisk$chddate&lt;(365*10))
+    emp.lifetime[i] = mean(atrisk$chd==1&amp;atrisk$chddate&lt;(365*(80-age)))
+                                        
+  
+   ascvd.10.year[i]=mean(atrisk$as2)
+   ascvd.30.year[i]=mean(atrisk$lt)
+   
+   
+  atrisk$outcometen=ifelse(atrisk$chd==1&amp;atrisk$chddate&lt;(365*10),1,0)
+  atrisk$outcomelife=ifelse(atrisk$chd==1&amp;atrisk$chddate&lt;(365*30),1,0)
+
+     #d=d[!is.na(d$ascvd_10y_accaha),]
+  aucmat[i, 1] = roc(atrisk$outcometen ~ atrisk$msten)$auc
+  semat[i, 1] = sqrt(var(roc(atrisk$outcometen ~ atrisk$msten)))
+  #
+  aucmat[i, 2] = roc(atrisk$outcometen ~ atrisk$as2)$auc
+  semat[i, 2] = sqrt(var(roc(atrisk$outcometen ~ atrisk$as2)))
+  #
+  aucmat[i, 3] = roc(atrisk$outcomelife ~ atrisk$mslifetime)$auc
+  semat[i, 3] = sqrt(var(roc(atrisk$outcomelife ~ atrisk$mslifetime)))
+
+  aucmat[i, 4] =  roc(atrisk$outcomelife ~ atrisk$lt)$auc
+  semat[i, 4] = sqrt(var(roc(atrisk$outcomelife ~ atrisk$lt)))
+  
+}
+  
+  
+  
+
+library(ehaGoF)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.10.year))
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ten.year.new*100))
+mslif=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(lifetime.new*100))
+pclif=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year))
+
+
+df &lt;- data.frame(
+  metric = c(&quot;PCEten&quot;, &quot;MSTen&quot;, &quot;MSLife&quot;, &quot;FRS30y&quot;),
+  value = c(pcten,msten,mslif,pclif)
+)
+
+df$metric=factor(df$metric,levels = c(&quot;MSTen&quot;,&quot;PCEten&quot;,&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+# Create the barplot
+rmse=ggplot(df, aes(x = metric, y = value,fill=metric)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(y = &quot;RMSE (%)&quot;, x = &quot;Score&quot;,fill=&quot;score&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+rownames(aucmat)=rownames(semat)=agesint
+colnames(aucmat)=colnames(semat)=c(&quot;MSten&quot;,&quot;PCEten&quot;,&quot;MSLife&quot;,&quot;FRS30y&quot;)
+
+
+
+# Convert matrices to data frames
+df_auc &lt;- as.data.frame(aucmat)
+df_se &lt;- as.data.frame(semat)
+
+# Add age column
+df_auc$age &lt;- rownames(df_auc)
+df_se$age &lt;- rownames(df_se)
+
+# Convert data frames to long format
+df_auc_long &lt;- df_auc %&gt;%
+  gather(key = &quot;metric&quot;, value = &quot;value&quot;, -age)
+
+df_auc_long$metric=factor(df_auc_long$metric,levels = c(&quot;MSten&quot;,&quot;PCEten&quot;,&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+df_se_long &lt;- df_se %&gt;%
+  gather(key = &quot;metric&quot;, value = &quot;se_value&quot;, -age)
+
+df_se_long$metric=factor(df_se_long$metric,levels = c(&quot;MSten&quot;,&quot;PCEten&quot;,&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+# Join both data frames
+df &lt;- left_join(df_auc_long, df_se_long, by = c(&quot;age&quot;, &quot;metric&quot;))
+
+# Plot using ggplot2
+fos_auc=ggplot(df, aes(x = age, y = value, fill = metric, group = metric)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 0.8)) +
+  geom_errorbar(
+    aes(ymin = value - se_value, ymax = value + se_value),
+    position = position_dodge(width = 0.8),
+    width = 0.25
+  ) +
+  labs(y = &quot;AUC ROC&quot;, x = &quot;Ages&quot;,fill=&quot;Score&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+df &lt;- data.frame(
+  metric = c( &quot;MSLife&quot;, &quot;FRS30y&quot;),
+  value = c(pcten,msten,mslif,pclif)
+)
+
+df$metric=factor(df$metric,levels = c(&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+# Create the barplot
+rmse=ggplot(df[c(3,4),], aes(x = metric, y = value,fill=metric)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(y = &quot;RMSE (%)&quot;, x = &quot;Score&quot;,fill=&quot;score&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+rownames(aucmat)=rownames(semat)=agesint
+colnames(aucmat)=colnames(semat)=c(&quot;MSten&quot;,&quot;PCE&quot;,&quot;MSLife&quot;,&quot;FRS30y&quot;)
+
+
+
+# Convert matrices to data frames
+df_auc &lt;- as.data.frame(aucmat[,c(3,4)])
+df_se &lt;- as.data.frame(semat[,c(3,4)])
+
+# Add age column
+df_auc$age &lt;- rownames(df_auc)
+df_se$age &lt;- rownames(df_se)
+
+# Convert data frames to long format
+df_auc_long &lt;- df_auc %&gt;%
+  gather(key = &quot;metric&quot;, value = &quot;value&quot;, -age)
+
+df_auc_long$metric=factor(df_auc_long$metric,levels = c(&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+df_se_long &lt;- df_se %&gt;%
+  gather(key = &quot;metric&quot;, value = &quot;se_value&quot;, -age)
+
+df_se_long$metric=factor(df_se_long$metric,levels = c(&quot;MSLife&quot;,&quot;FRS30y&quot;))
+
+# Join both data frames
+df &lt;- left_join(df_auc_long, df_se_long, by = c(&quot;age&quot;, &quot;metric&quot;))
+
+# Plot using ggplot2
+fos_auc=ggplot(df, aes(x = age, y = value, fill = metric, group = metric)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 0.8)) +
+  geom_errorbar(
+    aes(ymin = value - se_value, ymax = value + se_value),
+    position = position_dodge(width = 0.8),
+    width = 0.25
+  ) +
+  labs(y = &quot;AUC ROC&quot;, x = &quot;Ages&quot;,fill=&quot;Score&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(ggarrange(rmse,fos_auc,common.legend = T),file=&quot;~/multistate2/output/fosauc.pdf&quot;,dpi=600)</code></pre>
+<pre class="r"><code>fos=read.table(&quot;~/Desktop/sraempty/phs000007.v33.pht006027.v4.p14.c1.vr_wkthru_ex09_1_1001s.HMB-IRB-MDS.txt.gz&quot;,header = T,skip = 1,sep=&quot;\t&quot;)
+fhs=read.table(&quot;~/Desktop/sraempty/phs000007.v33.pht007777.v3.p14.c1.vr_wkthru_ex32_0_0997s.HMB-IRB-MDS.txt.gz&quot;,header = T,skip = 1,sep=&quot;\t&quot;)
+surv=read.table(&quot;/Users/sarahurbut/Desktop/sraempty/phs000007.v33.pht003316.v10.p14.c1.vr_survcvd_2019_a_1334s.HMB-IRB-MDS.txt.gz&quot;,skip=1,sep=&quot;\t&quot;,header=T)
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) &lt;- c(1,2,3,4,5,6)
+
+
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS(&quot;~/multistate2//output/dfascvd_newbp.rds&quot;)
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c(&quot;age&quot;,&quot;anylipidmed0&quot;,&quot;bp_med2&quot;,&quot;smoke&quot;))],by.x=&quot;identifier&quot;,by.y=&quot;sample_id&quot;)
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source(&quot;~/multistate2/code/frs30_URBUT/fun.frs_30y.R&quot;)
+library(CVrisk)
+ages=c(40:80)
+nstates=c(&quot;Health&quot;, &quot;Ht&quot;,&quot;HyperLip&quot;,&quot;Dm&quot;,&quot;Cad&quot;,&quot;death&quot;,&quot;Ht&amp;HyperLip&quot;,&quot;HyperLip&amp;Dm&quot;,&quot;Ht&amp;Dm&quot;,&quot;Ht&amp;HyperLip&amp;Dm&quot;)
+
+library(CVrisk)
+m=merge(fos[,c(&quot;shareid&quot;,&quot;AGE1&quot;,&quot;SBP1&quot;,&quot;HDL1&quot;,&quot;SEX&quot;,&quot;CURRSMK1&quot;,&quot;HRX1&quot;,&quot;LIPRX1&quot;,&quot;TC1&quot;,&quot;DMRX1&quot;)],surv,by = &quot;shareid&quot;)
+prs=fread(&quot;~/Library/CloudStorage/Dropbox-Personal/Fram_allchr_CAD_c1.profile&quot;)
+prs$score=scale(prs$V2)
+
+firstmeasure=na.omit(merge(m,prs[,c(&quot;V1&quot;,&quot;score&quot;)],by.x=&quot;shareid&quot;,by.y=&quot;V1&quot;))
+# in FOS, using the wkthru:
+# SEX       1   Male
+# SEX       2   Female
+# SEX       .   Unknown
+
+## for our model, female is 0, male is 1
+
+
+firstmeasure$sex=ifelse(firstmeasure$SEX==2,&quot;female&quot;,&quot;male&quot;)
+firstmeasure$sexu=ifelse(firstmeasure$SEX==2,0,1)
+firstmeasure$cad.prs.lec=cut(firstmeasure$score,breaks = c(-5.02,-0.84,0.84,5.02),labels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;))
+
+firstmeasure$int=interaction(firstmeasure$sexu,firstmeasure$cad.prs.lec)
+levels(firstmeasure$int) &lt;- c(1,2,3,4,5,6)
+
+
+library(table1)
+f2=setdiff(names(fos),names(firstmeasure))
+fo2=data.table(fos)
+fo2=fo2[,..f2]
+fo2$id=fos$dbGaP_Subject_ID
+dat=merge(firstmeasure,fo2,by.x = &quot;dbGaP_Subject_ID&quot;,by.y=&quot;id&quot;)
+dat[is.na(dat)]=0
+dat=dat[-(which(dat$chddate&lt;=0)),]
+dat$HRever=apply(dat,1,function(x){
+  ifelse(sum(x[grep(names(dat),pattern=&quot;HRX&quot;)]&gt;0),1,0)})
+dat$HT=apply(dat,1,function(x){
+  ifelse(sum(x[grep(names(dat),pattern=&quot;SBP&quot;)]&gt;150)&gt;0,1,0)})
+dat$HL=apply(dat,1,function(x){
+  ifelse(sum(x[grep(names(dat),pattern=&quot;TC&quot;)]&gt;200)&gt;0,1,0)})
+dat$DM=apply(dat,1,function(x){
+  ifelse(sum(x[grep(names(dat),pattern=&quot;DMR&quot;)]&gt;0),1,0)})
+
+dat$agerec=as.numeric(dat$AGE1)
+dat$agerec[dat$agerec&lt;18]=18
+dat$f.31.0.0=dat$sex
+dat$Cad_0_Any=as.factor(ifelse(dat$chd==1,1,0))
+dat$cad.prs.lev=factor(dat$cad.prs.lec,levels = c(&quot;low&quot;,&quot;mid&quot;,&quot;high&quot;),labels=c(&quot;Low&quot;,&quot;Intermediate&quot;,&quot;High&quot;))
+dat$smoke=ifelse(dat$CURRSMK1==1,1,0)
+dat$durationfollowed=apply(dat,1,function(x){
+  round(max(as.numeric(x[grep(names(dat),pattern=&quot;DATE&quot;)]))/365.25,2)
+})
+dat$durationfollowed[dat$durationfollowed==0]=12
+library(table1)
+label(dat$f.31.0.0) &lt;- &quot;Sex&quot;
+label(dat$HRever) &lt;- &quot;Start an anti-Hypertensive&quot;
+label(dat$smoke) &lt;- &quot;Current Smoker&quot;
+label(dat$HT) &lt;- &quot;Develop Hypertension&quot;
+label(dat$DM) &lt;- &quot;Develop Diabetes&quot;
+label(dat$HL) &lt;- &quot;Develop Hyperlipidemia&quot;
+label(dat$Cad_0_Any) &lt;- &quot;Develop Coronary Disease&quot;
+
+
+
+library(table1)
+label(dat$f.31.0.0) &lt;- &quot;Sex&quot;
+label(dat$durationfollowed)=&quot;Years Followed&quot;
+label(dat$SBP1) &lt;- &quot;SBP at Baseline&quot;
+label(dat$smoke) &lt;- &quot;Current Smoker&quot;
+label(dat$HT) &lt;- &quot;Develop Hypertension&quot;
+label(dat$DM) &lt;- &quot;Develop Diabetes&quot;
+label(dat$HL) &lt;- &quot;Develop Hyperlipidemia&quot;
+label(dat$Cad_0_Any) &lt;- &quot;Develop Coronary Disease&quot;
+label(dat$agerec) = &quot;Age of First Measured&quot;
+f=table1(~ f.31.0.0 +agerec+HT+Cad_0_Any+HL+HRever+smoke+durationfollowed|cad.prs.lev, data=dat)</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -857,44 +1139,7 @@ Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<pre><code>R version 4.3.1 (2023-06-16)
-Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS Sonoma 14.0
-
-Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
-LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
-
-locale:
-[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-
-time zone: America/Chicago
-tzcode source: internal
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] survival_3.5-5    ggpubr_0.6.0      ggplot2_3.4.4     data.table_1.14.8
-[5] tidyr_1.3.0       dplyr_1.1.3       ggsci_3.0.0      
-
-loaded via a namespace (and not attached):
- [1] sass_0.4.7        utf8_1.2.4        generics_0.1.3    rstatix_0.7.2    
- [5] lattice_0.21-8    stringi_1.7.12    digest_0.6.33     magrittr_2.0.3   
- [9] evaluate_0.21     grid_4.3.1        fastmap_1.1.1     Matrix_1.6-0     
-[13] rprojroot_2.0.3   workflowr_1.7.0   jsonlite_1.8.7    whisker_0.4.1    
-[17] backports_1.4.1   promises_1.2.0.1  purrr_1.0.1       fansi_1.0.5      
-[21] scales_1.2.1      jquerylib_0.1.4   abind_1.4-5       cli_3.6.1        
-[25] rlang_1.1.1       splines_4.3.1     cowplot_1.1.1     munsell_0.5.0    
-[29] withr_2.5.2       cachem_1.0.8      yaml_2.3.7        tools_4.3.1      
-[33] ggsignif_0.6.4    colorspace_2.1-0  httpuv_1.6.11     broom_1.0.5      
-[37] vctrs_0.6.4       R6_2.5.1          lifecycle_1.0.3   git2r_0.32.0     
-[41] stringr_1.5.0     car_3.1-2         fs_1.6.3          pkgconfig_2.0.3  
-[45] pillar_1.9.0      bslib_0.5.0       later_1.3.1       gtable_0.3.3     
-[49] glue_1.6.2        Rcpp_1.0.11       xfun_0.39         tibble_3.2.1     
-[53] tidyselect_1.2.0  highr_0.10        rstudioapi_0.15.0 knitr_1.43       
-[57] farver_2.1.1      htmltools_0.5.5   labeling_0.4.2    carData_3.0-5    
-[61] rmarkdown_2.23    compiler_4.3.1   </code></pre>
+<pre class="r"><code>sessionInfo()</code></pre>
 </div>
 </div>
 

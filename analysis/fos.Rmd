@@ -5,7 +5,7 @@ date: "2023-09-17"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,eval=F)
 ```
 
 ## R Markdown
@@ -17,7 +17,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r cars}
 
 #rm(list=ls())
-source("~/dynamichr/code/utils.R")
+source("multistate2/code/utils.R")
 source("~/multistate2//code/smoothtest.R")
 source("~/multistate2//code/newsmooth.R")
 source("~/multistate2/code/fitarray.R")
@@ -400,4 +400,4 @@ label(dat$Cad_0_Any) <- "Develop Coronary Disease"
 label(dat$agerec) = "Age of First Measured"
 f=table1(~ f.31.0.0 +agerec+HT+Cad_0_Any+HL+HRever+smoke+durationfollowed|cad.prs.lev, data=dat)
 
-
+```
