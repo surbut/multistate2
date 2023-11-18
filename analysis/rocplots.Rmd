@@ -211,7 +211,7 @@ levels(m$Model)[3] = "FRS30recal"
 levels(m$Model)[4] = "PRS only"
 m$se=as.vector(semat)
 
-aucplot <-
+aucplot =
   ggplot(m, 
     aes(x = Age, y = AUC, color = Model, ymin = AUC + se, ymax = AUC - se))+ geom_point() +
   geom_line(aes(group = Model, color = Model), linewidth = 3) +

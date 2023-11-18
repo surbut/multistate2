@@ -1,0 +1,168 @@
+---
+title: "scriptPhenonew"
+output: html_document
+date: "2023-10-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(corrplot)
+prs=data.frame(fread("~/Library/CloudStorage/Dropbox-Personal//ukbdata_pcp/ukb52533.tab"))
+
+## https://biobank.ctsu.ox.ac.uk/crystal/label.cgi?id=301
+
+
+
+# Create a named vector with field IDs as names and three-letter codes as values
+codes <- c(`26202` = "AAM", `26204` = "AMD", `26206` = "AD", `26210` = "AST", `26212` = "AF",
+           `26214` = "BD", `26216` = "BMI", `26218` = "CRC", `26220` = "BC", `26223` = "CVD",
+           `26225` = "CED", `26227` = "CAD", `26229` = "CD", `26232` = "EOC", `26234` = "EBMDT",
+           `26238` = "HBA1C_DF", `26240` = "HEIGHT", `26242` = "HDL", `26244` = "HT", `26246` = "IOP",
+           `26248` = "ISS", `26250` = "LDL_SF", `26252` = "MEL", `26254` = "MS", `26258` = "OP",
+           `26260` = "PD", `26265` = "POAG", `26267` = "PC", `26269` = "PSO", `21150` = "RHR",
+           `26273` = "RA", `26275` = "SCZ", `26278` = "SLE", `21151` = "TCH", `21152` = "TTG",
+           `26283` = "T1D", `26285` = "T2D", `26287` = "UC", `26289` = "VTE")
+
+# Extract the field IDs from the column names of the dataframe
+field_ids <- sub("f\\.(\\d+)\\..*", "\\1", names(prs)[-1])  # skip the first column "f.eid"
+
+# Map the field IDs to the codes, preserving the original column name if there is no match
+new_names <- sapply(field_ids, function(id) ifelse(id %in% names(codes), codes[id], id))
+
+# Include the unchanged name for "f.eid"
+new_names <- c("EID", new_names)
+
+# Assign the new column names to the dataframe
+colnames(prs) <- new_names
+rownames(prs)=prs$EID
+prs_2=na.omit(prs[,colnames(prs)%in%codes])
+prs_subset=data.frame(apply(prs_2,2,scale))
+rownames(prs_subset)=rownames(prs_2)
+
+
+data_filtered=readRDS("~/Library/CloudStorage/Dropbox-Personal//df_ukb_pheno_updated.rds")
+
+prs_subset$Identifier=as.numeric(as.character(rownames(prs_subset)))
+g=merge(data_filtered,prs_subset,by="Identifier")
+g=data.frame(g)
+
+g=g[g$Sex==1,]
+
+
+correlation_list = list()
+ages=c(40:70)
+for(i in 1:length(ages)){
+  a=ages[i]
+  ind=which(g$Death_age>a)
+  c=cor(prs_subset[ind,-37])
+  colnames(c)=rownames(c)=names(prs_subset[-37])
+  correlation_list[[i]]=c
+}
+
+
+
+
+plot=t(sapply(correlation_list,function(x){
+  x["CAD",c("CRC","PC","AD")]
+}))
+
+plot=data.frame(plot)
+plot$age=ages
+
+mt=melt(plot,id.vars = "age")
+ggplot(mt,aes(age,value,col=variable))+geom_smooth()+
+  facet_wrap(~variable,scales="free")+theme_classic()+labs(y="PRS Correlation with CAD PRS, Males")
+
+
+
+g=merge(data_filtered,prs_subset,by="Identifier")
+g=data.frame(g)
+
+g=g[g$Sex==0,]
+
+
+correlation_list = list()
+ages=c(40:70)
+for(i in 1:length(ages)){
+  a=ages[i]
+  ind=which(g$Death_age>a)
+  c=cor(prs_subset[ind,-37])
+  colnames(c)=rownames(c)=names(prs_subset[-37])
+  correlation_list[[i]]=c
+}
+
+plot=t(sapply(correlation_list,function(x){
+  x["CAD",c("CRC","BC","EOC","AD")]
+}))
+
+plot=data.frame(plot)
+plot$age=ages
+
+mt=melt(plot,id.vars = "age")
+ggplot(mt,aes(age,value,col=variable))+geom_smooth()+
+  facet_wrap(~variable,scales="free")+theme_classic()+
+  labs(y="PRS Correlation with CAD PRS, Females")
+
+```
+
+```{r}
+c=cor(prs_subset[,-ncol(prs_subset)])
+colnames(c)=rownames(c)=names(prs_subset[-ncol(prs_subset)])
+corrplot::corrplot(c,method="square")
+
+
+
+## confirm that those with top 20% CAD PRS are more likely (x3)
+mean(g[g$CAD>0.85,"Cad_Any"]==2)
+mean(g[g$CAD<(-0.85),"Cad_Any"]==2)
+
+
+## slightly more deaths
+mean(na.omit(g[g$CAD>0.85,"Death_any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Death_any"]==2))
+
+## slightly less cancer
+mean(na.omit(g[g$CAD>0.85,"Brca_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Brca_Any"]==2))
+
+
+mean(na.omit(g[g$CAD>0.85,"Crc_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Crc_Any"]==2))
+
+mean(na.omit(g[g$CAD>0.85,"Pca_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Pca_Any"]==2))
+
+###
+
+
+#g=readRDS("~/Library/CloudStorage/Dropbox-Personal/mergedprsandphenotype.rds")
+g$CAD=scale(g$CAD)
+sum(g$Cad_Any==2&g$CAD>0.85)
+sum(g$Cad_Any==2&g$CAD<(-0.85))
+sum(g$Death_any==2&g$CAD>0.85)
+sum(g$Death_any==2&g$CAD<(-0.85))
+sum(g$Brca_Any==2&g$CAD>0.85)
+sum(g$Brca_Any==2&g$CAD<(-0.85))
+
+mean(g[g$CAD>0.85,"Cad_Any"]==2)
+mean(g[g$CAD<(-0.85),"Cad_Any"]==2)
+
+
+mean(na.omit(g[g$CAD>0.85,"Death_any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Death_any"]==2))
+
+mean(na.omit(g[g$CAD>0.85,"Brca_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Brca_Any"]==2))
+
+mean(na.omit(g[g$CAD>0.85,"Crc_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Crc_Any"]==2))
+
+mean(na.omit(g[g$CAD>0.85,"Pca_Any"]==2))
+mean(na.omit(g[g$CAD<(-0.85),"Pca_Any"]==2))
+```
