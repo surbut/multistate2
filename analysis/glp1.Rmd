@@ -1,20 +1,22 @@
-
-=---
+---
 title: "glp1"
 output: html_document
 date: "2023-11-17"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
 ```
 
-```{bash,eval=FALSE}
+Here you can see the medication used according to NHS. This results in 2200 prescriptions for 940 people.
+
+```{bash,eval=FALSE,echo=TRUE}
 #in bash
 grep -E 'Byetta|Ozempic|Wegovy|Bydureon|Trulicty|Lixumia|Victoza|Rybelsus|Liraglutide|Dulaglutide|Exenatide|Lixisenatide|Semaglutide' gp_scripts.txt >glpfile.txt
 ```
 
 
+We match on sex, DOB, and BMI at baseline and display characteristics of population before and after matching.
 ```{r}
 source("~/multistate2/code/utils.R")
 prs_subset=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/prs_subset.rds")
@@ -49,7 +51,12 @@ matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0,data=mg)
 summary(matched)
 datm=match.data(matched)
 
+```
 
+
+We now measure the percentage of BMI chance and calculate the influence of treatment, PRS, or the interaction:
+
+```{r}
 
 datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
 
@@ -84,5 +91,41 @@ ggplot(prs_values, aes(x = PRS, y = Predicted_Effect)) +
 
 
 
+
+## Now let's try CAD PRS and matching for known CAD risk factors
+
+* Here we match for Hyperlipidemia, Htn, and Dm
+* We exclude individuals with CAD at enrollment *or* prior to beginning drug.
+
+
+```{r}
+
+w=which(!is.na(mg$earliest_event_dt))
+mg$age.script=1000
+mg$age.script[w]=difftime(as.Date(mg$earliest_event_dt[w]),time2 = as.Date(mg$Birthdate[w]),units = "days")/365.25
+
+pheno=readRDS("~/Library/CloudStorage/Dropbox-Personal/df_ukb_pheno_updated.rds")
+
+mgmas=merge(mg,pheno,by="Identifier")
+
+mgmas$enrollage=difftime(mgmas$Enrollment_Date,mgmas$Birthdate.x,units = "days")/365.25
+
+#eliminate those with CAD at baseline
+mgmas=mgmas[mgmas$Cad_censor_age>mgmas$enrollage,]
+## remove those with CAD prior to script date
+mgmas=mgmas[-which(mgmas$age.script<mgmas$Cad_censor_age&mgmas$Cad_Any==2),]
+
+mgmas=mgmas[!is.na(mgmas$f.34.0.0)&!is.na(mgmas$f.21001.0.0)&!is.na(mgmas$f.31.0.0),]
+mgmas$CAD=scale(mgmas$CAD)
+matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0+DmT2_Any+HyperLip_Any+Ht_Any,data=mgmas)
+summary(matched)
+datm=match.data(matched)
+
+datm$cadevent=ifelse(datm$Cad_Any==2,1,0)
+
+coxph(Surv(time=enrollage,time2=Cad_censor_age,event=cadevent)~treat+CAD+treat:CAD,data = datm)
+```
+
+So it appears that while the CAD PRS does increase risk for CAD (appropriately) there is no differential effect of treatment on CAD response.
 
 

@@ -10,8 +10,9 @@
 
 
 
+<meta name="date" content="2023-11-17" />
 
-<title>glp1.knit.md</title>
+<title>glp1</title>
 
 <script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -357,6 +358,8 @@ div.tocify {
 
 
 
+<h1 class="title toc-ignore">glp1</h1>
+<h4 class="date">2023-11-17</h4>
 
 </div>
 
@@ -423,10 +426,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -545,15 +548,15 @@ code/utils.R
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeb6450c1507e033fdedca67cabf8273fa2feb4e58targetblankb6450c1a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec31737bd9fc6ea414a4ed4046dc144015809ed4btargetblankc31737ba">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/b6450c1507e033fdedca67cabf8273fa2feb4e58" target="_blank">b6450c1</a>
+<a href="https://github.com/surbut/multistate2/tree/c31737bd9fc6ea414a4ed4046dc144015809ed4b" target="_blank">c31737b</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeb6450c1507e033fdedca67cabf8273fa2feb4e58targetblankb6450c1a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec31737bd9fc6ea414a4ed4046dc144015809ed4btargetblankc31737ba"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -563,7 +566,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/b6450c1507e033fdedca67cabf8273fa2feb4e58" target="_blank">b6450c1</a>.
+<a href="https://github.com/surbut/multistate2/tree/c31737bd9fc6ea414a4ed4046dc144015809ed4b" target="_blank">c31737b</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -587,14 +590,8 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
-Untracked files:
-    Untracked:  analysis/glp1.Rmd
-    Untracked:  analysis/paris.Rmd
-    Untracked:  paris.Rmd
-    Untracked:  paris.html
-
 Unstaged changes:
-    Modified:   analysis/rocplots.Rmd
+    Modified:   analysis/glp1.Rmd
 
 </code></pre>
 <p>
@@ -609,48 +606,83 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/glp1.Rmd</code>) and HTML
+(<code>docs/glp1.html</code>) files. If you’ve configured a remote Git
+repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
+in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/c31737bd9fc6ea414a4ed4046dc144015809ed4b/analysis/glp1.Rmd" target="_blank">c31737b</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/c31737bd9fc6ea414a4ed4046dc144015809ed4b/docs/glp1.html" target="_blank">c31737b</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
 </div>
-<p>=— title: “glp1” output: html_document date: “2023-11-17” —</p>
+<p>Here you can see the medication used according to NHS. This results
+in 2200 prescriptions for 940 people.</p>
 <pre class="bash"><code>#in bash
 grep -E &#39;Byetta|Ozempic|Wegovy|Bydureon|Trulicty|Lixumia|Victoza|Rybelsus|Liraglutide|Dulaglutide|Exenatide|Lixisenatide|Semaglutide&#39; gp_scripts.txt &gt;glpfile.txt</code></pre>
-<pre class="r"><code>source(&quot;~/multistate2/code/utils.R&quot;)
-prs_subset=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/prs_subset.rds&quot;)
-glp1=fread(&quot;~/Library/CloudStorage/Dropbox-Personal//glp1s.txt&quot;)
-colnames(glp1)[1]=c(&quot;Identifier&quot;)
-colnames(glp1)[3]=c(&quot;event_dt&quot;)
-df_baseline=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/dfukb_baseline.rds&quot;)
-glp1$event_dt &lt;- as.Date(glp1$event_dt, format=&quot;%d/%m/%Y&quot;)
-unique_patients &lt;- glp1 %&gt;%
-  group_by(Identifier) %&gt;%
-  summarize(earliest_event_dt = min(event_dt))
-
-m=merge(prs_subset,unique_patients,by = &quot;Identifier&quot;,all.x = T)
-m2=merge(m,df_baseline,by.x = &quot;Identifier&quot;,by.y=&quot;identifier&quot;)
-
-m2$treat=as.integer(ifelse(!is.na(m2$earliest_event_dt),1,0))
-library(MatchIt)
-
-biomarkers=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds&quot;)
-bmi=biomarkers[biomarkers$variable%in%&quot;bmi&quot;,]
-bmi$date &lt;- as.Date(bmi$date, format=&quot;%Y/%m/%d&quot;)
-sorted_data &lt;- bmi %&gt;%
-  arrange(eid, date) %&gt;%
-  group_by(eid)  %&gt;%
-  slice(n())
-
-
-m2=m2[!is.na(m2$f.21001.0.0),]
-mg=merge(m2,sorted_data,by.x=&quot;Identifier&quot;,by.y=&quot;eid&quot;)
-mg$bmi.prs=mg$BMI
-matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0,data=mg)
-summary(matched)</code></pre>
+<p>We match on sex, DOB, and BMI at baseline and display characteristics
+of population before and after matching.</p>
 <pre><code>
 Call:
 matchit(formula = treat ~ f.34.0.0 + f.21001.0.0 + f.31.0.0, 
@@ -690,18 +722,8 @@ All        221952     938
 Matched       938     938
 Unmatched  221014       0
 Discarded       0       0</code></pre>
-<pre class="r"><code>datm=match.data(matched)
-
-
-
-datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
-
-your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm)
-
-
-model_summary &lt;- summary(your_model)
-
-model_summary</code></pre>
+<p>We now measure the percentage of BMI chance and calculate the
+influence of treatment, PRS, or the interaction:</p>
 <pre><code>
 Call:
 lm(formula = scale(delta) ~ treat + treat:bmi.prs, data = datm)
@@ -721,26 +743,80 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 Residual standard error: 0.9963 on 1873 degrees of freedom
 Multiple R-squared:  0.008382,  Adjusted R-squared:  0.007323 
 F-statistic: 7.916 on 2 and 1873 DF,  p-value: 0.0003772</code></pre>
-<pre class="r"><code>coefficients &lt;- model_summary$coefficients
-rownames(coefficients)=c(&quot;(Intercept)&quot;,&quot;Treatment&quot;,&quot;Treatment:PRS&quot;)
-# Create a data frame of PRS values (e.g., from min to max PRS in your data)
-prs_values &lt;- data.frame(PRS = seq(min(mg$BMI), max(mg$BMI), length.out = 100))
+<p><img src="figure/glp1.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="now-lets-try-cad-prs-and-matching-for-known-cad-risk-factors"
+class="section level2">
+<h2>Now let’s try CAD PRS and matching for known CAD risk factors</h2>
+<ul>
+<li>Here we match for Hyperlipidemia, Htn, and Dm</li>
+<li>We exclude individuals with CAD at enrollment <em>or</em> prior to
+beginning drug.</li>
+</ul>
+<pre><code>
+Call:
+matchit(formula = treat ~ f.34.0.0 + f.21001.0.0 + f.31.0.0 + 
+    DmT2_Any + HyperLip_Any + Ht_Any, data = mgmas)
 
-# Calculate predicted treatment effect for each PRS value
-# Adjust the formula based on your model&#39;s structure
-prs_values$Predicted_Effect &lt;- coefficients[&quot;(Intercept)&quot;, &quot;Estimate&quot;] +
-  coefficients[&quot;Treatment&quot;, &quot;Estimate&quot;] * 1 +
-  coefficients[&quot;Treatment:PRS&quot;, &quot;Estimate&quot;] * 1 * prs_values$PRS
+Summary of Balance for All Data:
+             Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+distance            0.0319        0.0029          0.4420    30.8254    0.4106
+f.34.0.0         1952.4569     1951.8596          0.0804     0.8477    0.0261
+f.21001.0.0        36.6104       27.3805          1.5043     1.6780    0.3597
+f.31.0.00           0.5032        0.5594         -0.1123          .    0.0562
+f.31.0.01           0.4968        0.4406          0.1123          .    0.0562
+DmT2_Any            1.3818        1.0449          0.2336    12.0781    0.2615
+HyperLip_Any        1.5719        1.2249          0.7006     1.4066    0.1735
+Ht_Any              1.8291        1.3939          1.1552     0.5945    0.2176
+             eCDF Max
+distance       0.6706
+f.34.0.0       0.0704
+f.21001.0.0    0.6688
+f.31.0.00      0.0562
+f.31.0.01      0.0562
+DmT2_Any       0.7607
+HyperLip_Any   0.3470
+Ht_Any         0.4352
 
-# Plot
-library(ggplot2)
-ggplot(prs_values, aes(x = PRS, y = Predicted_Effect)) +
-  geom_line() +
-  theme_minimal() +
-  labs(title = &quot;Predicted Treatment Effect Across PRS&quot;,
-       x = &quot;Polygenic Risk Score (PRS)&quot;,
-       y = &quot;Predicted Treatment Effect&quot;)</code></pre>
-<p><img src="figure/glp1.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+Summary of Balance for Matched Data:
+             Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+distance            0.0319        0.0319          0.0007     1.0106    0.0000
+f.34.0.0         1952.4569     1951.9760          0.0647     0.8976    0.0216
+f.21001.0.0        36.6104       36.5681          0.0069     0.7301    0.0289
+f.31.0.00           0.5032        0.5383         -0.0703          .    0.0351
+f.31.0.01           0.4968        0.4617          0.0703          .    0.0351
+DmT2_Any            1.3818        1.3514          0.0210     5.5859    0.1833
+HyperLip_Any        1.5719        1.5974         -0.0516     1.0180    0.0128
+Ht_Any              1.8291        1.8498         -0.0551     1.1105    0.0104
+             eCDF Max Std. Pair Dist.
+distance       0.0032          0.0021
+f.34.0.0       0.0527          1.1531
+f.21001.0.0    0.0831          0.7148
+f.31.0.00      0.0351          1.0799
+f.31.0.01      0.0351          1.0799
+DmT2_Any       0.4505          0.6857
+HyperLip_Any   0.0256          0.8258
+Ht_Any         0.0208          0.6148
+
+Sample Sizes:
+          Control Treated
+All        211083     626
+Matched       626     626
+Unmatched  210457       0
+Discarded       0       0</code></pre>
+<pre><code>Call:
+coxph(formula = Surv(time = enrollage, time2 = Cad_censor_age, 
+    event = cadevent) ~ treat + CAD + treat:CAD, data = datm)
+
+               coef exp(coef)  se(coef)      z        p
+treat     -0.736531  0.478772  0.200302 -3.677 0.000236
+CAD        0.177544  1.194280  0.104823  1.694 0.090313
+treat:CAD  0.005836  1.005853  0.197881  0.029 0.976472
+
+Likelihood ratio test=20.67  on 3 df, p=0.0001235
+n= 1252, number of events= 124 </code></pre>
+<p>So it appears that while the CAD PRS does increase risk for CAD
+(appropriately) there is no differential effect of treatment on CAD
+response.</p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -749,7 +825,6 @@ Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.3.1 (2023-06-16)
 Platform: aarch64-apple-darwin20 (64-bit)
 Running under: macOS Sonoma 14.0
@@ -789,15 +864,16 @@ loaded via a namespace (and not attached):
 [33] zoo_1.8-12        httpuv_1.6.11     Matrix_1.6-0      splines_4.3.1    
 [37] timechange_0.2.0  tidyselect_1.2.0  rstudioapi_0.15.0 abind_1.4-5      
 [41] yaml_2.3.7        lattice_0.21-8    plyr_1.8.8        withr_2.5.2      
-[45] evaluate_0.21     xml2_1.3.5        pillar_1.9.0      generics_0.1.3   
-[49] rprojroot_2.0.3   hms_1.1.3         munsell_0.5.0     scales_1.2.1     
-[53] minqa_1.2.5       xtable_1.8-4      glue_1.6.2        lazyeval_0.2.2   
-[57] tools_4.3.1       lme4_1.1-34       ggsignif_0.6.4    fs_1.6.3         
-[61] grid_4.3.1        colorspace_2.1-0  nlme_3.1-162      cli_3.6.1        
-[65] km.ci_0.5-6       workflowr_1.7.0   fansi_1.0.5       viridisLite_0.4.2
-[69] gtable_0.3.3      rstatix_0.7.2     sass_0.4.7        digest_0.6.33    
-[73] farver_2.1.1      htmlwidgets_1.6.2 htmltools_0.5.5   lifecycle_1.0.3  
-[77] httr_1.4.6        bit64_4.0.5       MASS_7.3-60      </code></pre>
+[45] evaluate_0.21     xml2_1.3.5        pillar_1.9.0      whisker_0.4.1    
+[49] generics_0.1.3    rprojroot_2.0.3   hms_1.1.3         munsell_0.5.0    
+[53] scales_1.2.1      minqa_1.2.5       xtable_1.8-4      glue_1.6.2       
+[57] lazyeval_0.2.2    tools_4.3.1       lme4_1.1-34       ggsignif_0.6.4   
+[61] fs_1.6.3          grid_4.3.1        colorspace_2.1-0  nlme_3.1-162     
+[65] cli_3.6.1         km.ci_0.5-6       workflowr_1.7.0   fansi_1.0.5      
+[69] viridisLite_0.4.2 gtable_0.3.3      rstatix_0.7.2     sass_0.4.7       
+[73] digest_0.6.33     farver_2.1.1      htmlwidgets_1.6.2 htmltools_0.5.5  
+[77] lifecycle_1.0.3   httr_1.4.6        bit64_4.0.5       MASS_7.3-60      </code></pre>
+</div>
 </div>
 
 
