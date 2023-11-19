@@ -548,15 +548,15 @@ code/utils.R
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec31737bd9fc6ea414a4ed4046dc144015809ed4btargetblankc31737ba">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeff90df913c36bb0c0ce93c1d18bb7c5b3c9c441btargetblankff90df9a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/c31737bd9fc6ea414a4ed4046dc144015809ed4b" target="_blank">c31737b</a>
+<a href="https://github.com/surbut/multistate2/tree/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b" target="_blank">ff90df9</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec31737bd9fc6ea414a4ed4046dc144015809ed4btargetblankc31737ba"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeff90df913c36bb0c0ce93c1d18bb7c5b3c9c441btargetblankff90df9a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -566,7 +566,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/c31737bd9fc6ea414a4ed4046dc144015809ed4b" target="_blank">c31737b</a>.
+<a href="https://github.com/surbut/multistate2/tree/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b" target="_blank">ff90df9</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -636,6 +636,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b/analysis/glp1.Rmd" target="_blank">ff90df9</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b/docs/glp1.html" target="_blank">ff90df9</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -744,6 +778,43 @@ Residual standard error: 0.9963 on 1873 degrees of freedom
 Multiple R-squared:  0.008382,  Adjusted R-squared:  0.007323 
 F-statistic: 7.916 on 2 and 1873 DF,  p-value: 0.0003772</code></pre>
 <p><img src="figure/glp1.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b/docs/figure/glp1.Rmd/unnamed-chunk-3-1.png" target="_blank">ff90df9</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="now-lets-try-cad-prs-and-matching-for-known-cad-risk-factors"
 class="section level2">
 <h2>Now let’s try CAD PRS and matching for known CAD risk factors</h2>
@@ -803,6 +874,10 @@ All        211083     626
 Matched       626     626
 Unmatched  210457       0
 Discarded       0       0</code></pre>
+<ul>
+<li>Here we test for the effect of drug, CAD prs, and drug on cad PRS,
+using age as time scale:</li>
+</ul>
 <pre><code>Call:
 coxph(formula = Surv(time = enrollage, time2 = Cad_censor_age, 
     event = cadevent) ~ treat + CAD + treat:CAD, data = datm)

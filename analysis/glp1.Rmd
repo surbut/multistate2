@@ -123,6 +123,11 @@ datm=match.data(matched)
 
 datm$cadevent=ifelse(datm$Cad_Any==2,1,0)
 
+```
+
+* Here we test for the effect of drug, CAD prs, and drug on cad PRS, using age as time scale:
+
+```{r}
 coxph(Surv(time=enrollage,time2=Cad_censor_age,event=cadevent)~treat+CAD+treat:CAD,data = datm)
 ```
 
