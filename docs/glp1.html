@@ -388,7 +388,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-11-18
+<strong>Last updated:</strong> 2023-11-19
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -548,15 +548,15 @@ code/utils.R
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeff90df913c36bb0c0ce93c1d18bb7c5b3c9c441btargetblankff90df9a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeb054d71c7c0d9df29e177dba4c9e2ca6cba1481btargetblankb054d71a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b" target="_blank">ff90df9</a>
+<a href="https://github.com/surbut/multistate2/tree/b054d71c7c0d9df29e177dba4c9e2ca6cba1481b" target="_blank">b054d71</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeff90df913c36bb0c0ce93c1d18bb7c5b3c9c441btargetblankff90df9a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treeb054d71c7c0d9df29e177dba4c9e2ca6cba1481btargetblankb054d71a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -566,7 +566,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/ff90df913c36bb0c0ce93c1d18bb7c5b3c9c441b" target="_blank">ff90df9</a>.
+<a href="https://github.com/surbut/multistate2/tree/b054d71c7c0d9df29e177dba4c9e2ca6cba1481b" target="_blank">b054d71</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -589,6 +589,9 @@ Ignored files:
     Ignored:    lesliepics/.DS_Store
     Ignored:    output/
     Ignored:    plots/.DS_Store
+
+Untracked files:
+    Untracked:  analysis/figure/
 
 Unstaged changes:
     Modified:   analysis/glp1.Rmd
@@ -636,6 +639,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/b054d71c7c0d9df29e177dba4c9e2ca6cba1481b/analysis/glp1.Rmd" target="_blank">b054d71</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/b054d71c7c0d9df29e177dba4c9e2ca6cba1481b/docs/glp1.html" target="_blank">b054d71</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-18
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -874,21 +911,38 @@ All        211083     626
 Matched       626     626
 Unmatched  210457       0
 Discarded       0       0</code></pre>
+<p>We need to create a time dependent variable for drug start time so we
+don’t unfairly bias for people who survived until treatment as being in
+the treated arm during those ‘immortal’ years;</p>
+<pre class="r"><code>data_period_1 &lt;- datm[datm$treat==1,] %&gt;%
+  mutate(start = enrollage, stop = age.script, treatment = 0)
+
+data_period_2 &lt;- datm[datm$treat==1,] %&gt;%
+  mutate(start = age.script, stop = Cad_censor_age, treatment = 1)
+
+# Combining the data back together
+data_long &lt;- bind_rows(data_period_1, data_period_2)
+
+data_period_1un &lt;- datm[datm$treat==0,] %&gt;%
+  mutate(start = enrollage, stop = Cad_censor_age, treatment = 0)
+
+# Combining the data back together
+data_long &lt;- bind_rows(data_period_1un, data_long)</code></pre>
 <ul>
 <li>Here we test for the effect of drug, CAD prs, and drug on cad PRS,
 using age as time scale:</li>
 </ul>
 <pre><code>Call:
 coxph(formula = Surv(time = enrollage, time2 = Cad_censor_age, 
-    event = cadevent) ~ treat + CAD + treat:CAD, data = datm)
+    event = cadevent) ~ treat + cad.prs + treat:cad.prs, data = data_long)
 
-               coef exp(coef)  se(coef)      z        p
-treat     -0.736531  0.478772  0.200302 -3.677 0.000236
-CAD        0.177544  1.194280  0.104823  1.694 0.090313
-treat:CAD  0.005836  1.005853  0.197881  0.029 0.976472
+                  coef exp(coef) se(coef)      z        p
+treat         -0.74279   0.47578  0.16379 -4.535 5.76e-06
+cad.prs        0.17083   1.18629  0.10564  1.617    0.106
+treat:cad.prs  0.00367   1.00368  0.15877  0.023    0.982
 
-Likelihood ratio test=20.67  on 3 df, p=0.0001235
-n= 1252, number of events= 124 </code></pre>
+Likelihood ratio test=28.15  on 3 df, p=3.377e-06
+n= 1878, number of events= 164 </code></pre>
 <p>So it appears that while the CAD PRS does increase risk for CAD
 (appropriately) there is no differential effect of treatment on CAD
 response.</p>

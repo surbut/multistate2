@@ -123,12 +123,36 @@ datm=match.data(matched)
 
 datm$cadevent=ifelse(datm$Cad_Any==2,1,0)
 
+datm$enrollage=as.numeric(datm$enrollage)
+
+datm$cad.prs=datm$CAD
+```
+
+We need to create a time dependent variable for drug start time so we don't unfairly bias for people who survived until treatment as being in the treated arm during those 'immortal' years;
+
+```{r, eval=T, echo=T}
+data_period_1 <- datm[datm$treat==1,] %>%
+  mutate(start = enrollage, stop = age.script, treatment = 0)
+
+data_period_2 <- datm[datm$treat==1,] %>%
+  mutate(start = age.script, stop = Cad_censor_age, treatment = 1)
+
+# Combining the data back together
+data_long <- bind_rows(data_period_1, data_period_2)
+
+data_period_1un <- datm[datm$treat==0,] %>%
+  mutate(start = enrollage, stop = Cad_censor_age, treatment = 0)
+
+# Combining the data back together
+data_long <- bind_rows(data_period_1un, data_long)
+
+
 ```
 
 * Here we test for the effect of drug, CAD prs, and drug on cad PRS, using age as time scale:
 
 ```{r}
-coxph(Surv(time=enrollage,time2=Cad_censor_age,event=cadevent)~treat+CAD+treat:CAD,data = datm)
+coxph(Surv(time=enrollage,time2=Cad_censor_age,event=cadevent)~treat+cad.prs+treat:cad.prs,data = data_long)
 ```
 
 So it appears that while the CAD PRS does increase risk for CAD (appropriately) there is no differential effect of treatment on CAD response.
