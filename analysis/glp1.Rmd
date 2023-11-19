@@ -54,13 +54,17 @@ datm=match.data(matched)
 ```
 
 
+
+
 We now measure the percentage of BMI chance and calculate the influence of treatment, PRS, or the interaction:
 
 ```{r}
 
 datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
 
-your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm)
+your_model=lm(scale(delta)~treat+treat:bmi.prs+f.31.0.0+f.21001.0.0,dat=datm)
+your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm,weights = weights)
+
 
 
 model_summary <- summary(your_model)
@@ -90,7 +94,47 @@ ggplot(prs_values, aes(x = PRS, y = Predicted_Effect)) +
 ```
 
 
+# perhaps we should control for other risk conditions
+* let's also match for Hyperlipidemia, Dm, and CAD
 
+```{r}
+
+pheno=readRDS("~/Library/CloudStorage/Dropbox-Personal/df_ukb_pheno_updated.rds")
+
+mgmas=merge(mg,pheno,by="Identifier")
+mgmas$enrollage=difftime(mgmas$Enrollment_Date,mgmas$Birthdate.x,units = "days")/365.25
+
+mgmas=mgmas[!is.na(mgmas$f.34.0.0)&!is.na(mgmas$f.21001.0.0)&!is.na(mgmas$f.31.0.0),]
+mgmas$CAD=scale(mgmas$CAD)
+matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0+DmT2_Any+HyperLip_Any+Ht_Any+Cad_Any,data=mgmas)
+```
+
+
+# extract matched data
+
+* so now we've matched on comorbidities, and we'll extract the effect of treatment, or treatment + interaction
+
+```{r,echo=T}
+summary(matched)
+datm=match.data(matched)
+
+datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
+
+your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm)
+
+your_model=lm(scale(delta)~treat,dat=datm)
+model_summary <- summary(your_model)
+
+model_summary
+```
+
+## but now when we add back in interaction fo bmi on treatment to this comorbid matched population
+```{r,echo=T}
+your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm)
+model_summary <- summary(your_model)
+
+model_summary
+```
 
 ## Now let's try CAD PRS and matching for known CAD risk factors
 
