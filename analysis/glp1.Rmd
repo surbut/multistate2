@@ -12,7 +12,7 @@ Here you can see the medication used according to NHS. This results in 2200 pres
 
 ```{bash,eval=FALSE,echo=TRUE}
 #in bash
-grep -E 'Byetta|Ozempic|Wegovy|Bydureon|Trulicty|Lixumia|Victoza|Rybelsus|Liraglutide|Dulaglutide|Exenatide|Lixisenatide|Semaglutide' gp_scripts.txt >glpfile.txt
+grep -E 'Byetta|Ozempic|Wegovy|Bydureon|Trulicity|Lixumia|Victoza|Rybelsus|Liraglutide|Dulaglutide|Exenatide|Lixisenatide|Semaglutide' gp_scripts.txt > glp1s_withi.txt
 ```
 
 
@@ -20,10 +20,11 @@ We match on sex, DOB, and BMI at baseline and display characteristics of populat
 ```{r}
 source("~/multistate2/code/utils.R")
 prs_subset=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/prs_subset.rds")
-glp1=fread("~/Library/CloudStorage/Dropbox-Personal//glp1s.txt")
+glp1=fread("~/Library/CloudStorage/Dropbox-Personal//glp1s_withi.txt")
 colnames(glp1)[1]=c("Identifier")
 colnames(glp1)[3]=c("event_dt")
 df_baseline=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/dfukb_baseline.rds")
+## treatment data 
 glp1$event_dt <- as.Date(glp1$event_dt, format="%d/%m/%Y")
 unique_patients <- glp1 %>%
   group_by(Identifier) %>%
@@ -31,28 +32,116 @@ unique_patients <- glp1 %>%
 
 m=merge(prs_subset,unique_patients,by = "Identifier",all.x = T)
 m2=merge(m,df_baseline,by.x = "Identifier",by.y="identifier")
-
+m2=m2[!is.na(m2$f.21001.0.0),]
 m2$treat=as.integer(ifelse(!is.na(m2$earliest_event_dt),1,0))
-library(MatchIt)
 
+
+library(MatchIt)
+````
+
+
+Now BMI data:
+
+```{r}
 biomarkers=readRDS("~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds")
 bmi=biomarkers[biomarkers$variable%in%"bmi",]
 bmi$date <- as.Date(bmi$date, format="%Y/%m/%d")
-sorted_data <- bmi %>%
-  arrange(eid, date) %>%
-  group_by(eid)  %>%
-  slice(n())
+# sorted_data <- bmi %>%
+#   arrange(eid, date) %>%
+#   group_by(eid)  %>%
+#   slice(n())
+# 
+# 
+# mg=merge(m2,sorted_data,by.x="Identifier",by.y="eid")
+# mg$bmi.prs=mg$BMI
+
+df_baseline=df_baseline[!is.na(df_baseline$f.21001.0.0),]
+baseline_bmi=data.frame("eid"=df_baseline$identifier,"date"=as.Date(df_baseline$f.53.0.0),"variable"="bmi",source="ukb","value"=df_baseline$f.21001.0.0)
+bmi2=rbind(bmi,baseline_bmi)
+
+## merge with the date of treatment for treated folks
+grc=bmi2[!(bmi2$eid%in%unique_patients$Identifier),]
+grc$bmi_date=as.Date(grc$date)
 
 
-m2=m2[!is.na(m2$f.21001.0.0),]
-mg=merge(m2,sorted_data,by.x="Identifier",by.y="eid")
-mg$bmi.prs=mg$BMI
-matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0,data=mg)
+## treated
+data2=merge(bmi2,unique_patients,by.x="eid",by.y="Identifier")
+data2$bmi_date=as.Date(data2$date)
+data2$script_date=as.Date(data2$earliest_event_dt)
+
+
+
+last_bmi_before_script2 <- data2 %>%
+  group_by(eid) %>%
+  filter(bmi_date < script_date) %>%
+  slice_max(order_by = bmi_date, n = 1) %>%
+  ungroup()
+
+lbmi=last_bmi_before_script2 %>%
+               distinct(eid, .keep_all = TRUE)
+
+lbmi$diff=difftime(lbmi$script_date,lbmi$bmi_date,units = "days")
+
+last_bmi_after_script <- data %>%
+  group_by(eid) %>%
+  filter(bmi_date > script_date) %>%
+  slice_max(order_by = bmi_date, n = 1) %>%
+  ungroup()
+
+bmis_treated=merge(lbmi,last_bmi_after_script[,c("eid","bmi_date","value")],by="eid")
+bmis_treated$delta=bmis_treated$value.y-bmis_treated$value.x
+bmis_treated$duration=difftime(bmis_treated$bmi_date.y,bmis_treated$script_date,units = "days")
+#only keep those with bmis measured at least 90 days out
+bmis_treated=bmis_treated[bmis_treated$duration>90,]
+
+
+## for controls first bmi will be baseline
+
+controls_last <- grc %>%
+  group_by(eid) %>%
+  slice_max(order_by = bmi_date, n = 1) %>%
+  ungroup()
+
+controls_last=controls_last %>%
+               distinct(eid, .keep_all = TRUE)
+controls_all=merge(controls_last,df_baseline,by.x = "eid",by.y="identifier")
+
+controls_all$delta=controls_all$value-controls_all$f.21001.0.0
+controls_all$duration=difftime(controls_all$date,controls_all$f.53.0.0,units = "days")
+## Now merge
+
+for_matching_treat=data.frame("eid"=bmis_treated$eid,"firstval"=bmis_treated$value.x,"treatdate"=as.Date(bmis_treated$script_date),"lastval"=bmis_treated$value.y,"duration"=bmis_treated$duration,"delta"=bmis_treated$delta,"treat"=1)
+
+for_matching_controls=data.frame("eid"=controls_all$eid,"firstval"=controls_all$f.21001.0.0,
+                                 "treatdate"=controls_all$f.53.0.0,"lastval"=controls_all$value,
+                                 "duration"=controls_all$duration,
+                                 "delta"=controls_all$value-controls_all$f.21001.0.0,"treat"=0)
+
+
+for_matching=rbind(for_matching_treat,for_matching_controls)
+
+for_matching=merge(for_matching,df_baseline,by.x = "eid",by.y="identifier")
+
+## only keep those whose last bmi measurement is after treatment and matchon this 
+
+matched=matchit(treat~f.34.0.0+f.21001.0.0+f.31.0.0,data=for_matching)
 summary(matched)
 datm=match.data(matched)
 
+datm=merge(datm,prs_subset,by.x="eid",by.y="Identifier")
+## grab the control delta as difference between the baseline BMI and the last measured BMI
+datm$bmi.prs=datm$BMI
 ```
 
+## Within treated populiaton
+
+```{r}
+
+datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
+
+your_model=lm(delta~bmi.prs+f.31.0.0,dat=datm[datm$treat==1&datm$f.21001.0.0>30,])
+
+```
 
 
 
@@ -60,7 +149,6 @@ We now measure the percentage of BMI chance and calculate the influence of treat
 
 ```{r}
 
-datm$delta=(datm$value-datm$f.21001.0.0)/datm$f.21001.0.0
 
 your_model=lm(scale(delta)~treat+treat:bmi.prs+f.31.0.0+f.21001.0.0,dat=datm)
 your_model=lm(scale(delta)~treat+treat:bmi.prs,dat=datm,weights = weights)
