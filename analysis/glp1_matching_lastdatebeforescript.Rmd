@@ -46,7 +46,15 @@ glp1_treated <- glp1 %>%
 
 Now BMI data:
 
-```{r}
+* First we grab the last measurement before script in treated folks and last measurement after starting
+
+* for controls we use showcase measurement at baseline and last measurement
+
+* we show that the time studied is similar between groups
+
+* we show that after matching for baseline BMI, birth year (age) and sex groups are similar
+
+```{r, echo=T}
 baseline_bmi=data.frame("eid"=df_baseline$identifier,"date"=as.Date(df_baseline$f.53.0.0),"variable"="bmi",source="ukb","value"=df_baseline$f.21001.0.0)
 bmi2=rbind(bmi,baseline_bmi)
 
@@ -167,11 +175,13 @@ datm$bmi.prs=datm$BMI
 
 ## Within treated populiaton
 
-```{r}
+```{r, echo=T}
 your_model=lm(delta~bmi.prs+f.31.0.0,dat=datm[datm$treat==1,])
+summary(your_model)
 ```
 
 
+## Between treated populiaton
 
 We now measure the percentage of BMI chance and calculate the influence of treatment, PRS, or the interaction:
 
