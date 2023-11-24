@@ -1,0 +1,132 @@
+---
+title: "MoreSelective"
+output: html_document
+date: "2023-11-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+```
+
+## let's be more selective and select first and last script date
+
+
+
+```{r}
+source("~/multistate2/code/utils.R")
+library(MatchIt)
+prs_subset=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/prs_subset.rds")
+#glp1=fread("~/Library/CloudStorage/Dropbox-Personal//glp1s.txt")
+df_baseline=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/dfukb_baseline.rds")
+
+glp1=fread("~/Library/CloudStorage/Dropbox-Personal//glp1s_withi.txt")
+colnames(glp1)[1]=c("Identifier")
+colnames(glp1)[3]=c("event_dt")
+glp1$event_dt <- as.Date(glp1$event_dt, format="%d/%m/%Y")
+
+
+biomarkers=readRDS("~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds")
+bmi=biomarkers[biomarkers$variable%in%"bmi",]
+bmi$date <- as.Date(bmi$date, format="%Y/%m/%d")
+
+
+patient_med_data <- glp1 %>%
+  group_by(Identifier) %>%
+  summarize(first_script_date = min(event_dt),last_script_date = max(event_dt))
+
+colnames(patient_med_data)=c("eid","first_script_date","last_script_date")
+patient_med_data$first_script_date <- as.Date(patient_med_data$first_script_date, format = "%Y-%m-%d")
+patient_med_data$last_script_date <- as.Date(patient_med_data$last_script_date, format = "%Y-%m-%d")
+
+
+
+patient_bmi_data=bmi[bmi$eid%in%patient_med_data$eid,c("eid","date","value")]
+bbmi=df_baseline[,c("identifier","f.53.0.0","f.21001.0.0")]
+bbmi$f.53.0.0=as.Date(bbmi$f.53.0.0)
+
+patient_bmi_data=rbind(patient_bmi_data,bbmi[,c("identifier","f.53.0.0","f.21001.0.0")],use.names=FALSE)
+
+patient_bmi_data$date <- as.Date(patient_bmi_data$date, format = "%Y-%m-%d")
+merged_data <- merge(patient_bmi_data, patient_med_data, by = "eid")
+
+bmi_before_script <- merged_data %>%
+  filter(date < first_script_date) %>%
+  group_by(eid) %>%
+  slice(which.max(date))
+
+bmi_after_script <- merged_data %>%
+  filter(date > first_script_date + weeks(12) & date < last_script_date + years(1)) %>%
+  
+  group_by(eid) %>%
+  slice(which.min(date))
+
+final_data <- na.omit(bmi_before_script[,c("eid","date","value")] %>%
+  left_join(patient_med_data[,c("eid","first_script_date")], by = "eid", suffix = c("_before", "")) %>%
+  left_join(bmi_after_script[,c("eid","date","value","last_script_date")], by = "eid", suffix = c("", "_after")))
+
+colnames(final_data)=c("eid","pretreat_measure_date","pretreat_bmi","first_script_date","post_drug_date","post_drug_bmi","last_script_date")
+
+
+summary(year(final_data$pretreat_measure_date))
+summary(year(final_data$post_drug_date))
+
+# check to make sure first measure is before drug start
+sum(difftime(final_data$first_script_date,final_data$pretreat_measure_date)<0)
+
+# check to make sure last BMI measure is at least 12 weeks after drug start
+sum(difftime(final_data$post_drug_date,final_data$first_script_date,units = "days")>83)
+## controls
+
+controls=bmi[!bmi$eid%in%patient_med_data$eid,]
+
+## since there is no med, grab first and last measruement 
+## find measruements around the time of treated
+
+bmi_controls_first <- controls %>%
+  filter(date >= min((final_data$pretreat_measure_date))) %>%
+  group_by(eid) %>%
+  slice(which.min(date))
+
+
+summary(bmi_controls_first$date)
+
+bmi_controls_last <- controls %>%
+ filter(date >= min((final_data$pretreat_measure_date))) %>%
+  group_by(eid) %>%
+  slice(which.max(date))
+
+final_data_controls=
+  inner_join(bmi_controls_first[,c("eid","date","value")], bmi_controls_last[,c("eid","date","value")],by = "eid", suffix = c("_before", "_after"))
+
+
+# check to make sure last BMI measure is at least 12 weeks after drug start
+sum(difftime(final_data_controls$date_after,final_data_controls$date_before,units = "days")>0)
+sum(difftime(final_data_controls$date_after,final_data_controls$date_before,units = "days")==0)
+
+## controls
+summary(year(final_data_controls$date_before))
+summary(year(final_data_controls$date_after))
+
+
+final_data$treat=1
+final_data_controls$treat=0
+
+treat=final_data[,c("eid","pretreat_bmi","post_drug_bmi","pretreat_measure_date","post_drug_date","treat")]
+untreat=final_data_controls[,c("eid","value_before","value_after","date_before","date_after","treat")]
+names(untreat)=names(treat)
+all_data=rbind(treat,untreat)
+all_data$time_diff=difftime(all_data$post_drug_date,all_data$pretreat_measure_date,units = "days")
+
+df=merge(all_data,df_baseline[,c("identifier","f.34.0.0","f.31.0.0")],by.x="eid",by.y="identifier")
+df_with_prs=merge(df,prs_subset[,c("Identifier","BMI")],by.x="eid",by.y="Identifier")
+
+## now match on pretreat bmi
+matcher=matchit(treat~pretreat_bmi+year(as.Date(pretreat_measure_date))+f.34.0.0+f.31.0.0+time_diff,data = df_with_prs)
+summary(matcher)
+
+#extract matched data
+match_dat=match.data(matcher)
+match_dat$bmi.prs=match_dat$BMI
+match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
+summary(lm(delta~treat+treat:bmi.prs,match_dat))
+```
