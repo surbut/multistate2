@@ -58,7 +58,7 @@ merged_data <- merge(patient_bmi_data, patient_med_data, by = "eid")
 bmi_before_script <- merged_data %>%
   filter(date < first_script_date & date > (first_script_date - years(1)))%>%
   group_by(eid) %>%
-  summarise("beforedate"=min(date),"medbmi"=median(value),"number"=length(value))
+  summarise("beforedate"=min(date),"medbmi"=median(value),"number"=length(value),)
 
 summary(bmi_before_script$number)
 
@@ -66,7 +66,7 @@ bmi_after_script <- merged_data %>%
   filter(date > first_script_date + weeks(12) & date < last_script_date + years(1)) %>%
   
   group_by(eid) %>%
-  summarise("afterdate"=min(date),"medbmi"=median(value),"number"=length(value))
+  summarise("afterdate"=min(date),"medbmi"=min(value),"number"=length(value))
 
 summary(bmi_after_script$number)
 ```
@@ -95,9 +95,9 @@ sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,unit
 
 ```
 
-Less clearcut for controls
 # we will choose controls to mirror our selection above
-* First BMI median between the treated populations pretreat measure dates (min,max pre_treat_date)
+
+*  Less clearcut for controls: First BMI median between the treated populations pretreat measure dates (min,max pre_treat_date)
 * Last BMI median between the treated populations post-treat measure dates
 
 ```{r}
@@ -118,7 +118,7 @@ summary(bmi_controls_first$number)
 bmi_controls_last <- controls %>%
   filter(date >= min(final_data$post_drug_measure_date) & date < max(final_data$post_drug_measure_date))  %>%
   group_by(eid) %>%
- summarise("afterdate"=min(date),"meanbmi"=mean(value),"number"=length(value))
+ summarise("afterdate"=min(date),"meanbmi"=min(value),"number"=length(value))
 
 summary(bmi_controls_last$afterdate)
 summary(bmi_controls_last$number)
@@ -183,6 +183,6 @@ boxplot(delta~treat,data = match_dat,ylab="Change in BMI")
 hist(as.numeric(match_dat$time_diff[match_dat$treat==1]/7),xlab="Weeks on treatment",main="Density")
 
 match_dat$prs.group=cut(match_dat$bmi.prs,breaks = quantile(match_dat$bmi.prs,probs = seq(0,1,by=0.25)),labels = c(1:4))
-boxplot(delta~prs.group,data = match_dat,ylab="Change in BMI",xlab="BMI.PRS Quartile")
+boxplot(delta~prs.group,data = match_dat[match_dat$treat==1,],ylab="Change in BMI",xlab="BMI.PRS Quartile")
 ```
 

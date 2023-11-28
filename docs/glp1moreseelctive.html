@@ -548,15 +548,15 @@ code/utils.R
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treef83cbb67aff44682cfa9045d14f1ea92793f0e1btargetblankf83cbb6a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treea916d0d985229a2f678924e2a31b6e9fc251a682targetblanka916d0da">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/f83cbb67aff44682cfa9045d14f1ea92793f0e1b" target="_blank">f83cbb6</a>
+<a href="https://github.com/surbut/multistate2/tree/a916d0d985229a2f678924e2a31b6e9fc251a682" target="_blank">a916d0d</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treef83cbb67aff44682cfa9045d14f1ea92793f0e1btargetblankf83cbb6a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treea916d0d985229a2f678924e2a31b6e9fc251a682targetblanka916d0da"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -566,7 +566,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/f83cbb67aff44682cfa9045d14f1ea92793f0e1b" target="_blank">f83cbb6</a>.
+<a href="https://github.com/surbut/multistate2/tree/a916d0d985229a2f678924e2a31b6e9fc251a682" target="_blank">a916d0d</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -590,14 +590,8 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
-Untracked files:
-    Untracked:  klashier.Rmd
-    Untracked:  klashier_files/
-
 Unstaged changes:
-    Modified:   analysis/glp1_matching_lastdatebeforescript.Rmd
     Modified:   analysis/glp1moreseelctive.Rmd
-    Modified:   analysis/paris.Rmd
 
 </code></pre>
 <p>
@@ -643,6 +637,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a916d0d985229a2f678924e2a31b6e9fc251a682/analysis/glp1moreseelctive.Rmd" target="_blank">a916d0d</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-28
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/a916d0d985229a2f678924e2a31b6e9fc251a682/docs/glp1moreseelctive.html" target="_blank">a916d0d</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-28
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -784,10 +812,16 @@ sum(difftime(final_data$first_script_date,final_data$pretreat_measure_date)&lt;0
 sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,units = &quot;days&quot;)&lt;83)</code></pre>
 <pre><code>[1] 0</code></pre>
 <pre class="r"><code>## controls</code></pre>
-<p>Less clearcut for controls # we will choose controls to mirror our
-selection above * First BMI median between the treated populations
-pretreat measure dates (min,max pre_treat_date) * Last BMI median
-between the treated populations post-treat measure dates</p>
+</div>
+<div id="we-will-choose-controls-to-mirror-our-selection-above"
+class="section level1">
+<h1>we will choose controls to mirror our selection above</h1>
+<ul>
+<li>Less clearcut for controls: First BMI median between the treated
+populations pretreat measure dates (min,max pre_treat_date)</li>
+<li>Last BMI median between the treated populations post-treat measure
+dates</li>
+</ul>
 <pre class="r"><code>controls=bmi[!bmi$eid%in%patient_med_data$eid,]
 
 ## since there is no med, grab first and last measruement 
@@ -846,7 +880,6 @@ all_data$time_diff=difftime(all_data$post_drug_measure_date,all_data$pretreat_me
 
 df=merge(all_data,df_baseline[,c(&quot;identifier&quot;,&quot;f.34.0.0&quot;,&quot;f.31.0.0&quot;)],by.x=&quot;eid&quot;,by.y=&quot;identifier&quot;)
 df_with_prs=merge(df,prs_subset[,c(&quot;Identifier&quot;,&quot;BMI&quot;)],by.x=&quot;eid&quot;,by.y=&quot;Identifier&quot;)</code></pre>
-</div>
 <div id="now-we-perform-matching-on" class="section level2">
 <h2>now we perform matching on</h2>
 <ul>
@@ -926,16 +959,128 @@ Residual standard error: 1.874 on 1625 degrees of freedom
 Multiple R-squared:  0.1328,    Adjusted R-squared:  0.1317 
 F-statistic: 124.4 on 2 and 1625 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
+</div>
 <div id="we-examine-distribution-of-delta-by-treatment-and-bmi"
 class="section level1">
 <h1>We examine distribution of delta by treatment and BMI</h1>
 <pre class="r"><code>boxplot(delta~treat,data = match_dat,ylab=&quot;Change in BMI&quot;)</code></pre>
 <p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a916d0d985229a2f678924e2a31b6e9fc251a682/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-7-1.png" target="_blank">a916d0d</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>hist(as.numeric(match_dat$time_diff[match_dat$treat==1]/7),xlab=&quot;Weeks on treatment&quot;,main=&quot;Density&quot;)</code></pre>
 <p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-2">
+Past versions of unnamed-chunk-7-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a916d0d985229a2f678924e2a31b6e9fc251a682/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-7-2.png" target="_blank">a916d0d</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>match_dat$prs.group=cut(match_dat$bmi.prs,breaks = quantile(match_dat$bmi.prs,probs = seq(0,1,by=0.25)),labels = c(1:4))
 boxplot(delta~prs.group,data = match_dat,ylab=&quot;Change in BMI&quot;,xlab=&quot;BMI.PRS Quartile&quot;)</code></pre>
 <p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-3">
+Past versions of unnamed-chunk-7-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a916d0d985229a2f678924e2a31b6e9fc251a682/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-7-3.png" target="_blank">a916d0d</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

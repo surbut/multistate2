@@ -12,6 +12,7 @@ Let's do some flashing!
 
 ```{r cars}
 library(flashier)
+library(data.table)
 filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
 
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
@@ -30,116 +31,151 @@ X=as.matrix(dfw)
 
 X=X[which(rowSums(X)>0),]
 
-
-
+X=X[,which(colSums(X)>500)]
+K=12
 ```
 
 ## Including Plots
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+```{r pressure, echo=FALSE,eval=F}
 fit_default <- flash(as.matrix(scale(X)), greedy_Kmax = 20)
 plot(fit_default, pw_which = "factors")
-F=fit_default$F_pm;rownames(F)=colnames(X)
-L=fit_default$L_pm;
 saveRDS(fit_default,file=paste0(filepath,"fit_default_all.rds"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+fit=readRDS(paste0(filepath,"fit_default_all.rds"))
+
+plot(fit, pw_which = "factors")
+```
+
 
 ## now let's only look at disease that occur before 50
 
-```{r}
+```{r lessthan50,eval=F}
 K=12
 dfw=df.phecode.wide[,-c(1:5)]
 
 ## First create a sparse matrix of loadings on the non-NA ages
+# Assuming your data.table is named your_data_table
+age_threshold <- 50  # Replace with your desired age threshold
 
-dfw[!is.na(dfw)&dfw<50]=1
-dfw[is.na(dfw)]=0
+# Apply the operation to all columns
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold, 1, 0))]
+
 
 X=as.matrix(dfw)
 #install.packages("flashier")
 ## remove individuals never phenotyped
-
 X=X[which(rowSums(X)>0),]
-X=X[which(colSums(X)>500),]
+X=X[,which(colSums(X)>500)]
+
+
+print(dim(X))
 
 fit_default50 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
 plot(fit_default50, pw_which = "factors")
-F50=fit_default$F_pm;rownames(F)=colnames(X)
-L50=fit_default$L_pm;
-
 saveRDS(fit_default50,file=paste0(filepath,"fit_default50.rds"))
 ```
 
-50-60
-
 ```{r}
+fit=readRDS(paste0(filepath,"fit_default50.rds"))
+plot(fit, pw_which = "factors")
+```
+
+## 50-60
+
+```{r between50.60,eval=F}
 
 dfw=df.phecode.wide[,-c(1:5)]
 
 ## First create a sparse matrix of loadings on the non-NA ages
 
-dfw[!is.na(dfw)&dfw>50&dfw<60]=1
-dfw[is.na(dfw)]=0
+## First create a sparse matrix of loadings on the non-NA ages
+# Assuming your data.table is named your_data_table
+age_threshold <- 60  # Replace with your desired age threshold
+
+# Apply the operation to all columns
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold & x > (age_threshold-10), 1, 0))]
+
+
+
 
 X=as.matrix(dfw)
 #install.packages("flashier")
 ## remove individuals never phenotyped
 
 X=X[which(rowSums(X)>0),]
-X=X[which(colSums(X)>500),]
+X=X[,which(colSums(X)>500)]
+print(dim(X))
 
 fit_default60 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
 plot(fit_default60, pw_which = "factors")
-F60=fit_default$F_pm;rownames(F)=colnames(X)
-L60=fit_default$L_pm;
 saveRDS(fit_default60,file=paste0(filepath,"fit_default60.rds"))
 ```
 
-
 ```{r}
+fit=readRDS(paste0(filepath,"fit_default60.rds"))
+plot(fit, pw_which = "factors")
+```
+
+
+```{r betw6070,eval=F}
 dfw=df.phecode.wide[,-c(1:5)]
 ## First create a sparse matrix of loadings on the non-NA ages
+## First create a sparse matrix of loadings on the non-NA ages
+# Assuming your data.table is named your_data_table
+age_threshold <- 70  # Replace with your desired age threshold
 
-dfw[!is.na(dfw)&dfw>60&dfw<70]=1
-dfw[is.na(dfw)]=0
+# Apply the operation to all columns
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold & x > (age_threshold-10), 1, 0))]
 
 X=as.matrix(dfw)
 #install.packages("flashier")
 ## remove individuals never phenotyped
-
 X=X[which(rowSums(X)>0),]
-X=X[which(colSums(X)>500),]
+X=X[,which(colSums(X)>500)]
+
+print(dim(X))
 
 fit_default70 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
 plot(fit_default70, pw_which = "factors")
-F70=fit_default$F_pm;rownames(F)=colnames(X)
-L70=fit_default$L_pm;
 saveRDS(fit_default70,file=paste0(filepath,"fit_default70.rds"))
 ```
 
 
 ```{r}
+fit=readRDS(paste0(filepath,"fit_default70.rds"))
+plot(fit, pw_which = "factors")
+```
+
+```{r greater70,eval=F}
 dfw=df.phecode.wide[,-c(1:5)]
 ## First create a sparse matrix of loadings on the non-NA ages
 
-dfw[!is.na(dfw)&dfw>70]=1
-dfw[is.na(dfw)]=0
+## First create a sparse matrix of loadings on the non-NA ages
+# Assuming your data.table is named your_data_table
+age_threshold <- 70  # Replace with your desired age threshold
+
+# Apply the operation to all columns
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x > (age_threshold), 1, 0))]
 
 X=as.matrix(dfw)
 #install.packages("flashier")
 ## remove individuals never phenotyped
-
 X=X[which(rowSums(X)>0),]
-X=X[which(colSums(X)>500),]
+X=X[,which(colSums(X)>500)]
 
-fit_defaultold <- flash(as.matrix(scale(X)), greedy_Kmax = K)
-plot(fit_defaultold, pw_which = "factors")
-F70=fit_defaultold$F_pm;rownames(F)=colnames(X)
-L70=fit_defaultold$L_pm;
+print(dim(X))
+
 saveRDS(fit_defaultold,file=paste0(filepath,"fit_defaultold.rds"))
+```
+
+
+```{r}
+fit=readRDS(paste0(filepath,"fit_defaultold.rds"))
+plot(fit, pw_which = "factors")
 ```
 
