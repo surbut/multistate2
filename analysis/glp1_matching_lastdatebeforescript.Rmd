@@ -87,7 +87,7 @@ bmis_treated$delta=bmis_treated$value.y-bmis_treated$value.x
 bmis_treated$duration=difftime(bmis_treated$bmi_date.y,bmis_treated$first_script,units = "days")
 
 #only keep those with bmis measured at least 90 days out
-bmis_treated=bmis_treated[bmis_treated$duration>90,]
+#bmis_treated=bmis_treated[bmis_treated$duration>90,]
 
 
 
@@ -171,6 +171,9 @@ datm=match.data(matched)
 datm=merge(datm,prs_subset[,c("Identifier","BMI","CAD")],by.x="eid",by.y="Identifier")
 ## grab the control delta as difference between the baseline BMI and the last measured BMI
 datm$bmi.prs=datm$BMI
+datm$delta=datm$delta/datm$f.21001.0.0
+datm$delta2=datm$lastval-datm$f.21001.0.0
+
 ```
 
 ## Within treated populiaton

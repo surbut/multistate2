@@ -14,7 +14,7 @@
 
 <title>MoreSelective</title>
 
-<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -36,8 +36,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -388,7 +388,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-11-24
+<strong>Last updated:</strong> 2023-11-28
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -406,7 +406,7 @@ title="This is the local directory in which the code in this file was executed."
 This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
 analysis was created with <a
   href="https://github.com/workflowr/workflowr">workflowr</a> (version
-1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
 that were applied when the results were created. The <em>Past
 versions</em> tab lists the development history.
 </p>
@@ -426,10 +426,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -548,15 +548,15 @@ code/utils.R
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee750c35a6febe21c290415fd83fe0da802675b6atargetblanke750c35a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treef83cbb67aff44682cfa9045d14f1ea92793f0e1btargetblankf83cbb6a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/e750c35a6febe21c290415fd83fe0da802675b6a" target="_blank">e750c35</a>
+<a href="https://github.com/surbut/multistate2/tree/f83cbb67aff44682cfa9045d14f1ea92793f0e1b" target="_blank">f83cbb6</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee750c35a6febe21c290415fd83fe0da802675b6atargetblanke750c35a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treef83cbb67aff44682cfa9045d14f1ea92793f0e1btargetblankf83cbb6a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -566,7 +566,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/e750c35a6febe21c290415fd83fe0da802675b6a" target="_blank">e750c35</a>.
+<a href="https://github.com/surbut/multistate2/tree/f83cbb67aff44682cfa9045d14f1ea92793f0e1b" target="_blank">f83cbb6</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -591,7 +591,13 @@ Ignored files:
     Ignored:    plots/.DS_Store
 
 Untracked files:
-    Untracked:  analysis/glp1moreseelctive.Rmd
+    Untracked:  klashier.Rmd
+    Untracked:  klashier_files/
+
+Unstaged changes:
+    Modified:   analysis/glp1_matching_lastdatebeforescript.Rmd
+    Modified:   analysis/glp1moreseelctive.Rmd
+    Modified:   analysis/paris.Rmd
 
 </code></pre>
 <p>
@@ -606,10 +612,74 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/glp1moreseelctive.Rmd</code>) and
+HTML (<code>docs/glp1moreseelctive.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/f83cbb67aff44682cfa9045d14f1ea92793f0e1b/analysis/glp1moreseelctive.Rmd" target="_blank">f83cbb6</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-24
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/f83cbb67aff44682cfa9045d14f1ea92793f0e1b/docs/glp1moreseelctive.html" target="_blank">f83cbb6</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-11-24
+</td>
+<td>
+Update
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -617,6 +687,10 @@ There are no past versions. Publish this analysis with
 <div id="lets-be-more-selective-and-select-first-and-last-script-date"
 class="section level2">
 <h2>let’s be more selective and select first and last script date</h2>
+<ul>
+<li>Here we grab the first script date and the last script date for
+treated individuals</li>
+</ul>
 <pre class="r"><code>source(&quot;~/multistate2/code/utils.R&quot;)
 library(MatchIt)
 prs_subset=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/prs_subset.rds&quot;)
@@ -640,11 +714,20 @@ patient_med_data &lt;- glp1 %&gt;%
 
 colnames(patient_med_data)=c(&quot;eid&quot;,&quot;first_script_date&quot;,&quot;last_script_date&quot;)
 patient_med_data$first_script_date &lt;- as.Date(patient_med_data$first_script_date, format = &quot;%Y-%m-%d&quot;)
-patient_med_data$last_script_date &lt;- as.Date(patient_med_data$last_script_date, format = &quot;%Y-%m-%d&quot;)
-
-
-
-patient_bmi_data=bmi[bmi$eid%in%patient_med_data$eid,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;)]
+patient_med_data$last_script_date &lt;- as.Date(patient_med_data$last_script_date, format = &quot;%Y-%m-%d&quot;)</code></pre>
+</div>
+<div id="treated-folks" class="section level2">
+<h2>Treated Folks</h2>
+<ul>
+<li>We grab the first BMI as the median BMI that is within 1 year of the
+first script date</li>
+<li>We grab the post-treat BMI as the median BMI that is within 12 weeks
+after 1st script to 1 year after last.</li>
+<li>We tried the last measurement before but it is noisy to use the
+final measurement only, we can also see how many measurements folks
+had</li>
+</ul>
+<pre class="r"><code>patient_bmi_data=bmi[bmi$eid%in%patient_med_data$eid,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;)]
 bbmi=df_baseline[,c(&quot;identifier&quot;,&quot;f.53.0.0&quot;,&quot;f.21001.0.0&quot;)]
 bbmi$f.53.0.0=as.Date(bbmi$f.53.0.0)
 
@@ -654,149 +737,169 @@ patient_bmi_data$date &lt;- as.Date(patient_bmi_data$date, format = &quot;%Y-%m-
 merged_data &lt;- merge(patient_bmi_data, patient_med_data, by = &quot;eid&quot;)
 
 bmi_before_script &lt;- merged_data %&gt;%
-  filter(date &lt; first_script_date) %&gt;%
+  filter(date &lt; first_script_date &amp; date &gt; (first_script_date - years(1)))%&gt;%
   group_by(eid) %&gt;%
-  slice(which.max(date))
+  summarise(&quot;beforedate&quot;=min(date),&quot;medbmi&quot;=median(value),&quot;number&quot;=length(value))
 
-bmi_after_script &lt;- merged_data %&gt;%
+summary(bmi_before_script$number)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   2.688   3.000  11.000 </code></pre>
+<pre class="r"><code>bmi_after_script &lt;- merged_data %&gt;%
   filter(date &gt; first_script_date + weeks(12) &amp; date &lt; last_script_date + years(1)) %&gt;%
   
   group_by(eid) %&gt;%
-  slice(which.min(date))
+  summarise(&quot;afterdate&quot;=min(date),&quot;medbmi&quot;=median(value),&quot;number&quot;=length(value))
 
-final_data &lt;- na.omit(bmi_before_script[,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;)] %&gt;%
-  left_join(patient_med_data[,c(&quot;eid&quot;,&quot;first_script_date&quot;)], by = &quot;eid&quot;, suffix = c(&quot;_before&quot;, &quot;&quot;)) %&gt;%
-  left_join(bmi_after_script[,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;,&quot;last_script_date&quot;)], by = &quot;eid&quot;, suffix = c(&quot;&quot;, &quot;_after&quot;)))
+summary(bmi_after_script$number)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   3.000   5.000   6.663   9.000  64.000 </code></pre>
+</div>
+<div
+id="now-we-merge-the-first-and-last-bmi-measurements-with-the-script-data-and-perform-checks"
+class="section level2">
+<h2>Now we merge the first and last BMI measurements with the script
+data and perform checks</h2>
+<ul>
+<li>to make sure first measure is before drug start</li>
+<li>check to make sure last BMI measure is at least 12 weeks after drug
+start</li>
+</ul>
+<pre class="r"><code>final_data &lt;- (bmi_before_script[,c(&quot;eid&quot;,&quot;beforedate&quot;,&quot;medbmi&quot;)]) %&gt;%
+  left_join(patient_med_data[,c(&quot;eid&quot;,&quot;first_script_date&quot;,&quot;last_script_date&quot;)], by = &quot;eid&quot;) %&gt;%
+  left_join(bmi_after_script[,c(&quot;eid&quot;,&quot;afterdate&quot;,&quot;medbmi&quot;)], by = &quot;eid&quot;)
+colnames(final_data)=c(&quot;eid&quot;,&quot;pretreat_measure_date&quot;,&quot;pretreat_bmi&quot;,&quot;first_script_date&quot;,&quot;last_script_date&quot;,&quot;post_drug_measure_date&quot;,&quot;post_drug_bmi&quot;)
 
-colnames(final_data)=c(&quot;eid&quot;,&quot;pretreat_measure_date&quot;,&quot;pretreat_bmi&quot;,&quot;first_script_date&quot;,&quot;post_drug_date&quot;,&quot;post_drug_bmi&quot;,&quot;last_script_date&quot;)
-
+final_data=na.omit(final_data)
 
 summary(year(final_data$pretreat_measure_date))</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   2006    2010    2012    2012    2013    2016 </code></pre>
-<pre class="r"><code>summary(year(final_data$post_drug_date))</code></pre>
+   2006    2010    2011    2011    2013    2016 </code></pre>
+<pre class="r"><code>summary(year(final_data$post_drug_measure_date))</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
    2007    2011    2013    2013    2014    2017 </code></pre>
 <pre class="r"><code># check to make sure first measure is before drug start
 sum(difftime(final_data$first_script_date,final_data$pretreat_measure_date)&lt;0)</code></pre>
 <pre><code>[1] 0</code></pre>
 <pre class="r"><code># check to make sure last BMI measure is at least 12 weeks after drug start
-sum(difftime(final_data$post_drug_date,final_data$first_script_date,units = &quot;days&quot;)&gt;83)</code></pre>
-<pre><code>[1] 890</code></pre>
-<pre class="r"><code>## controls
-
-controls=bmi[!bmi$eid%in%patient_med_data$eid,]
+sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,units = &quot;days&quot;)&lt;83)</code></pre>
+<pre><code>[1] 0</code></pre>
+<pre class="r"><code>## controls</code></pre>
+<p>Less clearcut for controls # we will choose controls to mirror our
+selection above * First BMI median between the treated populations
+pretreat measure dates (min,max pre_treat_date) * Last BMI median
+between the treated populations post-treat measure dates</p>
+<pre class="r"><code>controls=bmi[!bmi$eid%in%patient_med_data$eid,]
 
 ## since there is no med, grab first and last measruement 
 ## find measruements around the time of treated
 
 bmi_controls_first &lt;- controls %&gt;%
-  filter(date &gt;= min((final_data$pretreat_measure_date))) %&gt;%
+  filter(date &gt;= min((final_data$pretreat_measure_date)) &amp; date &lt; max((final_data$pretreat_measure_date))) %&gt;%
   group_by(eid) %&gt;%
-  slice(which.min(date))
+  summarise(&quot;beforedate&quot;=min(date),&quot;meanbmi&quot;=mean(value),&quot;number&quot;=length(value))
 
 
-summary(bmi_controls_first$date)</code></pre>
+summary(bmi_controls_first$beforedate)</code></pre>
 <pre><code>        Min.      1st Qu.       Median         Mean      3rd Qu.         Max. 
-&quot;2006-08-07&quot; &quot;2007-06-19&quot; &quot;2008-04-08&quot; &quot;2008-05-06&quot; &quot;2009-03-04&quot; &quot;2018-07-12&quot; </code></pre>
+&quot;2006-12-14&quot; &quot;2007-10-11&quot; &quot;2008-05-07&quot; &quot;2008-07-03&quot; &quot;2009-03-25&quot; &quot;2016-04-25&quot; </code></pre>
+<pre class="r"><code>summary(bmi_controls_first$number)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   1.00    2.00    4.00    5.36    7.00  215.00 </code></pre>
 <pre class="r"><code>bmi_controls_last &lt;- controls %&gt;%
- filter(date &gt;= min((final_data$pretreat_measure_date))) %&gt;%
+  filter(date &gt;= min(final_data$post_drug_measure_date) &amp; date &lt; max(final_data$post_drug_measure_date))  %&gt;%
   group_by(eid) %&gt;%
-  slice(which.max(date))
+ summarise(&quot;afterdate&quot;=min(date),&quot;meanbmi&quot;=mean(value),&quot;number&quot;=length(value))
 
-final_data_controls=
-  inner_join(bmi_controls_first[,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;)], bmi_controls_last[,c(&quot;eid&quot;,&quot;date&quot;,&quot;value&quot;)],by = &quot;eid&quot;, suffix = c(&quot;_before&quot;, &quot;_after&quot;))
+summary(bmi_controls_last$afterdate)</code></pre>
+<pre><code>        Min.      1st Qu.       Median         Mean      3rd Qu.         Max. 
+&quot;2007-11-29&quot; &quot;2008-04-07&quot; &quot;2008-10-04&quot; &quot;2008-12-23&quot; &quot;2009-07-02&quot; &quot;2017-05-10&quot; </code></pre>
+<pre class="r"><code>summary(bmi_controls_last$number)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   2.000   4.000   5.176   7.000 197.000 </code></pre>
+<pre class="r"><code>final_data_controls=
+  inner_join(bmi_controls_first[,c(&quot;eid&quot;,&quot;beforedate&quot;,&quot;meanbmi&quot;)], bmi_controls_last[,c(&quot;eid&quot;,&quot;afterdate&quot;,&quot;meanbmi&quot;)],by = &quot;eid&quot;, suffix = c(&quot;_before&quot;, &quot;_after&quot;))
 
+# remote those in which dates are the same
 
-# check to make sure last BMI measure is at least 12 weeks after drug start
-sum(difftime(final_data_controls$date_after,final_data_controls$date_before,units = &quot;days&quot;)&gt;0)</code></pre>
-<pre><code>[1] 201092</code></pre>
-<pre class="r"><code>sum(difftime(final_data_controls$date_after,final_data_controls$date_before,units = &quot;days&quot;)==0)</code></pre>
-<pre><code>[1] 27701</code></pre>
+final_data_controls=final_data_controls[final_data_controls$beforedate!=final_data_controls$afterdate,]</code></pre>
+<p>Again, checks:</p>
+<pre class="r"><code># check to make sure last BMI measure is at least 12 weeks after drug start
+sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = &quot;days&quot;)&gt;0)</code></pre>
+<pre><code>[1] 67037</code></pre>
+<pre class="r"><code>sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = &quot;days&quot;)==0)</code></pre>
+<pre><code>[1] 0</code></pre>
 <pre class="r"><code>## controls
-summary(year(final_data_controls$date_before))</code></pre>
+summary(year(final_data_controls$beforedate))</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   2006    2007    2008    2008    2009    2018 </code></pre>
-<pre class="r"><code>summary(year(final_data_controls$date_after))</code></pre>
+   2006    2007    2007    2007    2007    2007 </code></pre>
+<pre class="r"><code>summary(year(final_data_controls$afterdate))</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   2006    2012    2015    2014    2016    2021 </code></pre>
+   2007    2008    2008    2009    2009    2017 </code></pre>
 <pre class="r"><code>final_data$treat=1
 final_data_controls$treat=0
 
-treat=final_data[,c(&quot;eid&quot;,&quot;pretreat_bmi&quot;,&quot;post_drug_bmi&quot;,&quot;pretreat_measure_date&quot;,&quot;post_drug_date&quot;,&quot;treat&quot;)]
-untreat=final_data_controls[,c(&quot;eid&quot;,&quot;value_before&quot;,&quot;value_after&quot;,&quot;date_before&quot;,&quot;date_after&quot;,&quot;treat&quot;)]
+treat=final_data[,c(&quot;eid&quot;,&quot;pretreat_bmi&quot;,&quot;post_drug_bmi&quot;,&quot;pretreat_measure_date&quot;,&quot;post_drug_measure_date&quot;,&quot;treat&quot;)]
+untreat=final_data_controls[,c(&quot;eid&quot;,&quot;meanbmi_before&quot;,&quot;meanbmi_after&quot;,&quot;beforedate&quot;,&quot;afterdate&quot;,&quot;treat&quot;)]
 names(untreat)=names(treat)
 all_data=rbind(treat,untreat)
-all_data$time_diff=difftime(all_data$post_drug_date,all_data$pretreat_measure_date,units = &quot;days&quot;)
+all_data$time_diff=difftime(all_data$post_drug_measure_date,all_data$pretreat_measure_date,units = &quot;days&quot;)
 
 df=merge(all_data,df_baseline[,c(&quot;identifier&quot;,&quot;f.34.0.0&quot;,&quot;f.31.0.0&quot;)],by.x=&quot;eid&quot;,by.y=&quot;identifier&quot;)
-df_with_prs=merge(df,prs_subset[,c(&quot;Identifier&quot;,&quot;BMI&quot;)],by.x=&quot;eid&quot;,by.y=&quot;Identifier&quot;)
-
-## now match on pretreat bmi
-matcher=matchit(treat~pretreat_bmi+year(as.Date(pretreat_measure_date))+f.34.0.0+f.31.0.0+time_diff,data = df_with_prs)
+df_with_prs=merge(df,prs_subset[,c(&quot;Identifier&quot;,&quot;BMI&quot;)],by.x=&quot;eid&quot;,by.y=&quot;Identifier&quot;)</code></pre>
+</div>
+<div id="now-we-perform-matching-on" class="section level2">
+<h2>now we perform matching on</h2>
+<ul>
+<li>duration between measurements</li>
+<li>patient birthday</li>
+<li>sex</li>
+<li>pretreat BMI</li>
+</ul>
+<pre class="r"><code>## now match on pretreat bmi
+matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff,data = df_with_prs)
 summary(matcher)</code></pre>
 <pre><code>
 Call:
-matchit(formula = treat ~ pretreat_bmi + year(as.Date(pretreat_measure_date)) + 
-    f.34.0.0 + f.31.0.0 + time_diff, data = df_with_prs)
+matchit(formula = treat ~ pretreat_bmi + f.34.0.0 + f.31.0.0 + 
+    time_diff, data = df_with_prs)
 
 Summary of Balance for All Data:
-                                     Means Treated Means Control
-distance                                    0.5638        0.0017
-pretreat_bmi                               36.5454       27.1843
-year(as.Date(pretreat_measure_date))     2011.7523     2007.8458
-f.34.0.0                                 1951.2150     1951.5711
-f.31.0.00                                   0.4381        0.5454
-f.31.0.01                                   0.5619        0.4546
-time_diff                                 326.7418     2115.2645
-                                     Std. Mean Diff. Var. Ratio eCDF Mean
-distance                                      1.4252   416.8047    0.4905
-pretreat_bmi                                  1.5256     1.6595    0.3794
-year(as.Date(pretreat_measure_date))          1.8997     3.2763    0.3551
-f.34.0.0                                     -0.0492     0.8019    0.0233
-f.31.0.00                                    -0.2163          .    0.1073
-f.31.0.01                                     0.2163          .    0.1073
-time_diff                                    -7.7672     0.0359    0.3616
-                                     eCDF Max
-distance                               0.8979
-pretreat_bmi                           0.6653
-year(as.Date(pretreat_measure_date))   0.7599
-f.34.0.0                               0.0579
-f.31.0.00                              0.1073
-f.31.0.01                              0.1073
-time_diff                              0.7797
+             Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+distance            0.0642        0.0117          0.5367    11.8559    0.3747
+pretreat_bmi       36.6083       27.9802          1.4112     1.4463    0.3747
+f.34.0.0         1951.1953     1950.1495          0.1451     0.8341    0.0378
+f.31.0.00           0.4373        0.5466         -0.2203          .    0.1093
+f.31.0.01           0.5627        0.4534          0.2203          .    0.1093
+time_diff         445.0602      569.9927         -0.7693     0.1094    0.0548
+             eCDF Max
+distance       0.6091
+pretreat_bmi   0.6206
+f.34.0.0       0.1073
+f.31.0.00      0.1093
+f.31.0.01      0.1093
+time_diff      0.1901
 
 Summary of Balance for Matched Data:
-                                     Means Treated Means Control
-distance                                    0.5638        0.1982
-pretreat_bmi                               36.5454       36.9576
-year(as.Date(pretreat_measure_date))     2011.7523     2010.0421
-f.34.0.0                                 1951.2150     1950.3364
-f.31.0.00                                   0.4381        0.4720
-f.31.0.01                                   0.5619        0.5280
-time_diff                                 326.7418      243.8248
-                                     Std. Mean Diff. Var. Ratio eCDF Mean
-distance                                      0.9269     2.8957    0.0018
-pretreat_bmi                                 -0.0672     0.4583    0.0408
-year(as.Date(pretreat_measure_date))          0.8317     2.2229    0.1578
-f.34.0.0                                      0.1214     0.8771    0.0369
-f.31.0.00                                    -0.0683          .    0.0339
-f.31.0.01                                     0.0683          .    0.0339
-time_diff                                     0.3601     0.1694    0.0588
-                                     eCDF Max Std. Pair Dist.
-distance                               0.4801          0.9269
-pretreat_bmi                           0.0701          1.2810
-year(as.Date(pretreat_measure_date))   0.6051          1.0010
-f.34.0.0                               0.1098          1.1731
-f.31.0.00                              0.0339          0.9489
-f.31.0.01                              0.0339          0.9489
-time_diff                              0.7617          1.8217
+             Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+distance            0.0642        0.0642          0.0003     1.0010    0.0000
+pretreat_bmi       36.6083       36.5190          0.0146     0.8744    0.0140
+f.34.0.0         1951.1953     1950.9042          0.0404     0.8864    0.0189
+f.31.0.00           0.4373        0.4177          0.0396          .    0.0197
+f.31.0.01           0.5627        0.5823         -0.0396          .    0.0197
+time_diff         445.0602      431.7138          0.0822     0.3019    0.0299
+             eCDF Max Std. Pair Dist.
+distance       0.0049          0.0014
+pretreat_bmi   0.0430          0.3166
+f.34.0.0       0.0553          1.1836
+f.31.0.00      0.0197          0.9510
+f.31.0.01      0.0197          0.9510
+time_diff      0.2174          1.4472
 
 Sample Sizes:
           Control Treated
-All        222695     856
-Matched       856     856
-Unmatched  221839       0
+All         65263     814
+Matched       814     814
+Unmatched   64449       0
 Discarded       0       0</code></pre>
 <pre class="r"><code>#extract matched data
 match_dat=match.data(matcher)
@@ -808,20 +911,31 @@ Call:
 lm(formula = delta ~ treat + treat:bmi.prs, data = match_dat)
 
 Residuals:
-    Min      1Q  Median      3Q     Max 
--55.362  -0.243   1.258   1.258  15.299 
+     Min       1Q   Median       3Q      Max 
+-15.6613  -0.4422   0.0066   0.6225  17.9356 
 
 Coefficients:
               Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)   -1.25751    0.16266  -7.731 1.81e-14 ***
-treat          0.20211    0.24923   0.811    0.418    
-treat:bmi.prs -0.07677    0.17048  -0.450    0.653    
+(Intercept)    0.06136    0.06568   0.934   0.3503    
+treat         -1.34918    0.10073 -13.393   &lt;2e-16 ***
+treat:bmi.prs -0.17285    0.06922  -2.497   0.0126 *  
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-Residual standard error: 4.759 on 1709 degrees of freedom
-Multiple R-squared:  0.0003978, Adjusted R-squared:  -0.000772 
-F-statistic:  0.34 on 2 and 1709 DF,  p-value: 0.7118</code></pre>
+Residual standard error: 1.874 on 1625 degrees of freedom
+Multiple R-squared:  0.1328,    Adjusted R-squared:  0.1317 
+F-statistic: 124.4 on 2 and 1625 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="we-examine-distribution-of-delta-by-treatment-and-bmi"
+class="section level1">
+<h1>We examine distribution of delta by treatment and BMI</h1>
+<pre class="r"><code>boxplot(delta~treat,data = match_dat,ylab=&quot;Change in BMI&quot;)</code></pre>
+<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>hist(as.numeric(match_dat$time_diff[match_dat$treat==1]/7),xlab=&quot;Weeks on treatment&quot;,main=&quot;Density&quot;)</code></pre>
+<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>match_dat$prs.group=cut(match_dat$bmi.prs,breaks = quantile(match_dat$bmi.prs,probs = seq(0,1,by=0.25)),labels = c(1:4))
+boxplot(delta~prs.group,data = match_dat,ylab=&quot;Change in BMI&quot;,xlab=&quot;BMI.PRS Quartile&quot;)</code></pre>
+<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-7-3.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -849,36 +963,36 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] MatchIt_4.5.4      babynames_1.0.1    gapminder_1.0.0    carData_3.0-5     
- [5] plotly_4.10.2      DT_0.30            gt_0.9.0           RColorBrewer_1.1-3
- [9] data.table_1.14.8  pROC_1.18.4        rsq_2.5            survMisc_0.5.6    
+ [1] MatchIt_4.5.5      babynames_1.0.1    gapminder_1.0.0    carData_3.0-5     
+ [5] plotly_4.10.3      DT_0.30            gt_0.10.0          RColorBrewer_1.1-3
+ [9] data.table_1.14.8  pROC_1.18.5        rsq_2.6            survMisc_0.5.6    
 [13] gridExtra_2.3      ggfortify_0.4.16   reshape_0.8.9      eulerr_7.0.0      
-[17] survminer_0.4.9    ggpubr_0.6.0       survival_3.5-5     lubridate_1.9.2   
-[21] forcats_1.0.0      stringr_1.5.0      purrr_1.0.1        readr_2.1.4       
+[17] survminer_0.4.9    ggpubr_0.6.0       survival_3.5-7     lubridate_1.9.3   
+[21] forcats_1.0.0      stringr_1.5.1      purrr_1.0.2        readr_2.1.4       
 [25] tidyr_1.3.0        tibble_3.2.1       ggplot2_3.4.4      tidyverse_2.0.0   
-[29] dplyr_1.1.3        ggsci_3.0.0       
+[29] dplyr_1.1.4        ggsci_3.0.0       
 
 loaded via a namespace (and not attached):
- [1] rlang_1.1.1       magrittr_2.0.3    git2r_0.32.0      compiler_4.3.1   
- [5] vctrs_0.6.4       pkgconfig_2.0.3   fastmap_1.1.1     backports_1.4.1  
- [9] KMsurv_0.1-5      utf8_1.2.4        promises_1.2.0.1  rmarkdown_2.23   
-[13] tzdb_0.4.0        nloptr_2.0.3      bit_4.0.5         xfun_0.39        
-[17] cachem_1.0.8      jsonlite_1.8.7    highr_0.10        later_1.3.1      
-[21] chk_0.9.0         Deriv_4.1.3       broom_1.0.5       R6_2.5.1         
-[25] bslib_0.5.0       stringi_1.7.12    car_3.1-2         boot_1.3-28.1    
-[29] jquerylib_0.1.4   Rcpp_1.0.11       knitr_1.43        zoo_1.8-12       
-[33] httpuv_1.6.11     Matrix_1.6-0      splines_4.3.1     timechange_0.2.0 
-[37] tidyselect_1.2.0  rstudioapi_0.15.0 abind_1.4-5       yaml_2.3.7       
-[41] lattice_0.21-8    plyr_1.8.8        withr_2.5.2       evaluate_0.21    
-[45] xml2_1.3.5        pillar_1.9.0      generics_0.1.3    rprojroot_2.0.3  
-[49] hms_1.1.3         munsell_0.5.0     scales_1.2.1      minqa_1.2.5      
-[53] xtable_1.8-4      glue_1.6.2        lazyeval_0.2.2    tools_4.3.1      
-[57] lme4_1.1-34       ggsignif_0.6.4    fs_1.6.3          grid_4.3.1       
-[61] colorspace_2.1-0  nlme_3.1-162      cli_3.6.1         km.ci_0.5-6      
-[65] workflowr_1.7.0   fansi_1.0.5       viridisLite_0.4.2 gtable_0.3.3     
-[69] rstatix_0.7.2     sass_0.4.7        digest_0.6.33     htmlwidgets_1.6.2
-[73] htmltools_0.5.5   lifecycle_1.0.3   httr_1.4.6        bit64_4.0.5      
-[77] MASS_7.3-60      </code></pre>
+ [1] rlang_1.1.2       magrittr_2.0.3    git2r_0.32.0      deming_1.4       
+ [5] compiler_4.3.1    vctrs_0.6.4       pkgconfig_2.0.3   fastmap_1.1.1    
+ [9] backports_1.4.1   KMsurv_0.1-5      utf8_1.2.4        promises_1.2.1   
+[13] rmarkdown_2.25    tzdb_0.4.0        nloptr_2.0.3      bit_4.0.5        
+[17] xfun_0.41         cachem_1.0.8      jsonlite_1.8.7    highr_0.10       
+[21] later_1.3.1       chk_0.9.1         Deriv_4.1.3       broom_1.0.5      
+[25] R6_2.5.1          bslib_0.6.0       stringi_1.8.2     car_3.1-2        
+[29] boot_1.3-28.1     jquerylib_0.1.4   Rcpp_1.0.11       knitr_1.45       
+[33] zoo_1.8-12        httpuv_1.6.12     Matrix_1.6-3      splines_4.3.1    
+[37] timechange_0.2.0  tidyselect_1.2.0  rstudioapi_0.15.0 abind_1.4-5      
+[41] yaml_2.3.7        lattice_0.22-5    plyr_1.8.9        withr_2.5.2      
+[45] evaluate_0.23     xml2_1.3.5        pillar_1.9.0      whisker_0.4.1    
+[49] generics_0.1.3    rprojroot_2.0.4   hms_1.1.3         munsell_0.5.0    
+[53] scales_1.2.1      minqa_1.2.6       xtable_1.8-4      glue_1.6.2       
+[57] lazyeval_0.2.2    tools_4.3.1       lme4_1.1-35.1     ggsignif_0.6.4   
+[61] fs_1.6.3          grid_4.3.1        colorspace_2.1-0  nlme_3.1-163     
+[65] cli_3.6.1         km.ci_0.5-6       workflowr_1.7.1   fansi_1.0.5      
+[69] viridisLite_0.4.2 gtable_0.3.4      rstatix_0.7.2     sass_0.4.7       
+[73] digest_0.6.33     htmlwidgets_1.6.3 htmltools_0.5.7   lifecycle_1.0.4  
+[77] httr_1.4.7        bit64_4.0.5       MASS_7.3-60      </code></pre>
 </div>
 </div>
 

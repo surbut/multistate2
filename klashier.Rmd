@@ -1,0 +1,145 @@
+---
+title: "Flashier"
+output: html_document
+date: "2023-11-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let's do some flashing!
+
+```{r cars}
+library(flashier)
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+
+dfw=df.phecode.wide[,-c(1:5)]
+
+## First create a sparse matrix of loadings on the non-9 ages
+
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+
+X=X[which(rowSums(X)>0),]
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+fit_default <- flash(as.matrix(scale(X)), greedy_Kmax = 20)
+plot(fit_default, pw_which = "factors")
+F=fit_default$F_pm;rownames(F)=colnames(X)
+L=fit_default$L_pm;
+saveRDS(fit_default,file=paste0(filepath,"fit_default_all.rds"))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## now let's only look at disease that occur before 50
+
+```{r}
+K=12
+dfw=df.phecode.wide[,-c(1:5)]
+
+## First create a sparse matrix of loadings on the non-NA ages
+
+dfw[!is.na(dfw)&dfw<50]=1
+dfw[is.na(dfw)]=0
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+
+X=X[which(rowSums(X)>0),]
+X=X[which(colSums(X)>500),]
+
+fit_default50 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
+plot(fit_default50, pw_which = "factors")
+F50=fit_default$F_pm;rownames(F)=colnames(X)
+L50=fit_default$L_pm;
+
+saveRDS(fit_default50,file=paste0(filepath,"fit_default50.rds"))
+```
+
+50-60
+
+```{r}
+
+dfw=df.phecode.wide[,-c(1:5)]
+
+## First create a sparse matrix of loadings on the non-NA ages
+
+dfw[!is.na(dfw)&dfw>50&dfw<60]=1
+dfw[is.na(dfw)]=0
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+
+X=X[which(rowSums(X)>0),]
+X=X[which(colSums(X)>500),]
+
+fit_default60 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
+plot(fit_default60, pw_which = "factors")
+F60=fit_default$F_pm;rownames(F)=colnames(X)
+L60=fit_default$L_pm;
+saveRDS(fit_default60,file=paste0(filepath,"fit_default60.rds"))
+```
+
+
+```{r}
+dfw=df.phecode.wide[,-c(1:5)]
+## First create a sparse matrix of loadings on the non-NA ages
+
+dfw[!is.na(dfw)&dfw>60&dfw<70]=1
+dfw[is.na(dfw)]=0
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+
+X=X[which(rowSums(X)>0),]
+X=X[which(colSums(X)>500),]
+
+fit_default70 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
+plot(fit_default70, pw_which = "factors")
+F70=fit_default$F_pm;rownames(F)=colnames(X)
+L70=fit_default$L_pm;
+saveRDS(fit_default70,file=paste0(filepath,"fit_default70.rds"))
+```
+
+
+```{r}
+dfw=df.phecode.wide[,-c(1:5)]
+## First create a sparse matrix of loadings on the non-NA ages
+
+dfw[!is.na(dfw)&dfw>70]=1
+dfw[is.na(dfw)]=0
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+
+X=X[which(rowSums(X)>0),]
+X=X[which(colSums(X)>500),]
+
+fit_defaultold <- flash(as.matrix(scale(X)), greedy_Kmax = K)
+plot(fit_defaultold, pw_which = "factors")
+F70=fit_defaultold$F_pm;rownames(F)=colnames(X)
+L70=fit_defaultold$L_pm;
+saveRDS(fit_defaultold,file=paste0(filepath,"fit_defaultold.rds"))
+```
+
