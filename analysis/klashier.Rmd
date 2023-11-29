@@ -48,6 +48,7 @@ saveRDS(fit_default,file=paste0(filepath,"fit_default_all.rds"))
 ```{r}
 fit=readRDS(paste0(filepath,"fit_default_all.rds"))
 
+dim(fit$F_pm)[1]
 plot(fit, pw_which = "factors")
 ```
 
@@ -82,6 +83,7 @@ saveRDS(fit_default50,file=paste0(filepath,"fit_default50.rds"))
 
 ```{r}
 fit=readRDS(paste0(filepath,"fit_default50.rds"))
+dim(fit$F_pm)[1]
 plot(fit, pw_which = "factors")
 ```
 
@@ -118,6 +120,7 @@ saveRDS(fit_default60,file=paste0(filepath,"fit_default60.rds"))
 
 ```{r}
 fit=readRDS(paste0(filepath,"fit_default60.rds"))
+dim(fit$F_pm)[1]
 plot(fit, pw_which = "factors")
 ```
 
@@ -148,6 +151,7 @@ saveRDS(fit_default70,file=paste0(filepath,"fit_default70.rds"))
 
 ```{r}
 fit=readRDS(paste0(filepath,"fit_default70.rds"))
+dim(fit$F_pm)[1]
 plot(fit, pw_which = "factors")
 ```
 
@@ -169,13 +173,38 @@ X=X[which(rowSums(X)>0),]
 X=X[,which(colSums(X)>500)]
 
 print(dim(X))
-
+fit_defaultold <- flash(as.matrix(scale(X)), greedy_Kmax = K)
 saveRDS(fit_defaultold,file=paste0(filepath,"fit_defaultold.rds"))
 ```
 
 
 ```{r}
 fit=readRDS(paste0(filepath,"fit_defaultold.rds"))
+dim(fit$F_pm)[1]
 plot(fit, pw_which = "factors")
+```
+
+## Let's examine to see if the factors are similar among ages
+
+```{r}
+overall=readRDS(paste0(filepath,"fit_default_all.rds"))
+head(sort(overall$F_pm[,1],decreasing = T),10)
+head(sort(overall$F_pm[,2],decreasing = T),10)
+
+fit50=readRDS(paste0(filepath,"fit_default50.rds"))
+head(sort(fit50$F_pm[,1],decreasing = T),10)
+head(sort(fit50$F_pm[,2],decreasing = T),10)
+
+fit60=readRDS(paste0(filepath,"fit_default60.rds"))
+head(sort(fit60$F_pm[,1],decreasing = T),10)
+head(sort(fit60$F_pm[,2],decreasing = T),10)
+
+fit70=readRDS(paste0(filepath,"fit_default70.rds"))
+head(sort(fit70$F_pm[,1],decreasing = T),10)
+head(sort(fit70$F_pm[,2],decreasing = T),10)
+
+fitold=readRDS(paste0(filepath,"fit_defaultold.rds"))
+head(sort(fitold$F_pm[,1],decreasing = T),10)
+head(sort(fitold$F_pm[,2],decreasing = T),10)
 ```
 
