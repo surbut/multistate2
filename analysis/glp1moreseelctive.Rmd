@@ -63,10 +63,10 @@ bmi_before_script <- merged_data %>%
 summary(bmi_before_script$number)
 
 bmi_after_script <- merged_data %>%
-  filter(date > first_script_date + weeks(12) & date < last_script_date + years(1)) %>%
+  filter(date > (first_script_date + weeks(12)) & date < (last_script_date + years(1))) %>%
   
   group_by(eid) %>%
-  summarise("afterdate"=min(date),"medbmi"=min(value),"number"=length(value))
+  summarise("afterdate"=min(date),"medbmi"=median(value),"number"=length(value))
 
 summary(bmi_after_script$number)
 ```
@@ -97,7 +97,8 @@ sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,unit
 
 # we will choose controls to mirror our selection above
 
-*  Less clearcut for controls: First BMI median between the treated populations pretreat measure dates (min,max pre_treat_date)
+## This is less clearcut for controls so ...
+* First BMI median between the treated populations pretreat measure dates (min,max pre_treat_date)
 * Last BMI median between the treated populations post-treat measure dates
 
 ```{r}
@@ -109,7 +110,7 @@ controls=bmi[!bmi$eid%in%patient_med_data$eid,]
 bmi_controls_first <- controls %>%
   filter(date >= min((final_data$pretreat_measure_date)) & date < max((final_data$pretreat_measure_date))) %>%
   group_by(eid) %>%
-  summarise("beforedate"=min(date),"meanbmi"=mean(value),"number"=length(value))
+  summarise("beforedate"=min(date),"meanbmi"=median(value),"number"=length(value))
 
 
 summary(bmi_controls_first$beforedate)
@@ -118,7 +119,7 @@ summary(bmi_controls_first$number)
 bmi_controls_last <- controls %>%
   filter(date >= min(final_data$post_drug_measure_date) & date < max(final_data$post_drug_measure_date))  %>%
   group_by(eid) %>%
- summarise("afterdate"=min(date),"meanbmi"=min(value),"number"=length(value))
+ summarise("afterdate"=min(date),"meanbmi"=median(value),"number"=length(value))
 
 summary(bmi_controls_last$afterdate)
 summary(bmi_controls_last$number)
@@ -139,6 +140,11 @@ Again, checks:
 sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = "days")>0)
 sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = "days")==0)
 
+
+## treated
+summary(year(final_data$pretreat_measure_date))
+summary(year(final_data$post_drug_measure_date))
+
 ## controls
 summary(year(final_data_controls$beforedate))
 summary(year(final_data_controls$afterdate))
@@ -146,8 +152,8 @@ summary(year(final_data_controls$afterdate))
 final_data$treat=1
 final_data_controls$treat=0
 
-treat=final_data[,c("eid","pretreat_bmi","post_drug_bmi","pretreat_measure_date","post_drug_measure_date","treat")]
-untreat=final_data_controls[,c("eid","meanbmi_before","meanbmi_after","beforedate","afterdate","treat")]
+treat=final_data[,c("eid","pretreat_bmi","post_drug_bmi","pretreat_measure_date","post_drug_measure_date","treat","first_script_date")]
+untreat=final_data_controls[,c("eid","meanbmi_before","meanbmi_after","beforedate","afterdate","treat","beforedate")]
 names(untreat)=names(treat)
 all_data=rbind(treat,untreat)
 all_data$time_diff=difftime(all_data$post_drug_measure_date,all_data$pretreat_measure_date,units = "days")
@@ -171,6 +177,20 @@ summary(matcher)
 #extract matched data
 match_dat=match.data(matcher)
 match_dat$bmi.prs=match_dat$BMI
+
+
+load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+pheno=dfh
+
+match_dat=merge(match_dat,pheno,by.x="eid",by.y="identifier")
+
+match_dat$enrollage=difftime(match_dat$f.53.0.0,match_dat$Birthdate,units = "days")/365.25
+match_dat$first_bmi_age=difftime(match_dat$pretreat_measure_date,match_dat$Birthdate,units = "days")/365.25
+
+#eliminate those with CAD at baseline measure
+#match_dat=match_dat[match_dat$Cad_censor_age>match_dat$first_bmi_age,]
+
+
 match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
 summary(lm(delta~treat+treat:bmi.prs,match_dat))
 ```
@@ -179,10 +199,56 @@ summary(lm(delta~treat+treat:bmi.prs,match_dat))
 # We examine distribution of delta by treatment and BMI
 
 ```{r}
-boxplot(delta~treat,data = match_dat,ylab="Change in BMI")
-hist(as.numeric(match_dat$time_diff[match_dat$treat==1]/7),xlab="Weeks on treatment",main="Density")
+library(table1)
+dat=match_dat
+dat$HyperLip_0_Any=factor(dat$HyperLip_0_Any,levels = c(1,2),labels = c("No","Yes"))
+dat$Ht_0_Any=factor(dat$Ht_0_Any,levels = c(1,2),labels = c("No","Yes"))
+dat$Dm_0_Any=factor(dat$Dm_0_Any,levels = c(1,2),labels = c("No","Yes"))
+dat$f.31.0.0.x=factor(dat$f.31.0.0.x,levels = c(0,1),labels = c("Female","Male"))
+dat$enrollage=as.numeric(dat$enrollage)
+dat$smoke=factor(dat$smoke,levels=c(0,1),labels = c("No","Yes"))
+dat$antihtn=factor(dat$antihtn,levels=c(0,1),labels = c("No","Yes"))
+dat$statin=factor(dat$statin,levels=c(0,1),labels = c("No","Yes"))
+dat$treat=factor(dat$treat,levels=c(0,1),labels=c("Untreated","Treated"))
+label(dat$f.31.0.0.x)<- "Sex"
+label(dat$enrollage) <- "Age"
+label(dat$pretreat_bmi) <- "Pre-Treat BMI"
+label(dat$HyperLip_0_Any) = "Hyperlipidemia"
+label(dat$Ht_0_Any) = "Hypertension"
+label(dat$Dm_0_Any) = "Diabetes Type 2"
+dat$treat=as.factor(dat$treat)
+label(dat$statin)="Statin"
+label(dat$smoke)="Current Smoker"
+label(dat$antihtn)="Anti Htn"
+# One level of stratification
+table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+statin+smoke+antihtn|treat,dat)
 
-match_dat$prs.group=cut(match_dat$bmi.prs,breaks = quantile(match_dat$bmi.prs,probs = seq(0,1,by=0.25)),labels = c(1:4))
-boxplot(delta~prs.group,data = match_dat[match_dat$treat==1,],ylab="Change in BMI",xlab="BMI.PRS Quartile")
+```
+
+Now let's plot some stuff
+
+```{r}
+library(ggplot2)
+        
+ggplot(match_dat,aes(y=delta,x=treat,group=treat,fill=as.factor(treat)))+
+  geom_boxplot()+labs(y="Change in BMI",x="Treat",fill="Treat")+theme_classic()
+
+ggplot(match_dat,aes(x=as.numeric(time_diff)/7,fill=as.factor(treat)))+geom_density()+
+  labs(x="Weeks Between Measurements",main="Density",fill="Treat")+facet_wrap(~treat)+theme_classic()
+
+pop.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.25))
+match_dat$prs.group=cut(match_dat$bmi.prs,breaks = pop.quants,labels = c(1:4))
+
+levels(match_dat$treat) <- c("Untreated", "Treated")
+ggplot(match_dat,aes(y=delta,x=prs.group,group=prs.group,fill=as.factor(prs.group)))+
+  geom_boxplot()+labs(y="Change in BMI",x="PRS Quartile (population based)",fill="Prs Quartile")+theme_classic()+facet_wrap(~as.factor(treat),nrow = 1)
+```
+
+And here we summarize by population quartiles:
+
+```{r}
+match_dat[match_dat$treat==1,]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
+match_dat[match_dat$treat==0,]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
+
 ```
 
