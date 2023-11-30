@@ -53,6 +53,40 @@ plot(fit, pw_which = "factors")
 ```
 
 
+# Less than 40
+```{r lessthan40,eval=F}
+K=12
+dfw=df.phecode.wide[,-c(1:5)]
+
+## First create a sparse matrix of loadings on the non-NA ages
+# Assuming your data.table is named your_data_table
+age_threshold <- 40  # Replace with your desired age threshold
+
+# Apply the operation to all columns
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold, 1, 0))]
+
+
+X=as.matrix(dfw)
+#install.packages("flashier")
+## remove individuals never phenotyped
+X=X[which(rowSums(X)>0),]
+X=X[,which(colSums(X)>500)]
+
+print(dim(X))
+
+fit_default40 <- flash(as.matrix(scale(X)), greedy_Kmax = K)
+plot(fit_default40, pw_which = "factors")
+saveRDS(fit_default40,file=paste0(filepath,"fit_default40.rds"))
+```
+
+```{r}
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+
+fit=readRDS(paste0(filepath,"fit_default40.rds"))
+dim(fit$F_pm)[1]
+plot(fit, pw_which = "factors")
+```
+
 ## now let's only look at disease that occur before 50
 
 ```{r lessthan50,eval=F}
@@ -64,7 +98,7 @@ dfw=df.phecode.wide[,-c(1:5)]
 age_threshold <- 50  # Replace with your desired age threshold
 
 # Apply the operation to all columns
-dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold, 1, 0))]
+dfw[, (1:ncol(dfw)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold & x >(age_threshold-10), 1, 0))]
 
 
 X=as.matrix(dfw)
@@ -188,8 +222,13 @@ plot(fit, pw_which = "factors")
 
 ```{r}
 overall=readRDS(paste0(filepath,"fit_default_all.rds"))
-head(sort(overall$F_pm[,1],decreasing = T),10)
-head(sort(overall$F_pm[,2],decreasing = T),10)
+head(sort(overall$F_pm[,1],decreasing = T),100)
+head(sort(overall$F_pm[,2],decreasing = T),100)
+
+
+fit40=readRDS(paste0(filepath,"fit_default40.rds"))
+head(sort(fit40$F_pm[,1],decreasing = T),10)
+head(sort(fit40$F_pm[,2],decreasing = T),10)
 
 fit50=readRDS(paste0(filepath,"fit_default50.rds"))
 head(sort(fit50$F_pm[,1],decreasing = T),10)
@@ -207,4 +246,6 @@ fitold=readRDS(paste0(filepath,"fit_defaultold.rds"))
 head(sort(fitold$F_pm[,1],decreasing = T),10)
 head(sort(fitold$F_pm[,2],decreasing = T),10)
 ```
+
+
 

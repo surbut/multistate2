@@ -26,8 +26,9 @@ glp1$event_dt <- as.Date(glp1$event_dt, format="%d/%m/%Y")
 
 
 biomarkers=readRDS("~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds")
-bmi=biomarkers[biomarkers$variable%in%"bmi",]
-#bmi=biomarkers[biomarkers$variable%in%"weight",]
+#bmi=biomarkers[biomarkers$variable%in%"bmi",]
+
+bmi=biomarkers[biomarkers$variable%in%"weight",]
 bmi$date <- as.Date(bmi$date, format="%Y/%m/%d")
 
 
@@ -89,6 +90,8 @@ summary(year(final_data$post_drug_measure_date))
 
 # check to make sure first measure is before drug start
 sum(difftime(final_data$first_script_date,final_data$pretreat_measure_date)<0)
+
+sum(difftime(final_data$pretreat_measure_date,final_data$post_drug_measure_date,units = "days")==0)
 
 # check to make sure last BMI measure is at least 12 weeks after drug start
 sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,units = "days")<83)
@@ -179,6 +182,10 @@ summary(matcher)
 match_dat=match.data(matcher)
 match_dat$bmi.prs=match_dat$BMI
 
+#extract matched data
+match_dat=match.data(matcher)
+match_dat$bmi.prs=match_dat$BMI
+
 
 
 
@@ -191,6 +198,7 @@ summary(lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat))
 ```
 
 
+
 # We examine distribution of delta by treatment and BMI
 
 ```{r}
@@ -201,6 +209,7 @@ match_dat=merge(match_dat,pheno,by.x="eid",by.y="identifier")
 
 match_dat$enrollage=difftime(match_dat$f.53.0.0,match_dat$Birthdate,units = "days")/365.25
 match_dat$first_bmi_age=difftime(match_dat$pretreat_measure_date,match_dat$Birthdate,units = "days")/365.25
+
 library(table1)
 dat=match_dat
 dat$HyperLip_0_Any=factor(dat$HyperLip_0_Any,levels = c(1,2),labels = c("No","Yes"))
@@ -229,7 +238,6 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 
 Now let's plot some stuff
 
-
 ```{r}
 library(ggplot2)
         
@@ -254,8 +262,8 @@ ggplot(match_dat, aes(x = pretreat_bmi, y = delta,col=prs.group)) +
   geom_point() +  # Adjust the geom as necessary
   facet_grid(treat ~ prs.group) +
   labs(title = "Delta vs Baseline BMI by Treatment Status and PRS Quartiles",
-       x = "Baseline BMI",
-       y = "Delta BMI",
+       x = "Baseline Wt",
+       y = "Delta Wt",
        col="BMI PRS Quartile",
        caption = "PRS Quartiles: 1 (Lowest) to 4 (Highest)") +
   theme_classic()
@@ -268,21 +276,20 @@ ggplot(match_dat, aes(x = pretreat_bmi, y = delta, size = bmi.prs, color = as.fa
   scale_size_continuous(range = c(1, 10)) +  # Adjust bubble size range as needed
   scale_color_brewer(palette = "Set1") +  # Choose a color palette that suits your data
   labs(title = "Bubble Plot of Change in BMI by Baseline BMI, PRS, and Treatment",
-       x = "Baseline BMI",
-       y = "Change in BMI",
+       x = "Baseline Wt ",
+       y = "Change in Wt",
        size = "PRS") +
   theme_minimal() +
   guides(color = guide_legend(title = "Treatment Group"), size = guide_legend(title = "PRS"))
 ```
 
-
-And here we summarize by population quartiles:
+And here we summarize by population bmi.prs quartiles:
 
 ```{r}
-match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
-
-
 match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
+
+
+match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
 
 dft=match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
                                                iqr=IQR(delta),
@@ -301,7 +308,7 @@ treat=ggplot(dft, aes(x = prs.group, y = mean_change)) +
   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
   coord_flip() +  # Flips the axes
   xlab("PRS Quartile") +
-  ylab("Change in BMI,Treated") +
+  ylab("Change in Weight (kg),Treated") +
   theme_minimal()
 
 untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
@@ -309,15 +316,17 @@ untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
   coord_flip() +  # Flips the axes
   xlab("PRS Quartile") +
-  ylab("Change in BMI, Untreated") +
+  ylab("Change in Weight (kg), Untreated") +
   theme_minimal()
 
 ggarrange(untreat,treat,nrow=1)
 ```
 
+
+# Plot Delta Weight by BMI.prs
+
 ```{r}
-ggplot(data = match_dat,aes(x=bmi.prs,y=delta,col=as.factor(treat),fill=as.factor(treat)))+
-  geom_point()+
-  stat_smooth()+
-  facet_wrap(~treat)+labs(y="Delta BMI",x="BMI PRS")+theme_classic()
+ggplot(data = match_dat,aes(x=bmi.prs,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y="Delta Weight (kg)",x="BMI PRS")+theme_classic()
+
+ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y="Delta Weight (kg)",x="PreTreat BMI")+theme_classic()
 ```

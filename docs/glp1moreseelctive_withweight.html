@@ -389,7 +389,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-11-29
+<strong>Last updated:</strong> 2023-11-30
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -427,10 +427,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of
-the R Markdown file created these results, you’ll want to first commit
-it to the Git repo. If you’re still working on the analysis, you can
-ignore this warning. When you’re finished, you can run
+<p>The R Markdown is untracked by Git. To know which version of the R
+Markdown file created these results, you’ll want to first commit it to
+the Git repo. If you’re still working on the analysis, you can ignore
+this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -611,176 +611,10 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
-
 <p>
-These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/glp1moreseelctive.Rmd</code>) and
-HTML (<code>docs/glp1moreseelctive.html</code>) files. If you’ve
-configured a remote Git repository (see <code>?wflow_git_remote</code>),
-click on the hyperlinks in the table below to view the files as they
-were in that past version.
+There are no past versions. Publish this analysis with
+<code>wflow_publish()</code> to start tracking its development.
 </p>
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-File
-</th>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-<th>
-Message
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/8e53407a1887bed4416e13d35a6903fc6bd14d32/analysis/glp1moreseelctive.Rmd" target="_blank">8e53407</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/8e53407a1887bed4416e13d35a6903fc6bd14d32/docs/glp1moreseelctive.html" target="_blank">8e53407</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/4e30b0c4a0cd133d6da261ad537a7922fdaf396d/analysis/glp1moreseelctive.Rmd" target="_blank">4e30b0c</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/4e30b0c4a0cd133d6da261ad537a7922fdaf396d/docs/glp1moreseelctive.html" target="_blank">4e30b0c</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/a916d0d985229a2f678924e2a31b6e9fc251a682/analysis/glp1moreseelctive.Rmd" target="_blank">a916d0d</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/a916d0d985229a2f678924e2a31b6e9fc251a682/docs/glp1moreseelctive.html" target="_blank">a916d0d</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/f83cbb67aff44682cfa9045d14f1ea92793f0e1b/analysis/glp1moreseelctive.Rmd" target="_blank">f83cbb6</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-24
-</td>
-<td>
-Update
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/surbut/multistate2/f83cbb67aff44682cfa9045d14f1ea92793f0e1b/docs/glp1moreseelctive.html" target="_blank">f83cbb6</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-24
-</td>
-<td>
-Update
-</td>
-</tr>
-</tbody>
-</table>
-</div>
 <hr>
 </div>
 </div>
@@ -805,8 +639,9 @@ glp1$event_dt &lt;- as.Date(glp1$event_dt, format=&quot;%d/%m/%Y&quot;)
 
 
 biomarkers=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds&quot;)
-bmi=biomarkers[biomarkers$variable%in%&quot;bmi&quot;,]
-#bmi=biomarkers[biomarkers$variable%in%&quot;weight&quot;,]
+#bmi=biomarkers[biomarkers$variable%in%&quot;bmi&quot;,]
+
+bmi=biomarkers[biomarkers$variable%in%&quot;weight&quot;,]
 bmi$date &lt;- as.Date(bmi$date, format=&quot;%Y/%m/%d&quot;)
 
 
@@ -882,6 +717,8 @@ summary(year(final_data$pretreat_measure_date))</code></pre>
 <pre class="r"><code># check to make sure first measure is before drug start
 sum(difftime(final_data$first_script_date,final_data$pretreat_measure_date)&lt;0)</code></pre>
 <pre><code>[1] 0</code></pre>
+<pre class="r"><code>sum(difftime(final_data$pretreat_measure_date,final_data$post_drug_measure_date,units = &quot;days&quot;)==0)</code></pre>
+<pre><code>[1] 0</code></pre>
 <pre class="r"><code># check to make sure last BMI measure is at least 12 weeks after drug start
 sum(difftime(final_data$post_drug_measure_date,final_data$first_script_date,units = &quot;days&quot;)&lt;83)</code></pre>
 <pre><code>[1] 0</code></pre>
@@ -914,7 +751,7 @@ summary(bmi_controls_first$beforedate)</code></pre>
 &quot;2006-12-14&quot; &quot;2007-10-11&quot; &quot;2008-05-07&quot; &quot;2008-07-03&quot; &quot;2009-03-25&quot; &quot;2016-04-25&quot; </code></pre>
 <pre class="r"><code>summary(bmi_controls_first$number)</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   1.00    2.00    4.00    5.36    7.00  215.00 </code></pre>
+  1.000   2.000   4.000   5.359   7.000 215.000 </code></pre>
 <pre class="r"><code>bmi_controls_last &lt;- controls %&gt;%
   filter(date &gt;= min(final_data$post_drug_measure_date) &amp; date &lt; max(final_data$post_drug_measure_date))  %&gt;%
   group_by(eid) %&gt;%
@@ -982,15 +819,15 @@ matchit(formula = treat ~ pretreat_bmi + f.34.0.0 + f.31.0.0 +
 
 Summary of Balance for All Data:
              Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-distance            0.0622        0.0117          0.5359    11.2069    0.3733
-pretreat_bmi       36.6083       27.9964          1.4085     1.4206    0.3615
-f.34.0.0         1951.1953     1950.1495          0.1451     0.8341    0.0378
+distance            0.0584        0.0117          0.5163    11.6475    0.3578
+pretreat_bmi      105.3417       79.3438          1.2738     1.4803    0.3158
+f.34.0.0         1951.1953     1950.1495          0.1451     0.8340    0.0378
 f.31.0.00           0.4373        0.5466         -0.2203          .    0.1093
 f.31.0.01           0.5627        0.4534          0.2203          .    0.1093
-time_diff         445.0602      569.9927         -0.7693     0.1094    0.0548
+time_diff         445.0602      570.0419         -0.7696     0.1094    0.0548
              eCDF Max
-distance       0.6072
-pretreat_bmi   0.6182
+distance       0.5637
+pretreat_bmi   0.5457
 f.34.0.0       0.1073
 f.31.0.00      0.1093
 f.31.0.01      0.1093
@@ -998,19 +835,19 @@ time_diff      0.1901
 
 Summary of Balance for Matched Data:
              Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-distance            0.0622        0.0622         -0.0004     0.9942    0.0000
-pretreat_bmi       36.6083       36.5348          0.0120     0.8773    0.0127
-f.34.0.0         1951.1953     1950.4767          0.0997     0.9331    0.0226
-f.31.0.00           0.4373        0.4140          0.0471          .    0.0233
-f.31.0.01           0.5627        0.5860         -0.0471          .    0.0233
-time_diff         445.0602      435.9877          0.0559     0.2850    0.0303
+distance            0.0584        0.0583          0.0014     1.0131    0.0000
+pretreat_bmi      105.3417      105.0803          0.0128     1.0719    0.0062
+f.34.0.0         1951.1953     1951.2408         -0.0063     0.8744    0.0141
+f.31.0.00           0.4373        0.4447         -0.0149          .    0.0074
+f.31.0.01           0.5627        0.5553          0.0149          .    0.0074
+time_diff         445.0602      422.9042          0.1364     0.3669    0.0290
              eCDF Max Std. Pair Dist.
-distance       0.0037          0.0014
-pretreat_bmi   0.0418          0.3230
-f.34.0.0       0.0700          1.1468
-f.31.0.00      0.0233          1.0179
-f.31.0.01      0.0233          1.0179
-time_diff      0.2199          1.4220
+distance       0.0037          0.0025
+pretreat_bmi   0.0258          0.2073
+f.34.0.0       0.0418          1.1877
+f.31.0.00      0.0074          0.8618
+f.31.0.01      0.0074          0.8618
+time_diff      0.2359          1.3252
 
 Sample Sizes:
           Control Treated
@@ -1022,8 +859,45 @@ Discarded       0       0</code></pre>
 match_dat=match.data(matcher)
 match_dat$bmi.prs=match_dat$BMI
 
+#extract matched data
+match_dat=match.data(matcher)
+match_dat$bmi.prs=match_dat$BMI
 
-load(&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds&quot;)
+
+
+
+#eliminate those with CAD at baseline measure
+#match_dat=match_dat[match_dat$Cad_censor_age&gt;match_dat$first_bmi_age,]
+
+
+match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
+summary(lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat))</code></pre>
+<pre><code>
+Call:
+lm(formula = delta ~ treat + treat:bmi.prs + pretreat_bmi, data = match_dat)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-50.966  -1.534   0.051   1.923  51.806 
+
+Coefficients:
+               Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    4.730728   0.719873   6.572 6.69e-11 ***
+treat         -3.932461   0.286412 -13.730  &lt; 2e-16 ***
+pretreat_bmi  -0.043498   0.006616  -6.574 6.57e-11 ***
+treat:bmi.prs -0.440537   0.197757  -2.228    0.026 *  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 5.325 on 1624 degrees of freedom
+Multiple R-squared:  0.1577,    Adjusted R-squared:  0.1561 
+F-statistic: 101.3 on 3 and 1624 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div id="we-examine-distribution-of-delta-by-treatment-and-bmi"
+class="section level1">
+<h1>We examine distribution of delta by treatment and BMI</h1>
+<pre class="r"><code>load(&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds&quot;)
 pheno=dfh
 
 match_dat=merge(match_dat,pheno,by.x=&quot;eid&quot;,by.y=&quot;identifier&quot;)
@@ -1031,37 +905,7 @@ match_dat=merge(match_dat,pheno,by.x=&quot;eid&quot;,by.y=&quot;identifier&quot;
 match_dat$enrollage=difftime(match_dat$f.53.0.0,match_dat$Birthdate,units = &quot;days&quot;)/365.25
 match_dat$first_bmi_age=difftime(match_dat$pretreat_measure_date,match_dat$Birthdate,units = &quot;days&quot;)/365.25
 
-#eliminate those with CAD at baseline measure
-#match_dat=match_dat[match_dat$Cad_censor_age&gt;match_dat$first_bmi_age,]
-
-
-match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
-summary(lm(delta~treat+treat:bmi.prs,match_dat))</code></pre>
-<pre><code>
-Call:
-lm(formula = delta ~ treat + treat:bmi.prs, data = match_dat)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--15.6722  -0.4623   0.0172   0.6614  17.9334 
-
-Coefficients:
-              Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)    0.02630    0.06573   0.400   0.6891    
-treat         -1.31536    0.10065 -13.069   &lt;2e-16 ***
-treat:bmi.prs -0.16685    0.06898  -2.419   0.0157 *  
----
-Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-
-Residual standard error: 1.861 on 1606 degrees of freedom
-Multiple R-squared:  0.1284,    Adjusted R-squared:  0.1273 
-F-statistic: 118.3 on 2 and 1606 DF,  p-value: &lt; 2.2e-16</code></pre>
-</div>
-</div>
-<div id="we-examine-distribution-of-delta-by-treatment-and-bmi"
-class="section level1">
-<h1>We examine distribution of delta by treatment and BMI</h1>
-<pre class="r"><code>library(table1)
+library(table1)
 dat=match_dat
 dat$HyperLip_0_Any=factor(dat$HyperLip_0_Any,levels = c(1,2),labels = c(&quot;No&quot;,&quot;Yes&quot;))
 dat$Ht_0_Any=factor(dat$Ht_0_Any,levels = c(1,2),labels = c(&quot;No&quot;,&quot;Yes&quot;))
@@ -1088,9 +932,9 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 <thead>
 <tr>
 <th class='rowlabel firstrow lastrow'></th>
-<th class='firstrow lastrow'><span class='stratlabel'>Untreated<br><span class='stratn'>(N=802)</span></span></th>
+<th class='firstrow lastrow'><span class='stratlabel'>Untreated<br><span class='stratn'>(N=803)</span></span></th>
 <th class='firstrow lastrow'><span class='stratlabel'>Treated<br><span class='stratn'>(N=807)</span></span></th>
-<th class='firstrow lastrow'><span class='stratlabel'>Overall<br><span class='stratn'>(N=1609)</span></span></th>
+<th class='firstrow lastrow'><span class='stratlabel'>Overall<br><span class='stratn'>(N=1610)</span></span></th>
 </tr>
 </thead>
 <tbody>
@@ -1102,15 +946,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>Female</td>
-<td>332 (41.4%)</td>
+<td>356 (44.3%)</td>
 <td>354 (43.9%)</td>
-<td>686 (42.6%)</td>
+<td>710 (44.1%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Male</td>
-<td class='lastrow'>470 (58.6%)</td>
+<td class='lastrow'>447 (55.7%)</td>
 <td class='lastrow'>453 (56.1%)</td>
-<td class='lastrow'>923 (57.4%)</td>
+<td class='lastrow'>900 (55.9%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Age</td>
@@ -1120,15 +964,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>Mean (SD)</td>
-<td>58.0 (7.47)</td>
+<td>57.3 (7.75)</td>
 <td>57.4 (7.25)</td>
-<td>57.7 (7.36)</td>
+<td>57.4 (7.50)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Median [Min, Max]</td>
-<td class='lastrow'>59.5 [40.4, 70.2]</td>
+<td class='lastrow'>58.4 [40.2, 70.0]</td>
 <td class='lastrow'>58.4 [40.8, 70.3]</td>
-<td class='lastrow'>58.9 [40.4, 70.3]</td>
+<td class='lastrow'>58.4 [40.2, 70.3]</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Pre-Treat BMI</td>
@@ -1138,15 +982,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>Mean (SD)</td>
-<td>36.5 (6.55)</td>
-<td>36.6 (6.13)</td>
-<td>36.6 (6.34)</td>
+<td>105 (19.7)</td>
+<td>105 (20.4)</td>
+<td>105 (20.0)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Median [Min, Max]</td>
-<td class='lastrow'>35.6 [20.9, 68.5]</td>
-<td class='lastrow'>35.6 [21.8, 63.4]</td>
-<td class='lastrow'>35.6 [20.9, 68.5]</td>
+<td class='lastrow'>103 [51.0, 180]</td>
+<td class='lastrow'>103 [52.0, 188]</td>
+<td class='lastrow'>103 [51.0, 188]</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Hyperlipidemia</td>
@@ -1156,15 +1000,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>435 (54.2%)</td>
+<td>488 (60.8%)</td>
 <td>279 (34.6%)</td>
-<td>714 (44.4%)</td>
+<td>767 (47.6%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>367 (45.8%)</td>
+<td class='lastrow'>315 (39.2%)</td>
 <td class='lastrow'>528 (65.4%)</td>
-<td class='lastrow'>895 (55.6%)</td>
+<td class='lastrow'>843 (52.4%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Hypertension</td>
@@ -1174,15 +1018,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>195 (24.3%)</td>
+<td>260 (32.4%)</td>
 <td>111 (13.8%)</td>
-<td>306 (19.0%)</td>
+<td>371 (23.0%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>607 (75.7%)</td>
+<td class='lastrow'>543 (67.6%)</td>
 <td class='lastrow'>696 (86.2%)</td>
-<td class='lastrow'>1303 (81.0%)</td>
+<td class='lastrow'>1239 (77.0%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Diabetes Type 2</td>
@@ -1192,15 +1036,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>492 (61.3%)</td>
+<td>537 (66.9%)</td>
 <td>2 (0.2%)</td>
-<td>494 (30.7%)</td>
+<td>539 (33.5%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>310 (38.7%)</td>
+<td class='lastrow'>266 (33.1%)</td>
 <td class='lastrow'>805 (99.8%)</td>
-<td class='lastrow'>1115 (69.3%)</td>
+<td class='lastrow'>1071 (66.5%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Statin</td>
@@ -1210,15 +1054,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>269 (33.5%)</td>
+<td>331 (41.2%)</td>
 <td>41 (5.1%)</td>
-<td>310 (19.3%)</td>
+<td>372 (23.1%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>533 (66.5%)</td>
+<td class='lastrow'>472 (58.8%)</td>
 <td class='lastrow'>766 (94.9%)</td>
-<td class='lastrow'>1299 (80.7%)</td>
+<td class='lastrow'>1238 (76.9%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Current Smoker</td>
@@ -1228,15 +1072,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>719 (89.7%)</td>
+<td>727 (90.5%)</td>
 <td>718 (89.0%)</td>
-<td>1437 (89.3%)</td>
+<td>1445 (89.8%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>83 (10.3%)</td>
+<td class='lastrow'>76 (9.5%)</td>
 <td class='lastrow'>89 (11.0%)</td>
-<td class='lastrow'>172 (10.7%)</td>
+<td class='lastrow'>165 (10.2%)</td>
 </tr>
 <tr>
 <td class='rowlabel firstrow'>Anti Htn</td>
@@ -1246,15 +1090,15 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 </tr>
 <tr>
 <td class='rowlabel'>No</td>
-<td>186 (23.2%)</td>
+<td>217 (27.0%)</td>
 <td>69 (8.6%)</td>
-<td>255 (15.8%)</td>
+<td>286 (17.8%)</td>
 </tr>
 <tr>
 <td class='rowlabel lastrow'>Yes</td>
-<td class='lastrow'>616 (76.8%)</td>
+<td class='lastrow'>586 (73.0%)</td>
 <td class='lastrow'>738 (91.4%)</td>
-<td class='lastrow'>1354 (84.2%)</td>
+<td class='lastrow'>1324 (82.2%)</td>
 </tr>
 </tbody>
 </table>
@@ -1264,140 +1108,29 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
         
 ggplot(match_dat,aes(y=delta,x=treat,group=treat,fill=as.factor(treat)))+
   geom_boxplot()+labs(y=&quot;Change in Weight (kg) &quot;,x=&quot;Treat&quot;,fill=&quot;Treat&quot;)+theme_classic()</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
-Past versions of unnamed-chunk-8-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-8-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/8e53407a1887bed4416e13d35a6903fc6bd14d32/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-8-1.png" target="_blank">8e53407</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ggplot(match_dat,aes(x=as.numeric(time_diff)/7,fill=as.factor(treat)))+geom_density()+
   labs(x=&quot;Weeks Between Measurements&quot;,main=&quot;Density&quot;,fill=&quot;Treat&quot;)+facet_wrap(~treat)+theme_classic()</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-8-2.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-2">
-Past versions of unnamed-chunk-8-2.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-8-2" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/8e53407a1887bed4416e13d35a6903fc6bd14d32/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-8-2.png" target="_blank">8e53407</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-8-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>pop.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.25))
 match_dat$prs.group=cut(match_dat$bmi.prs,breaks = pop.quants,labels = c(1:4))
 
 levels(match_dat$treat) &lt;- c(&quot;Untreated&quot;, &quot;Treated&quot;)
 ggplot(match_dat,aes(y=delta,x=prs.group,group=prs.group,fill=as.factor(prs.group)))+
   geom_boxplot()+labs(y=&quot;Change in Weight (kg)&quot;,x=&quot;PRS Quartile (population based)&quot;,fill=&quot;Prs Quartile&quot;)+theme_classic()+facet_wrap(~as.factor(treat),nrow = 1)</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-8-3.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-3">
-Past versions of unnamed-chunk-8-3.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-8-3" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/8e53407a1887bed4416e13d35a6903fc6bd14d32/docs/figure/glp1moreseelctive.Rmd/unnamed-chunk-8-3.png" target="_blank">8e53407</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-11-28
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-8-3.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Assuming you have a dataframe &#39;data&#39; with columns &#39;baseline_BMI&#39;, &#39;change_in_BMI&#39;, and &#39;PRS&#39;
 match_dat$treat=factor(match_dat$treat,levels = c(0,1),labels=c(&quot;Untreated&quot;,&quot;Treated&quot;))
 ggplot(match_dat, aes(x = pretreat_bmi, y = delta,col=prs.group)) +
   geom_point() +  # Adjust the geom as necessary
   facet_grid(treat ~ prs.group) +
   labs(title = &quot;Delta vs Baseline BMI by Treatment Status and PRS Quartiles&quot;,
-       x = &quot;Baseline BMI&quot;,
-       y = &quot;Delta BMI&quot;,
+       x = &quot;Baseline Wt&quot;,
+       y = &quot;Delta Wt&quot;,
        col=&quot;BMI PRS Quartile&quot;,
        caption = &quot;PRS Quartiles: 1 (Lowest) to 4 (Highest)&quot;) +
   theme_classic()</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-8-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-8-4.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>library(ggplot2)
 
 # Assuming your dataframe is named &#39;data&#39; with &#39;baseline_BMI&#39;, &#39;change_in_BMI&#39;, &#39;PRS&#39;, and &#39;treatment_group&#39;
@@ -1406,29 +1139,29 @@ ggplot(match_dat, aes(x = pretreat_bmi, y = delta, size = bmi.prs, color = as.fa
   scale_size_continuous(range = c(1, 10)) +  # Adjust bubble size range as needed
   scale_color_brewer(palette = &quot;Set1&quot;) +  # Choose a color palette that suits your data
   labs(title = &quot;Bubble Plot of Change in BMI by Baseline BMI, PRS, and Treatment&quot;,
-       x = &quot;Baseline BMI&quot;,
-       y = &quot;Change in BMI&quot;,
+       x = &quot;Baseline Wt &quot;,
+       y = &quot;Change in Wt&quot;,
        size = &quot;PRS&quot;) +
   theme_minimal() +
   guides(color = guide_legend(title = &quot;Treatment Group&quot;), size = guide_legend(title = &quot;PRS&quot;))</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-8-5.png" width="672" style="display: block; margin: auto;" /></p>
-<p>And here we summarize by population quartiles:</p>
-<pre class="r"><code>match_dat[match_dat$treat==&quot;Treated&quot;,]%&gt;%group_by(prs.group)%&gt;%summarise(median(delta),IQR(delta),sd(delta))</code></pre>
-<pre><code># A tibble: 4 × 4
-  prs.group `median(delta)` `IQR(delta)` `sd(delta)`
-  &lt;fct&gt;               &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
-1 1                   -1.02         2.38        2.45
-2 2                   -1.00         2.32        1.97
-3 3                   -1.13         2.41        2.58
-4 4                   -1.28         2.95        2.68</code></pre>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-8-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>And here we summarize by population bmi.prs quartiles:</p>
 <pre class="r"><code>match_dat[match_dat$treat==&quot;Untreated&quot;,]%&gt;%group_by(prs.group)%&gt;%summarise(median(delta),IQR(delta),sd(delta))</code></pre>
 <pre><code># A tibble: 4 × 4
   prs.group `median(delta)` `IQR(delta)` `sd(delta)`
   &lt;fct&gt;               &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
-1 1                 0.0217         0.335       1.14 
-2 2                 0.0500         0.355       0.632
-3 3                 0              0.345       0.679
-4 4                 0.00625        0.409       0.820</code></pre>
+1 1                   0.100        0.988        2.36
+2 2                   0.100        1.06         1.79
+3 3                   0            1.18         2.15
+4 4                   0            0.900        2.31</code></pre>
+<pre class="r"><code>match_dat[match_dat$treat==&quot;Treated&quot;,]%&gt;%group_by(prs.group)%&gt;%summarise(median(delta),IQR(delta),sd(delta))</code></pre>
+<pre><code># A tibble: 4 × 4
+  prs.group `median(delta)` `IQR(delta)` `sd(delta)`
+  &lt;fct&gt;               &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+1 1                   -2.5          6.88        6.53
+2 2                   -2.69         5.96        6.29
+3 3                   -3.35         5.84        6.98
+4 4                   -3.77         8.46        8.07</code></pre>
 <pre class="r"><code>dft=match_dat[match_dat$treat==&quot;Treated&quot;,]%&gt;%group_by(prs.group)%&gt;%summarise(mean_change=median(delta),
                                                iqr=IQR(delta),
                                                sd=sd(delta),
@@ -1446,7 +1179,7 @@ treat=ggplot(dft, aes(x = prs.group, y = mean_change)) +
   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
   coord_flip() +  # Flips the axes
   xlab(&quot;PRS Quartile&quot;) +
-  ylab(&quot;Change in BMI,Treated&quot;) +
+  ylab(&quot;Change in Weight (kg),Treated&quot;) +
   theme_minimal()
 
 untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
@@ -1454,16 +1187,18 @@ untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
   coord_flip() +  # Flips the axes
   xlab(&quot;PRS Quartile&quot;) +
-  ylab(&quot;Change in BMI, Untreated&quot;) +
+  ylab(&quot;Change in Weight (kg), Untreated&quot;) +
   theme_minimal()
 
 ggarrange(untreat,treat,nrow=1)</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ggplot(data = match_dat,aes(x=bmi.prs,y=delta,col=as.factor(treat),fill=as.factor(treat)))+
-  geom_point()+
-  stat_smooth()+
-  facet_wrap(~treat)+labs(y=&quot;Delta BMI&quot;,x=&quot;BMI PRS&quot;)+theme_classic()</code></pre>
-<p><img src="figure/glp1moreseelctive.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="plot-delta-weight-by-bmi.prs" class="section level1">
+<h1>Plot Delta Weight by BMI.prs</h1>
+<pre class="r"><code>ggplot(data = match_dat,aes(x=bmi.prs,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y=&quot;Delta Weight (kg)&quot;,x=&quot;BMI PRS&quot;)+theme_classic()</code></pre>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y=&quot;Delta Weight (kg)&quot;,x=&quot;PreTreat BMI&quot;)+theme_classic()</code></pre>
+<p><img src="figure/glp1moreseelctive_withweight.Rmd/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1513,15 +1248,15 @@ loaded via a namespace (and not attached):
 [37] Matrix_1.6-3      splines_4.3.1     timechange_0.2.0  tidyselect_1.2.0 
 [41] rstudioapi_0.15.0 abind_1.4-5       yaml_2.3.7        lattice_0.22-5   
 [45] plyr_1.8.9        withr_2.5.2       evaluate_0.23     xml2_1.3.5       
-[49] pillar_1.9.0      whisker_0.4.1     generics_0.1.3    rprojroot_2.0.4  
-[53] hms_1.1.3         munsell_0.5.0     scales_1.2.1      minqa_1.2.6      
-[57] xtable_1.8-4      glue_1.6.2        lazyeval_0.2.2    tools_4.3.1      
-[61] lme4_1.1-35.1     ggsignif_0.6.4    fs_1.6.3          cowplot_1.1.1    
-[65] grid_4.3.1        colorspace_2.1-0  nlme_3.1-163      Formula_1.2-5    
-[69] cli_3.6.1         km.ci_0.5-6       workflowr_1.7.1   fansi_1.0.5      
-[73] viridisLite_0.4.2 gtable_0.3.4      rstatix_0.7.2     sass_0.4.7       
-[77] digest_0.6.33     farver_2.1.1      htmlwidgets_1.6.3 htmltools_0.5.7  
-[81] lifecycle_1.0.4   httr_1.4.7        bit64_4.0.5       MASS_7.3-60      </code></pre>
+[49] pillar_1.9.0      generics_0.1.3    rprojroot_2.0.4   hms_1.1.3        
+[53] munsell_0.5.0     scales_1.2.1      minqa_1.2.6       xtable_1.8-4     
+[57] glue_1.6.2        lazyeval_0.2.2    tools_4.3.1       lme4_1.1-35.1    
+[61] ggsignif_0.6.4    fs_1.6.3          cowplot_1.1.1     grid_4.3.1       
+[65] colorspace_2.1-0  nlme_3.1-163      Formula_1.2-5     cli_3.6.1        
+[69] km.ci_0.5-6       workflowr_1.7.1   fansi_1.0.5       viridisLite_0.4.2
+[73] gtable_0.3.4      rstatix_0.7.2     sass_0.4.7        digest_0.6.33    
+[77] farver_2.1.1      htmlwidgets_1.6.3 htmltools_0.5.7   lifecycle_1.0.4  
+[81] httr_1.4.7        bit64_4.0.5       MASS_7.3-60      </code></pre>
 </div>
 </div>
 
