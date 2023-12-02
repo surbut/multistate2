@@ -368,7 +368,7 @@ df=na.omit(df)</code></pre>
 </div>
 <div id="section" class="section level2">
 <h2></h2>
-<p>Univariable Model 1: adjusted for age</p>
+<p>Univariable</p>
 <pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median,data = df)
 summary(surv1)</code></pre>
 <pre><code>## Call:
@@ -392,6 +392,32 @@ summary(surv1)</code></pre>
 <pre class="r"><code>c=concordance(surv1)$concordance
 print(c)</code></pre>
 <pre><code>## [1] 0.6501004</code></pre>
+<p>Model 1: adjusted for age</p>
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy,data = df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     PA_uncoupled_median + AgeAtStudy, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                        coef exp(coef) se(coef)     z Pr(&gt;|z|)    
+## PA_uncoupled_median 1.28651   3.62013  0.22441 5.733 9.87e-09 ***
+## AgeAtStudy          0.02426   1.02455  0.01042 2.329   0.0199 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                     exp(coef) exp(-coef) lower .95 upper .95
+## PA_uncoupled_median     3.620     0.2762     2.332     5.620
+## AgeAtStudy              1.025     0.9760     1.004     1.046
+## 
+## Concordance= 0.685  (se = 0.027 )
+## Likelihood ratio test= 42.35  on 2 df,   p=6e-10
+## Wald test            = 37.34  on 2 df,   p=8e-09
+## Score (logrank) test = 41.77  on 2 df,   p=9e-10</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.6845261</code></pre>
 <p>Model 2: adjusted for age and sex</p>
 <pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy+sex,data = df)
 summary(surv1)</code></pre>
