@@ -171,8 +171,9 @@ df_with_prs=merge(df,prs_subset[,c("Identifier","BMI")],by.x="eid",by.y="Identif
 * pretreat BMI
 
 ```{r}
-## now match on pretreat bmi
-matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff,data = df_with_prs)
+
+df_with_prs$bmi.prs=df_with_prs$BMI
+matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff+bmi.prs,data = df_with_prs)
 summary(matcher)
 
 #extract matched data
@@ -181,15 +182,79 @@ match_dat$bmi.prs=match_dat$BMI
 
 
 
-
-#eliminate those with CAD at baseline measure
-#match_dat=match_dat[match_dat$Cad_censor_age>match_dat$first_bmi_age,]
-
-
 match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
-summary(lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat))
+
+model=lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat)
+summary(model)
 ```
 
+
+
+## suppose we want to plot the combined effect of treatment and treatment:BMI PRS
+
+```{r}
+prs.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.10))
+prs.quants=c(-3:3)
+coefficients <- coef(model)
+cov_matrix <- vcov(model)
+
+
+# Prepare data frame for the forest plot
+# Prepare data frame for the forest plot
+forest_data <- data.frame(Quantile = factor(prs.quants, levels = prs.quants), Estimate = NA, SE = NA)
+
+# Loop over the quantile values
+for (i in 1:length(prs.quants)) {
+    # Calculate combined effect
+    combined_effect <- coefficients["treat"] + coefficients["treat:bmi.prs"] * prs.quants[i]
+
+    # Calculate combined variance
+    var_treat_bmi_prs_adjusted <- prs.quants[i]^2 * cov_matrix["treat:bmi.prs", "treat:bmi.prs"]
+    combined_variance <- cov_matrix["treat", "treat"] + var_treat_bmi_prs_adjusted + 2 * prs.quants[i] * cov_matrix["treat", "treat:bmi.prs"]
+    
+    # Store in data frame
+    forest_data$Estimate[i] <- combined_effect
+    forest_data$SE[i] <- sqrt(combined_variance)
+}
+
+# Create the forest plot with effect estimate on X-axis and PRS quantile on Y-axis
+ggplot(forest_data, aes(x = Estimate, y = Quantile, xmin = Estimate - 1.96 * SE, xmax = Estimate + 1.96 * SE)) +
+    geom_pointrange() +
+    ylab("BMI.PRS SD") +
+    xlab("Combined Effect Estimate") +
+    theme_minimal()
+
+
+```
+
+
+## Let's do some 3d plots
+
+```{r}
+library(plotly)
+
+# Assuming 'data' has 'baseline_BMI', 'change_in_BMI', 'PRS', and 'treatment_group'
+fig <- plot_ly(match_dat[match_dat$treat==1,], x = ~pretreat_bmi, y = ~delta, z = ~bmi.prs,
+color = ~bmi.prs,
+type = "scatter3d", mode = "markers")
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'Baseline BMI'),
+yaxis = list(title = 'Change in BMI'),
+zaxis = list(title = 'PRS')),
+title = "3D Plot of Change in BMI by PRS, Baseline BMI, and Treatment")
+fig
+
+
+# Assuming 'data' has 'baseline_BMI', 'change_in_BMI', 'PRS', and 'treatment_group'
+fig <- plot_ly(match_dat[match_dat$treat==0,], x = ~pretreat_bmi, y = ~delta, z = ~bmi.prs,
+color = ~bmi.prs,
+type = "scatter3d", mode = "markers")
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'Baseline BMI'),
+yaxis = list(title = 'Change in BMI'),
+zaxis = list(title = 'PRS')),
+title = "3D Plot of Change in BMI by PRS, Baseline BMI, and Treatment")
+fig
+
+```
 
 # We examine distribution of delta by treatment and BMI
 
