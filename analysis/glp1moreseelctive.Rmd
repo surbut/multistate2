@@ -173,7 +173,7 @@ df_with_prs=merge(df,prs_subset[,c("Identifier","BMI")],by.x="eid",by.y="Identif
 ```{r}
 
 df_with_prs$bmi.prs=df_with_prs$BMI
-matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff+bmi.prs,data = df_with_prs)
+matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff,data = df_with_prs)
 summary(matcher)
 
 #extract matched data
@@ -181,10 +181,14 @@ match_dat=match.data(matcher)
 match_dat$bmi.prs=match_dat$BMI
 
 
+load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+pheno=dfh
+
+match_dat=merge(match_dat,pheno,by.x="eid",by.y="identifier")
 
 match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
 
-model=lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat)
+model=lm(delta~treat+treat:bmi.prs,match_dat)
 summary(model)
 ```
 
@@ -259,10 +263,10 @@ fig
 # We examine distribution of delta by treatment and BMI
 
 ```{r}
-load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
-pheno=dfh
-
-match_dat=merge(match_dat,pheno,by.x="eid",by.y="identifier")
+# load("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+# pheno=dfh
+# 
+# match_dat=merge(match_dat,pheno,by.x="eid",by.y="identifier")
 
 match_dat$enrollage=difftime(match_dat$f.53.0.0,match_dat$Birthdate,units = "days")/365.25
 match_dat$first_bmi_age=difftime(match_dat$pretreat_measure_date,match_dat$Birthdate,units = "days")/365.25
