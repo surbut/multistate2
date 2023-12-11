@@ -247,5 +247,49 @@ head(sort(fitold$F_pm[,1],decreasing = T),10)
 head(sort(fitold$F_pm[,2],decreasing = T),10)
 ```
 
+```{r}
+X=df.phecode.wide[,-c(1:5)]
+X[is.na(X)]=0
 
+X=as.matrix(X)
+
+X=X[which(rowSums(X!=0)>0),]
+
+X=X[,which(colSums(X!=0)>500)]
+data=round(X,0)
+#ages=table(current_matrix[current_matrix>0])[1,]
+
+age_bins <- c(-Inf, 40, 41:80, Inf)
+n_bins <- length(age_bins) - 1
+
+# Initialize an empty sparse tensor (3D array)
+tensor <- array(0, dim = c(nrow(data), ncol(data), n_bins))
+
+age_bins <- c(-Inf, 40, 41:80, Inf)
+n_bins <- length(age_bins) - 1
+
+# Initialize an empty tensor (3D array) with zeros
+tensor <- array(0, dim = c(nrow(data), ncol(data), n_bins))
+
+# Populate the tensor
+for (i in 1:nrow(data)) {
+  for (j in 1:ncol(data)) {
+    age <- data[i, j]
+    if (age > 0) { # Update only if a code is present
+      bin_index <- findInterval(age, age_bins)
+      tensor[i, j, bin_index] <- 1
+    }
+    # Else, it remains 0 as initialized
+  }
+}
+
+# `tensor` now is your 450K x 500 x 41 
+
+f=flashier::flash(new_array,greedy_Kmax = 10,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential,ebnm_point_laplace))
+saveRDS(f,"flasharrayrolup.rds")
+
+f2=flashier::flash(new_array,greedy_Kmax = 10,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential,ebnm_point_laplace))
+
+### don't interpret the first factor (essentially the intercept term)
+### for ebnm, pass the smoothing function ebnm_fn(c(eb
 
