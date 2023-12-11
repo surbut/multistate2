@@ -190,9 +190,19 @@ match_dat=match.data(matcher)
 
 
 match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
+match_dat$pretreat_weight=match_dat$pretreat_bmi
 
-model=lm(delta~treat+treat:bmi.prs+pretreat_bmi,match_dat)
+
+model=lm(delta~treat+treat:bmi.prs+pretreat_weight,match_dat)
+
+model1=lm(delta~treat+treat:bmi.prs,match_dat)
+
+
 summary(model)
+confint.lm(model)
+t.test(match_dat$delta[match_dat$treat==1])
+
+summary(match_dat$delta[match_dat$treat==0])
 ```
 
 
@@ -393,4 +403,47 @@ ggarrange(untreat,treat,nrow=1)
 ggplot(data = match_dat,aes(x=bmi.prs,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y="Delta Weight (kg)",x="BMI PRS")+theme_classic()
 
 ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.factor(treat)))+geom_point()+stat_smooth()+facet_wrap(~treat)+labs(y="Delta Weight (kg)",x="PreTreat BMI")+theme_classic()
+```
+
+
+## now loet's look at interactino power analyiss
+
+```{r}
+library(pwr)
+
+# Parameters
+alpha <- 0.05      # Significance level
+power <- 0.8       # Desired power
+
+library(pwr)
+
+# Parameters
+alpha <- 0.05      # Significance level
+power <- 0.8       # Desired power
+beta_interaction <- -0.443917  # Estimated interaction effect coefficient
+residual_sd <- 5.298         # Residual SD of the model
+
+# Effect size calculation for the interaction term
+effect_size_interaction <- function(prs_sd) {
+  (beta_interaction * prs_sd) / residual_sd
+}
+
+# Power analysis for different levels of BMI PRS
+sample_size_for_prs_sd <- function(prs_sd) {
+  effect_size <- effect_size_interaction(prs_sd)
+  pwr.f2.test(u = 3,  # number of predictors
+              v = NULL,
+              f2 = effect_size^2,
+              sig.level = alpha,
+              power = power)$n
+}
+
+# Calculate required sample sizes
+sample_size_sd1 <- sample_size_for_prs_sd(1)
+sample_size_sd2 <- sample_size_for_prs_sd(2)
+sample_size_sd3 <- sample_size_for_prs_sd(3)
+
+list(SampleSize_SD1 = sample_size_sd1, 
+     SampleSize_SD2 = sample_size_sd2, 
+     SampleSize_SD3 = sample_size_sd3)
 ```

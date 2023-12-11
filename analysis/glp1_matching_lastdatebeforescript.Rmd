@@ -70,7 +70,7 @@ data2$bmi_date=as.Date(data2$date)
 
 last_bmi_before_script <- data2 %>%
   group_by(eid) %>%
-  filter(bmi_date < first_script) %>%
+  filter(bmi_date < first_script & bmi_date > (first_script_date - years(1))) %>%
   slice_max(order_by = bmi_date, n = 1) %>%
   distinct(eid, .keep_all = TRUE)
 

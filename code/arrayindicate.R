@@ -70,6 +70,8 @@ statusarray = function(df_frame, ages, nstates) {
     
     rm(atrisk)
     
+    ## make CAD exclude death from CAD
+    
     atrisk = df_frame[age > Cad_0_censor_age &
                         Cad_0_Any == 2 & Death_Censor_Age > age,]
     

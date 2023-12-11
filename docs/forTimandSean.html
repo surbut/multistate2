@@ -360,14 +360,240 @@ display: none;
 <pre class="r"><code>library(survival)
 library(data.table)
 pamca=fread(&quot;~/Library/CloudStorage/Dropbox-Personal/PA Uncoupling MAC Data.csv&quot;)
-df=pamca[,c(&quot;Death_SensorMVsurg&quot;,&quot;T2Death&quot;,&quot;PA_uncoupled_median&quot;,&quot;AgeAtStudy&quot;,&quot;sex&quot;,&quot;ckd_stage3orabove&quot;,&quot;htn&quot;,&quot;cad&quot;,&quot;diabetes&quot;,&quot;as_3_groups&quot;,&quot;LV_LVEF_Method&quot;,&quot;MV_MeanGradient&quot;,&quot;primarysample2&quot;,&quot;trgroup_4groups&quot;,
-            &quot;exclude&quot;,
-            &quot;mac_location_3groups&quot;,&quot;LV_EjectionFraction&quot;)]
+df=pamca[,c(&quot;Death_SensorMVsurg&quot;,&quot;T2Death&quot;,&quot;PA_uncoupled_median&quot;,&quot;AgeAtStudy&quot;,&quot;sex&quot;,&quot;ckd_stage3orabove&quot;,&quot;htn&quot;,&quot;cad&quot;,&quot;diabetes&quot;,&quot;as_3_groups&quot;,&quot;LV_LVEF_Method&quot;,&quot;MV_MeanGradient&quot;,&quot;primarysample2&quot;,&quot;trgroup_4groups&quot;,&quot;RV_TAPSE&quot;,&quot;TV_RV_SystolicPressure&quot;,&quot;exclude&quot;,&quot;mac_location_3groups&quot;,&quot;LV_LVEF_Measurement&quot;,&quot;ckd_stage3orabove&quot;)]
 
 df=na.omit(df)</code></pre>
 </div>
+<div id="for-rv_tapse" class="section level2">
+<h2>For RV_TAPSE</h2>
+<p>Univariable</p>
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~RV_TAPSE,data = df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     RV_TAPSE, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##              coef exp(coef) se(coef)      z Pr(&gt;|z|)    
+## RV_TAPSE -0.08698   0.91670  0.01828 -4.759 1.94e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##          exp(coef) exp(-coef) lower .95 upper .95
+## RV_TAPSE    0.9167      1.091    0.8844    0.9501
+## 
+## Concordance= 0.649  (se = 0.028 )
+## Likelihood ratio test= 23.22  on 1 df,   p=1e-06
+## Wald test            = 22.65  on 1 df,   p=2e-06
+## Score (logrank) test = 23.1  on 1 df,   p=2e-06</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.6489067</code></pre>
+<p>Model 4: Full adjustment</p>
+<pre class="r"><code>#voi=RV_TAPSE
+surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~ RV_TAPSE+AgeAtStudy+sex+ckd_stage3orabove+htn+cad+diabetes+as_3_groups+LV_LVEF_Measurement+
+              trgroup_4groups+MV_MeanGradient,data=df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     RV_TAPSE + AgeAtStudy + sex + ckd_stage3orabove + htn + cad + 
+##         diabetes + as_3_groups + LV_LVEF_Measurement + trgroup_4groups + 
+##         MV_MeanGradient, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                          coef exp(coef)  se(coef)      z Pr(&gt;|z|)   
+## RV_TAPSE            -0.034619  0.965974  0.020370 -1.700  0.08922 . 
+## AgeAtStudy           0.034657  1.035264  0.012011  2.886  0.00391 **
+## sex                  0.148923  1.160584  0.225510  0.660  0.50901   
+## ckd_stage3orabove    0.711740  2.037534  0.238974  2.978  0.00290 **
+## htn                 -0.638961  0.527840  0.280455 -2.278  0.02271 * 
+## cad                 -0.148283  0.862187  0.235507 -0.630  0.52894   
+## diabetes             0.201817  1.223624  0.234534  0.861  0.38951   
+## as_3_groups         -0.056586  0.944985  0.124992 -0.453  0.65075   
+## LV_LVEF_Measurement -0.028072  0.972318  0.008712 -3.222  0.00127 **
+## trgroup_4groups      0.397080  1.487475  0.142322  2.790  0.00527 **
+## MV_MeanGradient      0.075368  1.078281  0.036347  2.074  0.03812 * 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                     exp(coef) exp(-coef) lower .95 upper .95
+## RV_TAPSE               0.9660     1.0352    0.9282    1.0053
+## AgeAtStudy             1.0353     0.9659    1.0112    1.0599
+## sex                    1.1606     0.8616    0.7460    1.8056
+## ckd_stage3orabove      2.0375     0.4908    1.2755    3.2548
+## htn                    0.5278     1.8945    0.3046    0.9146
+## cad                    0.8622     1.1598    0.5434    1.3679
+## diabetes               1.2236     0.8172    0.7727    1.9377
+## as_3_groups            0.9450     1.0582    0.7397    1.2073
+## LV_LVEF_Measurement    0.9723     1.0285    0.9559    0.9891
+## trgroup_4groups        1.4875     0.6723    1.1254    1.9661
+## MV_MeanGradient        1.0783     0.9274    1.0041    1.1579
+## 
+## Concordance= 0.741  (se = 0.024 )
+## Likelihood ratio test= 68.26  on 11 df,   p=3e-10
+## Wald test            = 69.42  on 11 df,   p=2e-10
+## Score (logrank) test = 74.26  on 11 df,   p=2e-11</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.7412512</code></pre>
+<div id="now-for-tv_rv_systolic" class="section level3">
+<h3>now for TV_RV_Systolic</h3>
+</div>
+</div>
 <div id="section" class="section level2">
 <h2></h2>
+<p>Univariable</p>
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~TV_RV_SystolicPressure,data = df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     TV_RV_SystolicPressure, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                           coef exp(coef) se(coef)     z Pr(&gt;|z|)    
+## TV_RV_SystolicPressure 0.03452   1.03512  0.00535 6.452  1.1e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                        exp(coef) exp(-coef) lower .95 upper .95
+## TV_RV_SystolicPressure     1.035     0.9661     1.024     1.046
+## 
+## Concordance= 0.664  (se = 0.029 )
+## Likelihood ratio test= 34.18  on 1 df,   p=5e-09
+## Wald test            = 41.63  on 1 df,   p=1e-10
+## Score (logrank) test = 42.86  on 1 df,   p=6e-11</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.6641257</code></pre>
+<p>Model 4: Full adjustment</p>
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~ TV_RV_SystolicPressure+AgeAtStudy+sex+ckd_stage3orabove+htn+cad+diabetes+as_3_groups+LV_LVEF_Measurement+
+              trgroup_4groups+MV_MeanGradient,data=df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     TV_RV_SystolicPressure + AgeAtStudy + sex + ckd_stage3orabove + 
+##         htn + cad + diabetes + as_3_groups + LV_LVEF_Measurement + 
+##         trgroup_4groups + MV_MeanGradient, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                            coef exp(coef) se(coef)      z Pr(&gt;|z|)    
+## TV_RV_SystolicPressure  0.03238   1.03291  0.00746  4.340 1.42e-05 ***
+## AgeAtStudy              0.03890   1.03967  0.01215  3.201  0.00137 ** 
+## sex                     0.43364   1.54286  0.23272  1.863  0.06242 .  
+## ckd_stage3orabove       0.69254   1.99879  0.23445  2.954  0.00314 ** 
+## htn                    -0.62448   0.53554  0.28460 -2.194  0.02822 *  
+## cad                     0.01022   1.01027  0.23148  0.044  0.96478    
+## diabetes                0.18356   1.20148  0.23538  0.780  0.43548    
+## as_3_groups            -0.04949   0.95171  0.12760 -0.388  0.69812    
+## LV_LVEF_Measurement    -0.03251   0.96802  0.00818 -3.974 7.07e-05 ***
+## trgroup_4groups         0.16489   1.17926  0.15892  1.038  0.29947    
+## MV_MeanGradient         0.03439   1.03499  0.03812  0.902  0.36704    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                        exp(coef) exp(-coef) lower .95 upper .95
+## TV_RV_SystolicPressure    1.0329     0.9681    1.0179    1.0481
+## AgeAtStudy                1.0397     0.9618    1.0152    1.0647
+## sex                       1.5429     0.6481    0.9778    2.4346
+## ckd_stage3orabove         1.9988     0.5003    1.2624    3.1647
+## htn                       0.5355     1.8673    0.3066    0.9355
+## cad                       1.0103     0.9898    0.6418    1.5903
+## diabetes                  1.2015     0.8323    0.7575    1.9058
+## as_3_groups               0.9517     1.0507    0.7411    1.2221
+## LV_LVEF_Measurement       0.9680     1.0330    0.9526    0.9837
+## trgroup_4groups           1.1793     0.8480    0.8637    1.6102
+## MV_MeanGradient           1.0350     0.9662    0.9605    1.1153
+## 
+## Concordance= 0.752  (se = 0.025 )
+## Likelihood ratio test= 83.15  on 11 df,   p=4e-13
+## Wald test            = 85.32  on 11 df,   p=1e-13
+## Score (logrank) test = 92.18  on 11 df,   p=6e-15</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.7519397</code></pre>
+<div id="now-for-rv_tapsetv_rv_systolic" class="section level3">
+<h3>now for RV_TAPSE/TV_RV_Systolic</h3>
+<p>Univariable</p>
+<pre class="r"><code>df$quotient=df$RV_TAPSE/df$TV_RV_SystolicPressure
+surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~quotient,data = df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     quotient, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##               coef exp(coef)  se(coef)      z Pr(&gt;|z|)    
+## quotient -4.778662  0.008407  0.747430 -6.393 1.62e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##          exp(coef) exp(-coef) lower .95 upper .95
+## quotient  0.008407      118.9  0.001943   0.03638
+## 
+## Concordance= 0.711  (se = 0.025 )
+## Likelihood ratio test= 48.61  on 1 df,   p=3e-12
+## Wald test            = 40.88  on 1 df,   p=2e-10
+## Score (logrank) test = 41.64  on 1 df,   p=1e-10</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.7108133</code></pre>
+<p>Model 4: Full adjustment</p>
+<pre class="r"><code>df$quotient=df$RV_TAPSE/df$TV_RV_SystolicPressure
+surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~quotient+AgeAtStudy+sex+ckd_stage3orabove+htn+cad+diabetes+as_3_groups+LV_LVEF_Measurement+
+              trgroup_4groups+MV_MeanGradient,data=df)
+summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     quotient + AgeAtStudy + sex + ckd_stage3orabove + htn + cad + 
+##         diabetes + as_3_groups + LV_LVEF_Measurement + trgroup_4groups + 
+##         MV_MeanGradient, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                          coef exp(coef)  se(coef)      z Pr(&gt;|z|)    
+## quotient            -3.190490  0.041152  0.906686 -3.519 0.000433 ***
+## AgeAtStudy           0.034197  1.034788  0.011958  2.860 0.004239 ** 
+## sex                  0.241177  1.272747  0.226293  1.066 0.286525    
+## ckd_stage3orabove    0.661133  1.936985  0.239382  2.762 0.005748 ** 
+## htn                 -0.573400  0.563606  0.282815 -2.027 0.042614 *  
+## cad                 -0.171015  0.842809  0.234478 -0.729 0.465793    
+## diabetes             0.173884  1.189918  0.235891  0.737 0.461038    
+## as_3_groups         -0.067624  0.934612  0.126410 -0.535 0.592682    
+## LV_LVEF_Measurement -0.022872  0.977388  0.008495 -2.693 0.007092 ** 
+## trgroup_4groups      0.180963  1.198371  0.157976  1.146 0.251997    
+## MV_MeanGradient      0.043149  1.044094  0.037755  1.143 0.253095    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                     exp(coef) exp(-coef) lower .95 upper .95
+## quotient              0.04115    24.3003   0.00696    0.2433
+## AgeAtStudy            1.03479     0.9664   1.01082    1.0593
+## sex                   1.27275     0.7857   0.81681    1.9832
+## ckd_stage3orabove     1.93699     0.5163   1.21161    3.0966
+## htn                   0.56361     1.7743   0.32377    0.9811
+## cad                   0.84281     1.1865   0.53228    1.3345
+## diabetes              1.18992     0.8404   0.74942    1.8893
+## as_3_groups           0.93461     1.0700   0.72951    1.1974
+## LV_LVEF_Measurement   0.97739     1.0231   0.96125    0.9938
+## trgroup_4groups       1.19837     0.8345   0.87927    1.6333
+## MV_MeanGradient       1.04409     0.9578   0.96962    1.1243
+## 
+## Concordance= 0.759  (se = 0.024 )
+## Likelihood ratio test= 78.68  on 11 df,   p=3e-12
+## Wald test            = 75.54  on 11 df,   p=1e-11
+## Score (logrank) test = 80.8  on 11 df,   p=1e-12</code></pre>
+<pre class="r"><code>c=concordance(surv1)$concordance
+print(c)</code></pre>
+<pre><code>## [1] 0.7587217</code></pre>
+</div>
+</div>
+<div id="now-for-categorical-uncoupled" class="section level2">
+<h2>now for categorical (uncoupled)</h2>
 <p>Univariable</p>
 <pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median,data = df)
 summary(surv1)</code></pre>
@@ -392,142 +618,53 @@ summary(surv1)</code></pre>
 <pre class="r"><code>c=concordance(surv1)$concordance
 print(c)</code></pre>
 <pre><code>## [1] 0.6501004</code></pre>
-<p>Model 1: adjusted for age</p>
-<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy,data = df)
+<p>Model 4: Full adjustment</p>
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~ PA_uncoupled_median+AgeAtStudy+sex+ckd_stage3orabove+htn+cad+diabetes+as_3_groups+LV_LVEF_Measurement+
+              trgroup_4groups+MV_MeanGradient,data=df)
 summary(surv1)</code></pre>
 <pre><code>## Call:
 ## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
-##     PA_uncoupled_median + AgeAtStudy, data = df)
+##     PA_uncoupled_median + AgeAtStudy + sex + ckd_stage3orabove + 
+##         htn + cad + diabetes + as_3_groups + LV_LVEF_Measurement + 
+##         trgroup_4groups + MV_MeanGradient, data = df)
 ## 
 ##   n= 297, number of events= 102 
 ## 
-##                        coef exp(coef) se(coef)     z Pr(&gt;|z|)    
-## PA_uncoupled_median 1.28651   3.62013  0.22441 5.733 9.87e-09 ***
-## AgeAtStudy          0.02426   1.02455  0.01042 2.329   0.0199 *  
+##                          coef exp(coef)  se(coef)      z Pr(&gt;|z|)   
+## PA_uncoupled_median  0.841958  2.320908  0.263132  3.200  0.00138 **
+## AgeAtStudy           0.035509  1.036147  0.012128  2.928  0.00341 **
+## sex                  0.221674  1.248165  0.222381  0.997  0.31885   
+## ckd_stage3orabove    0.761888  2.142317  0.236402  3.223  0.00127 **
+## htn                 -0.598056  0.549879  0.282148 -2.120  0.03404 * 
+## cad                 -0.188491  0.828208  0.234620 -0.803  0.42175   
+## diabetes             0.106697  1.112597  0.236946  0.450  0.65249   
+## as_3_groups         -0.027440  0.972933  0.126707 -0.217  0.82855   
+## LV_LVEF_Measurement -0.025079  0.975233  0.008476 -2.959  0.00309 **
+## trgroup_4groups      0.290585  1.337209  0.147069  1.976  0.04817 * 
+## MV_MeanGradient      0.049100  1.050325  0.037556  1.307  0.19109   
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ##                     exp(coef) exp(-coef) lower .95 upper .95
-## PA_uncoupled_median     3.620     0.2762     2.332     5.620
-## AgeAtStudy              1.025     0.9760     1.004     1.046
+## PA_uncoupled_median    2.3209     0.4309    1.3857    3.8872
+## AgeAtStudy             1.0361     0.9651    1.0118    1.0611
+## sex                    1.2482     0.8012    0.8072    1.9300
+## ckd_stage3orabove      2.1423     0.4668    1.3479    3.4049
+## htn                    0.5499     1.8186    0.3163    0.9559
+## cad                    0.8282     1.2074    0.5229    1.3117
+## diabetes               1.1126     0.8988    0.6993    1.7702
+## as_3_groups            0.9729     1.0278    0.7590    1.2472
+## LV_LVEF_Measurement    0.9752     1.0254    0.9592    0.9916
+## trgroup_4groups        1.3372     0.7478    1.0023    1.7840
+## MV_MeanGradient        1.0503     0.9521    0.9758    1.1306
 ## 
-## Concordance= 0.685  (se = 0.027 )
-## Likelihood ratio test= 42.35  on 2 df,   p=6e-10
-## Wald test            = 37.34  on 2 df,   p=8e-09
-## Score (logrank) test = 41.77  on 2 df,   p=9e-10</code></pre>
+## Concordance= 0.748  (se = 0.025 )
+## Likelihood ratio test= 75.91  on 11 df,   p=9e-12
+## Wald test            = 72.01  on 11 df,   p=5e-11
+## Score (logrank) test = 79.34  on 11 df,   p=2e-12</code></pre>
 <pre class="r"><code>c=concordance(surv1)$concordance
 print(c)</code></pre>
-<pre><code>## [1] 0.6845261</code></pre>
-<p>Model 2: adjusted for age and sex</p>
-<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy+sex,data = df)
-summary(surv1)</code></pre>
-<pre><code>## Call:
-## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
-##     PA_uncoupled_median + AgeAtStudy + sex, data = df)
-## 
-##   n= 297, number of events= 102 
-## 
-##                        coef exp(coef) se(coef)     z Pr(&gt;|z|)    
-## PA_uncoupled_median 1.29494   3.65078  0.22465 5.764  8.2e-09 ***
-## AgeAtStudy          0.02671   1.02707  0.01065 2.508   0.0121 *  
-## sex                 0.26418   1.30236  0.20836 1.268   0.2048    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-##                     exp(coef) exp(-coef) lower .95 upper .95
-## PA_uncoupled_median     3.651     0.2739    2.3505     5.670
-## AgeAtStudy              1.027     0.9736    1.0059     1.049
-## sex                     1.302     0.7678    0.8657     1.959
-## 
-## Concordance= 0.687  (se = 0.028 )
-## Likelihood ratio test= 43.93  on 3 df,   p=2e-09
-## Wald test            = 38.46  on 3 df,   p=2e-08
-## Score (logrank) test = 42.94  on 3 df,   p=3e-09</code></pre>
-<pre class="r"><code>c=concordance(surv1)$concordance
-print(c)</code></pre>
-<pre><code>## [1] 0.6866149</code></pre>
-<p>Model 3: adjusted for age, sex, HTN, CAD, diabetes, CKD</p>
-<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy+sex+htn+cad+diabetes+ckd_stage3orabove,data = df)
-summary(surv1)</code></pre>
-<pre><code>## Call:
-## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
-##     PA_uncoupled_median + AgeAtStudy + sex + htn + cad + diabetes + 
-##         ckd_stage3orabove, data = df)
-## 
-##   n= 297, number of events= 102 
-## 
-##                         coef exp(coef) se(coef)      z Pr(&gt;|z|)    
-## PA_uncoupled_median  1.22419   3.40141  0.22995  5.324 1.02e-07 ***
-## AgeAtStudy           0.03575   1.03640  0.01103  3.241 0.001190 ** 
-## sex                  0.28443   1.32901  0.21384  1.330 0.183469    
-## htn                 -0.69353   0.49981  0.27948 -2.482 0.013083 *  
-## cad                 -0.10804   0.89759  0.22653 -0.477 0.633418    
-## diabetes             0.12636   1.13469  0.22684  0.557 0.577505    
-## ckd_stage3orabove    0.83251   2.29909  0.22947  3.628 0.000286 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-##                     exp(coef) exp(-coef) lower .95 upper .95
-## PA_uncoupled_median    3.4014     0.2940    2.1673    5.3382
-## AgeAtStudy             1.0364     0.9649    1.0142    1.0591
-## sex                    1.3290     0.7524    0.8740    2.0209
-## htn                    0.4998     2.0008    0.2890    0.8644
-## cad                    0.8976     1.1141    0.5758    1.3993
-## diabetes               1.1347     0.8813    0.7274    1.7700
-## ckd_stage3orabove      2.2991     0.4350    1.4663    3.6048
-## 
-## Concordance= 0.725  (se = 0.026 )
-## Likelihood ratio test= 62.69  on 7 df,   p=4e-11
-## Wald test            = 57.67  on 7 df,   p=4e-10
-## Score (logrank) test = 63.48  on 7 df,   p=3e-11</code></pre>
-<pre class="r"><code>c=concordance(surv1)$concordance
-print(c)</code></pre>
-<pre><code>## [1] 0.7250014</code></pre>
-<p>Model 4: adjusted for age, sex, HTN, CAD, diabetes, CKD, AS, LVEF, TR
-and mean transmitral gradient ##</p>
-</div>
-<div id="not-sure-which-one-is-ef-lv_ejectionfraction-has-nia-and" class="section level2">
-<h2>not sure which one is EF? LV_EjectionFraction has N,I,A and “”</h2>
-<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~PA_uncoupled_median+AgeAtStudy+sex+htn+cad+diabetes+as_3_groups+trgroup_4groups+MV_MeanGradient,data = df)
-summary(surv1)</code></pre>
-<pre><code>## Call:
-## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
-##     PA_uncoupled_median + AgeAtStudy + sex + htn + cad + diabetes + 
-##         as_3_groups + trgroup_4groups + MV_MeanGradient, data = df)
-## 
-##   n= 297, number of events= 102 
-## 
-##                          coef exp(coef)  se(coef)      z Pr(&gt;|z|)    
-## PA_uncoupled_median  1.008844  2.742429  0.252126  4.001  6.3e-05 ***
-## AgeAtStudy           0.027255  1.027630  0.011718  2.326   0.0200 *  
-## sex                  0.316686  1.372571  0.217676  1.455   0.1457    
-## htn                 -0.632810  0.531097  0.280507 -2.256   0.0241 *  
-## cad                  0.002025  1.002028  0.226881  0.009   0.9929    
-## diabetes             0.368536  1.445617  0.218001  1.691   0.0909 .  
-## as_3_groups         -0.021129  0.979093  0.124683 -0.169   0.8654    
-## trgroup_4groups      0.306231  1.358297  0.146806  2.086   0.0370 *  
-## MV_MeanGradient      0.025603  1.025933  0.035615  0.719   0.4722    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-##                     exp(coef) exp(-coef) lower .95 upper .95
-## PA_uncoupled_median    2.7424     0.3646    1.6731    4.4952
-## AgeAtStudy             1.0276     0.9731    1.0043    1.0515
-## sex                    1.3726     0.7286    0.8959    2.1029
-## htn                    0.5311     1.8829    0.3065    0.9203
-## cad                    1.0020     0.9980    0.6423    1.5632
-## diabetes               1.4456     0.6917    0.9430    2.2162
-## as_3_groups            0.9791     1.0214    0.7668    1.2501
-## trgroup_4groups        1.3583     0.7362    1.0187    1.8112
-## MV_MeanGradient        1.0259     0.9747    0.9568    1.1001
-## 
-## Concordance= 0.72  (se = 0.027 )
-## Likelihood ratio test= 55.2  on 9 df,   p=1e-08
-## Wald test            = 50.81  on 9 df,   p=8e-08
-## Score (logrank) test = 55.71  on 9 df,   p=9e-09</code></pre>
-<pre class="r"><code>c=concordance(surv1)$concordance
-print(c)</code></pre>
-<pre><code>## [1] 0.71963</code></pre>
+<pre><code>## [1] 0.7477619</code></pre>
 </div>
 
 
