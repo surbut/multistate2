@@ -406,44 +406,58 @@ ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.
 ```
 
 
-## now loet's look at interactino power analyiss
+# Bayesian Prior Analysis
+## Now let's use the results from UKB as a prior in an analysis of the GLP1 data in AoU:
 
+# Bayesian Analysis with Conjugate Normals
 ```{r}
-library(pwr)
+ Prior parameters (from first dataset)
+mu_0 <- -0.44 # mean of the prior
+se_0 <- 0.196770 # standard error of the prior
+sigma_0_squared <- se_0^2 # variance of the prior
 
-# Parameters
-alpha <- 0.05      # Significance level
-power <- 0.8       # Desired power
+# Likelihood parameters (from new dataset)
+mu <- -0.26 # mean of the likelihood
+se <- 0.15 # standard error of the likelihood
+sigma_squared <- se^2 # variance of the likelihood
 
-library(pwr)
+# Calculating the posterior mean (mu_n) and variance (sigma_n_squared)
+mu_n <- (sigma_squared * mu_0 + sigma_0_squared * mu) / (sigma_squared + sigma_0_squared)
+sigma_n_squared <- 1 / (1 / sigma_0_squared + 1 / sigma_squared)
 
-# Parameters
-alpha <- 0.05      # Significance level
-power <- 0.8       # Desired power
-beta_interaction <- -0.443917  # Estimated interaction effect coefficient
-residual_sd <- 5.298         # Residual SD of the model
+# Posterior Standard Deviation
+sigma_n <- sqrt(sigma_n_squared)
 
-# Effect size calculation for the interaction term
-effect_size_interaction <- function(prs_sd) {
-  (beta_interaction * prs_sd) / residual_sd
-}
+# Define a sequence of values for x-axis
+x_values <- seq(mu_n - 4 * sigma_n, mu_n + 4 * sigma_n, length.out = 1000)
 
-# Power analysis for different levels of BMI PRS
-sample_size_for_prs_sd <- function(prs_sd) {
-  effect_size <- effect_size_interaction(prs_sd)
-  pwr.f2.test(u = 3,  # number of predictors
-              v = NULL,
-              f2 = effect_size^2,
-              sig.level = alpha,
-              power = power)$n
-}
+# Compute the density of the normal distribution for posterior
+posterior_values <- dnorm(x_values, mean = mu_n, sd = sigma_n)
 
-# Calculate required sample sizes
-sample_size_sd1 <- sample_size_for_prs_sd(1)
-sample_size_sd2 <- sample_size_for_prs_sd(2)
-sample_size_sd3 <- sample_size_for_prs_sd(3)
+# Calculate probability of effect less than 0
+prob_less_than_zero <- pnorm(0, mean = mu_n, sd = sigma_n)
 
-list(SampleSize_SD1 = sample_size_sd1, 
-     SampleSize_SD2 = sample_size_sd2, 
-     SampleSize_SD3 = sample_size_sd3)
+# Calculate the 95% credible interval
+ci_lower <- qnorm(0.025, mean = mu_n, sd = sigma_n)
+ci_upper <- qnorm(0.975, mean = mu_n, sd = sigma_n)
+
+# Create a data frame for plotting
+plot_data <- data.frame(x = x_values, Posterior = posterior_values)
+
+# Create the plot
+ggplot(plot_data, aes(x, Posterior)) + 
+    geom_line(colour = "red") +
+    geom_area(data = subset(plot_data, x < 0), fill = "red", alpha = 0.3) +
+    geom_vline(xintercept = ci_lower, linetype = "dashed", color = "blue") +
+    geom_vline(xintercept = ci_upper, linetype = "dashed", color = "blue") +
+    ggtitle("Posterior Distribution with Probability and Credible Interval") +
+    xlab("Interaction Effect Size") +
+    ylab("Density") +
+    annotate("text", x = ci_lower, y = max(posterior_values)/2, label = paste("CI Lower:", round(ci_lower, 3)), vjust = -1) +
+    annotate("text", x = ci_upper, y = max(posterior_values)/2, label = paste("CI Upper:", round(ci_upper, 3)), vjust = -1) +
+    annotate("text", x = 0, y = max(posterior_values)/3, label = paste("Prob < 0:", round(prob_less_than_zero, 3)), color = "red") +
+    theme_minimal()
+```
+
+
 ```
