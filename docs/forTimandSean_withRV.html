@@ -359,10 +359,17 @@ display: none;
 <h2>Survival Analysis</h2>
 <pre class="r"><code>library(survival)
 library(data.table)
-pamca=fread(&quot;~/Library/CloudStorage/Dropbox-Personal/PA Uncoupling MAC Data.csv&quot;)
+library(Hmisc)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Hmisc&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     format.pval, units</code></pre>
+<pre class="r"><code>pamca=fread(&quot;~/Library/CloudStorage/Dropbox-Personal/PA Uncoupling MAC Data.csv&quot;)
 df=pamca[,c(&quot;Death_SensorMVsurg&quot;,&quot;T2Death&quot;,&quot;PA_uncoupled_median&quot;,&quot;AgeAtStudy&quot;,&quot;sex&quot;,&quot;ckd_stage3orabove&quot;,&quot;htn&quot;,&quot;cad&quot;,&quot;diabetes&quot;,&quot;as_3_groups&quot;,&quot;LV_LVEF_Method&quot;,&quot;MV_MeanGradient&quot;,&quot;primarysample2&quot;,&quot;trgroup_4groups&quot;,&quot;RV_TAPSE&quot;,&quot;TV_RV_SystolicPressure&quot;,&quot;exclude&quot;,&quot;mac_location_3groups&quot;,&quot;LV_LVEF_Measurement&quot;,&quot;ckd_stage3orabove&quot;)]
 
-df=na.omit(df)</code></pre>
+df=na.omit(df)
+df$quotient=df$RV_TAPSE/df$TV_RV_SystolicPressure</code></pre>
 </div>
 <div id="for-rv_tapse" class="section level2">
 <h2>For RV_TAPSE</h2>
@@ -387,7 +394,9 @@ summary(surv1)</code></pre>
 ## Likelihood ratio test= 23.22  on 1 df,   p=1e-06
 ## Wald test            = 22.65  on 1 df,   p=2e-06
 ## Score (logrank) test = 23.1  on 1 df,   p=2e-06</code></pre>
-<pre class="r"><code>c=concordance(surv1)$concordance
+<pre class="r"><code>model=surv1
+
+c=concordance(surv1)$concordance
 print(c)</code></pre>
 <pre><code>## [1] 0.6489067</code></pre>
 <p>Model 4: Full adjustment</p>
@@ -435,7 +444,9 @@ summary(surv1)</code></pre>
 ## Likelihood ratio test= 68.26  on 11 df,   p=3e-10
 ## Wald test            = 69.42  on 11 df,   p=2e-10
 ## Score (logrank) test = 74.26  on 11 df,   p=2e-11</code></pre>
-<pre class="r"><code>c=concordance(surv1)$concordance
+<pre class="r"><code>model=surv1
+
+c=concordance(surv1)$concordance
 print(c)</code></pre>
 <pre><code>## [1] 0.7412512</code></pre>
 <div id="now-for-tv_rv_systolic" class="section level3">
@@ -518,8 +529,7 @@ print(c)</code></pre>
 <div id="now-for-rv_tapsetv_rv_systolic" class="section level3">
 <h3>now for RV_TAPSE/TV_RV_Systolic</h3>
 <p>Univariable</p>
-<pre class="r"><code>df$quotient=df$RV_TAPSE/df$TV_RV_SystolicPressure
-surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~quotient,data = df)
+<pre class="r"><code>surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~quotient,data = df)
 summary(surv1)</code></pre>
 <pre><code>## Call:
 ## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
@@ -616,6 +626,7 @@ summary(surv1)</code></pre>
 ## Wald test            = 32.14  on 1 df,   p=1e-08
 ## Score (logrank) test = 36.43  on 1 df,   p=2e-09</code></pre>
 <pre class="r"><code>c=concordance(surv1)$concordance
+
 print(c)</code></pre>
 <pre><code>## [1] 0.6501004</code></pre>
 <p>Model 4: Full adjustment</p>
@@ -665,6 +676,91 @@ summary(surv1)</code></pre>
 <pre class="r"><code>c=concordance(surv1)$concordance
 print(c)</code></pre>
 <pre><code>## [1] 0.7477619</code></pre>
+<p>##numerator vs denom</p>
+<p>here we compare the models to the full model via Z stat of the
+summaries, and then look at the improvement in chi squared for the
+nested (anova) model fit. We see the improvement is greater over TAPSE
+than PASP but ture for both.</p>
+<pre class="r"><code>survfill=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~quotient,data = df)
+surv1=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~RV_TAPSE,data = df)
+surv2=coxph(Surv(time = T2Death,event = Death_SensorMVsurg)~TV_RV_SystolicPressure,data = df)
+summary(survfill)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     quotient, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##               coef exp(coef)  se(coef)      z Pr(&gt;|z|)    
+## quotient -4.778662  0.008407  0.747430 -6.393 1.62e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##          exp(coef) exp(-coef) lower .95 upper .95
+## quotient  0.008407      118.9  0.001943   0.03638
+## 
+## Concordance= 0.711  (se = 0.025 )
+## Likelihood ratio test= 48.61  on 1 df,   p=3e-12
+## Wald test            = 40.88  on 1 df,   p=2e-10
+## Score (logrank) test = 41.64  on 1 df,   p=1e-10</code></pre>
+<pre class="r"><code>summary(surv1)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     RV_TAPSE, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##              coef exp(coef) se(coef)      z Pr(&gt;|z|)    
+## RV_TAPSE -0.08698   0.91670  0.01828 -4.759 1.94e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##          exp(coef) exp(-coef) lower .95 upper .95
+## RV_TAPSE    0.9167      1.091    0.8844    0.9501
+## 
+## Concordance= 0.649  (se = 0.028 )
+## Likelihood ratio test= 23.22  on 1 df,   p=1e-06
+## Wald test            = 22.65  on 1 df,   p=2e-06
+## Score (logrank) test = 23.1  on 1 df,   p=2e-06</code></pre>
+<pre class="r"><code>summary(surv2)</code></pre>
+<pre><code>## Call:
+## coxph(formula = Surv(time = T2Death, event = Death_SensorMVsurg) ~ 
+##     TV_RV_SystolicPressure, data = df)
+## 
+##   n= 297, number of events= 102 
+## 
+##                           coef exp(coef) se(coef)     z Pr(&gt;|z|)    
+## TV_RV_SystolicPressure 0.03452   1.03512  0.00535 6.452  1.1e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                        exp(coef) exp(-coef) lower .95 upper .95
+## TV_RV_SystolicPressure     1.035     0.9661     1.024     1.046
+## 
+## Concordance= 0.664  (se = 0.029 )
+## Likelihood ratio test= 34.18  on 1 df,   p=5e-09
+## Wald test            = 41.63  on 1 df,   p=1e-10
+## Score (logrank) test = 42.86  on 1 df,   p=6e-11</code></pre>
+<pre class="r"><code>anova(survfill,surv1)</code></pre>
+<pre><code>## Analysis of Deviance Table
+##  Cox model: response is  Surv(time = T2Death, event = Death_SensorMVsurg)
+##  Model 1: ~ quotient
+##  Model 2: ~ RV_TAPSE
+##    loglik  Chisq Df Pr(&gt;|Chi|)    
+## 1 -494.46                         
+## 2 -507.15 25.388  0  &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>anova(survfill,surv2)</code></pre>
+<pre><code>## Analysis of Deviance Table
+##  Cox model: response is  Surv(time = T2Death, event = Death_SensorMVsurg)
+##  Model 1: ~ quotient
+##  Model 2: ~ TV_RV_SystolicPressure
+##    loglik  Chisq Df Pr(&gt;|Chi|)    
+## 1 -494.46                         
+## 2 -501.67 14.429  0  &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 </div>
 
 
