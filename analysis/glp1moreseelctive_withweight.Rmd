@@ -74,10 +74,11 @@ summary(bmi_after_script$number)
 ```
 
 ## Now we merge the first and last BMI measurements with the script data and perform checks
+
 * to make sure first measure is before drug start
 *  check to make sure last BMI measure is at least 12 weeks after drug start
 
-```{r}
+```{r,echo=T}
 final_data <- (bmi_before_script[,c("eid","beforedate","medbmi")]) %>%
   left_join(patient_med_data[,c("eid","first_script_date","last_script_date")], by = "eid") %>%
   left_join(bmi_after_script[,c("eid","afterdate","medbmi")], by = "eid")
@@ -141,7 +142,7 @@ final_data_controls=final_data_controls[final_data_controls$beforedate!=final_da
 Again, checks:
 
 
-```{r}
+```{r,echo=T}
 # check to make sure last BMI measure is at least 12 weeks after drug start
 sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = "days")>0)
 sum(difftime(final_data_controls$afterdate,final_data_controls$beforedate,units = "days")==0)
@@ -366,7 +367,6 @@ ggplot(match_dat, aes(x = pretreat_bmi, y = delta, size = bmi.prs, color = as.fa
 ## And here we summarize by population bmi.prs quartiles:
 
 ```{r}
-levels(match_dat$treat) <- c("Untreated", "Treated")
 match_dat$treat=factor(match_dat$treat,levels = c(0,1),labels=c("Untreated","Treated"))
 
 match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
