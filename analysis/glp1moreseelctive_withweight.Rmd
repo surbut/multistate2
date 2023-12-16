@@ -5,7 +5,7 @@ date: "2023-11-24"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message = FALSE)
 ```
 
 ## let's be more selective and select first and last script date
@@ -134,6 +134,8 @@ final_data_controls=
 # remote those in which dates are the same
 
 final_data_controls=final_data_controls[final_data_controls$beforedate!=final_data_controls$afterdate,]
+
+
 ```
 
 Again, checks:
@@ -164,6 +166,7 @@ all_data$time_diff=difftime(all_data$post_drug_measure_date,all_data$pretreat_me
 
 df=merge(all_data,df_baseline[,c("identifier","f.34.0.0","f.31.0.0")],by.x="eid",by.y="identifier")
 df_with_prs=merge(df,prs_subset[,c("Identifier","BMI")],by.x="eid",by.y="Identifier")
+
 ```
 
 ## now we perform matching on
@@ -183,6 +186,8 @@ summary(matcher)
 match_dat=match.data(matcher)
 
 
+pop.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.25))
+match_dat$prs.group=cut(match_dat$bmi.prs,breaks = pop.quants,labels = c(1:4))
 
 
 #eliminate those with CAD at baseline measure
@@ -310,9 +315,12 @@ table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+st
 
 ```
 
-Now let's plot some stuff
 
-```{r}
+
+```{r,echo=FALSE,eval=FALSE}
+
+# Now let's plot some stuff
+
 library(ggplot2)
         
 ggplot(match_dat,aes(y=delta,x=treat,group=treat,fill=as.factor(treat)))+
@@ -321,8 +329,6 @@ ggplot(match_dat,aes(y=delta,x=treat,group=treat,fill=as.factor(treat)))+
 ggplot(match_dat,aes(x=as.numeric(time_diff)/7,fill=as.factor(treat)))+geom_density()+
   labs(x="Weeks Between Measurements",main="Density",fill="Treat")+facet_wrap(~treat)+theme_classic()
 
-pop.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.25))
-match_dat$prs.group=cut(match_dat$bmi.prs,breaks = pop.quants,labels = c(1:4))
 
 levels(match_dat$treat) <- c("Untreated", "Treated")
 ggplot(match_dat,aes(y=delta,x=prs.group,group=prs.group,fill=as.factor(prs.group)))+
@@ -357,43 +363,46 @@ ggplot(match_dat, aes(x = pretreat_bmi, y = delta, size = bmi.prs, color = as.fa
   guides(color = guide_legend(title = "Treatment Group"), size = guide_legend(title = "PRS"))
 ```
 
-And here we summarize by population bmi.prs quartiles:
+## And here we summarize by population bmi.prs quartiles:
 
 ```{r}
+levels(match_dat$treat) <- c("Untreated", "Treated")
+match_dat$treat=factor(match_dat$treat,levels = c(0,1),labels=c("Untreated","Treated"))
+
 match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
 
 
 match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
 
-dft=match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
-                                               iqr=IQR(delta),
-                                               sd=sd(delta),
-                                              )
-dfu=match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
-                                               iqr=IQR(delta),
-                                               sd=sd(delta),
-                                              )
+# dft=match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
+#                                                iqr=IQR(delta),
+#                                                sd=sd(delta),
+#                                               )
+# dfu=match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
+#                                                iqr=IQR(delta),
+#                                                sd=sd(delta),
+#                                               )
 
-library(ggplot2)
-
-
-treat=ggplot(dft, aes(x = prs.group, y = mean_change)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
-  coord_flip() +  # Flips the axes
-  xlab("PRS Quartile") +
-  ylab("Change in Weight (kg),Treated") +
-  theme_minimal()
-
-untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
-  coord_flip() +  # Flips the axes
-  xlab("PRS Quartile") +
-  ylab("Change in Weight (kg), Untreated") +
-  theme_minimal()
-
-ggarrange(untreat,treat,nrow=1)
+# library(ggplot2)
+# 
+# 
+# treat=ggplot(dft, aes(x = prs.group, y = mean_change)) +
+#   geom_point() +
+#   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
+#   coord_flip() +  # Flips the axes
+#   xlab("PRS Quartile") +
+#   ylab("Change in Weight (kg),Treated") +
+#   theme_minimal()
+# 
+# untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
+#   geom_point() +
+#   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
+#   coord_flip() +  # Flips the axes
+#   xlab("PRS Quartile") +
+#   ylab("Change in Weight (kg), Untreated") +
+#   theme_minimal()
+# 
+# ggarrange(untreat,treat,nrow=1)
 ```
 
 
@@ -411,7 +420,7 @@ ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.
 
 # Bayesian Analysis with Conjugate Normals
 ```{r}
- Prior parameters (from first dataset)
+# Prior parameters (from first dataset)
 mu_0 <- -0.44 # mean of the prior
 se_0 <- 0.196770 # standard error of the prior
 sigma_0_squared <- se_0^2 # variance of the prior
@@ -441,23 +450,34 @@ prob_less_than_zero <- pnorm(0, mean = mu_n, sd = sigma_n)
 ci_lower <- qnorm(0.025, mean = mu_n, sd = sigma_n)
 ci_upper <- qnorm(0.975, mean = mu_n, sd = sigma_n)
 
+# Compute the density of the normal distribution for prior, likelihood, and posterior
+prior_values <- dnorm(x_values, mean = mu_0, sd = sqrt(sigma_0_squared))
+likelihood_values <- dnorm(x_values, mean = mu, sd = sqrt(sigma_squared))
+posterior_values <- dnorm(x_values, mean = mu_n, sd = sqrt(sigma_n_squared))
+
+# Calculate the 95% credible interval for the posterior
+ci_lower <- qnorm(0.025, mean = mu_n, sd = sigma_n)
+ci_upper <- qnorm(0.975, mean = mu_n, sd = sigma_n)
+
 # Create a data frame for plotting
-plot_data <- data.frame(x = x_values, Posterior = posterior_values)
+plot_data <- data.frame(x = x_values, Prior = prior_values, Likelihood = likelihood_values, Posterior = posterior_values)
 
 # Create the plot
-ggplot(plot_data, aes(x, Posterior)) + 
-    geom_line(colour = "red") +
-    geom_area(data = subset(plot_data, x < 0), fill = "red", alpha = 0.3) +
+ggplot(plot_data, aes(x)) + 
+    geom_line(aes(y = Prior, colour = "Prior")) +
+    geom_line(aes(y = Likelihood, colour = "Likelihood")) +
+    geom_line(aes(y = Posterior, colour = "Posterior")) +
+    geom_area(data = subset(plot_data, x < 0), aes(y = Posterior), fill = "red", alpha = 0.3) +
     geom_vline(xintercept = ci_lower, linetype = "dashed", color = "blue") +
     geom_vline(xintercept = ci_upper, linetype = "dashed", color = "blue") +
-    ggtitle("Posterior Distribution with Probability and Credible Interval") +
+    scale_colour_manual(values = c("Prior" = "blue", "Likelihood" = "green", "Posterior" = "red")) +
+    ggtitle("Comparison of Prior, Likelihood, and Posterior Distributions with Credible Interval") +
     xlab("Interaction Effect Size") +
     ylab("Density") +
-    annotate("text", x = ci_lower, y = max(posterior_values)/2, label = paste("CI Lower:", round(ci_lower, 3)), vjust = -1) +
-    annotate("text", x = ci_upper, y = max(posterior_values)/2, label = paste("CI Upper:", round(ci_upper, 3)), vjust = -1) +
-    annotate("text", x = 0, y = max(posterior_values)/3, label = paste("Prob < 0:", round(prob_less_than_zero, 3)), color = "red") +
-    theme_minimal()
+    annotate("text", x = mu_n, y = max(posterior_values), label = paste("Posterior Mean:", round(mu_n, 3)), vjust = -1, color = "black") +
+    annotate("text", x = ci_lower, y = max(posterior_values)/2, label = paste("95% CI: [", round(ci_lower, 3), ",", round(ci_upper, 3), "]"), vjust = -1, color = "black") +
+    theme_classic()
 ```
 
 
-```
+
