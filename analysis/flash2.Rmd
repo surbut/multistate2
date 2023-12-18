@@ -1,0 +1,157 @@
+---
+title: "flashier_nmg"
+output: html_document
+date: "2023-12-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,eval=F}
+#remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
+library(flashier)
+library(data.table)
+library(Matrix)
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+dfw=df.phecode.wide[,-c(1:5)]
+age_cutoffs <- seq(40, 90, by = 5)
+## for age 40 we specify that 
+for(i in 1:length(age_cutoffs)){
+dat=df.phecode.wide[,-c(1:5)]
+age_threshold=age_cutoffs[i]
+print(age_threshold)
+dat[, (1:ncol(dat)) := lapply(.SD, function(x) ifelse(!is.na(x) & x < age_threshold, 1, 0))]
+#install.packages("flashier")
+
+X=as.matrix(dat)
+#install.packages("flashier")
+## remove individuals never phenotyped
+## for 40 and 45: 
+X=X[,which(colSums(X)>0)]
+#X=X[,which(colSums(X)>100)]
+X=X[which(rowSums(X)>0),]
+X=Matrix(X,sparse = T)
+print(dim(X))
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10)
+rm(X)
+rm(dat)
+saveRDS(f2,paste0("~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age",age_threshold,".rds"))
+}
+```
+
+Now let's plot:
+
+```{r}
+age_cutoffs <- seq(40, 90, by = 5)
+K = 10
+for (i in 1:length(age_cutoffs)) {
+  age_threshold = age_cutoffs[i]
+  f = readRDS(
+    paste0(
+      "~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age",
+      age_threshold,
+      ".rds"
+    )
+  )
+  par(mfrow = c(3, 3))
+  for (k in 2:f$n_factors) {
+    barplot(head(sort(f[["F_pm"]][, k], decreasing = T), n = 20),
+            las = 2,
+            main = paste0("Age", age_threshold))
+  }
+}
+
+```
+
+We can also do for all, but we'll need to first remove rows with 0s and binarize the matrix such as non-zero values are 1 and zero values are 0.
+
+Recall we shall keep a non-negative prior on the factors and loadings,
+
+```{r,eval=F}
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+X=as.matrix(dfw)
+#install.packages("flashier")
+X=X[,which(colSums(X)>500)]
+X=X[which(rowSums(X)>0),]
+X=Matrix(X,sparse = T)
+K=20
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = K)
+
+```
+
+# now for all
+
+```{r}
+f = readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds")
+par(mfrow=c(3,3))
+for(k in 2:10){
+barplot(head(sort(f[["F_pm"]][,k],decreasing = T),n=20),las=2)
+}
+
+```
+
+
+## we can also do by age looking at the codes that occur exactly at that age group
+
+```{r,eval=F}
+#remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+dfw=df.phecode.wide[,-c(1:5)]
+age_cutoffs <- seq(40, 90, by = 10)
+## for age 40 we specify that 
+for(i in 2:length(age_cutoffs)){
+dat=df.phecode.wide[,-c(1:5)]
+age_threshold=age_cutoffs[i]
+min=ifelse(i==1,0,age_cutoffs[i-1])
+print(c(min,age_threshold))
+dat[, (1:ncol(dat)) := lapply(.SD, function(x) ifelse(!is.na(x) & min < x & x < age_threshold, 1, 0))]
+#install.packages("flashier")
+
+X=as.matrix(dat)
+#install.packages("flashier")
+## remove individuals never phenotyped
+## for 40 and 45: 
+X=X[,which(colSums(X)>0)]
+#X=X[,which(colSums(X)>100)]
+X=X[which(rowSums(X)>0),]
+X=Matrix(X,sparse = T)
+print(dim(X))
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10)
+rm(X)
+rm(dat)
+saveRDS(f2,paste0("~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age_exact",age_threshold,".rds"))
+}
+```
+
+Now let's plot:
+
+```{r}
+age_cutoffs <- seq(40, 90, by = 10)
+K = 10
+for (i in 1:length(age_cutoffs)) {
+  age_threshold = age_cutoffs[i]
+  f = readRDS(
+    paste0(
+      "~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age_exact",
+      age_threshold,
+      ".rds"
+    )
+  )
+  par(mfrow = c(3, 3))
+  for (k in 2:f$n_factors) {
+    barplot(head(sort(f[["F_pm"]][, k], decreasing = T), n = 20),
+            las = 2,
+            main = paste0("Age", age_threshold))
+  }
+}
+
+```
+
+

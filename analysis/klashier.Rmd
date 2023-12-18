@@ -276,7 +276,7 @@ get_age_category <- function(age) {
 
 
 current_matrix=X
-# Populate the new array
+# Pxopulate the new array
 # Populate the new array
 for (person in 1:nrow(current_matrix)) {
   for (code in 1:ncol(current_matrix)) {
@@ -299,4 +299,26 @@ f2=flashier::flash(new_array,greedy_Kmax = 10,ebnm_fn = c(ebnm_point_normal,ebnm
 
 ### don't interpret the first factor (essentially the intercept term)
 ### for ebnm, pass the smoothing function ebnm_fn(c(eb
+
+```
+
+```{r}
+library(flashier)
+library(data.table)
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+dfw=df.phecode.wide[,-c(1:5)]
+
+## First create a sparse matrix of loadings on the non-9 ages
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+
+
+remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
+dat=as.matrix(dfw)
+age_cutoffs <- seq(5, 100, by = 5)
+library(Matrix)
+tdat <- lapply(age_cutoffs, function(cutoff) Matrix(dat > 0 & dat < cutoff, sparse = TRUE))
+class(tdat) <- "sptensor"
 
