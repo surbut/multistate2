@@ -426,10 +426,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -522,15 +522,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee8f75d7de1c29c210d718a910b48f315589a4390targetblanke8f75d7a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treea454652b5eaeb7be607f6299a15dab8d0da3d4c8targetblanka454652a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/e8f75d7de1c29c210d718a910b48f315589a4390" target="_blank">e8f75d7</a>
+<a href="https://github.com/surbut/multistate2/tree/a454652b5eaeb7be607f6299a15dab8d0da3d4c8" target="_blank">a454652</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee8f75d7de1c29c210d718a910b48f315589a4390targetblanke8f75d7a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treea454652b5eaeb7be607f6299a15dab8d0da3d4c8targetblanka454652a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +540,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/e8f75d7de1c29c210d718a910b48f315589a4390" target="_blank">e8f75d7</a>.
+<a href="https://github.com/surbut/multistate2/tree/a454652b5eaeb7be607f6299a15dab8d0da3d4c8" target="_blank">a454652</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -564,12 +564,8 @@ Ignored files:
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
-Untracked files:
-    Untracked:  analysis/flash2.Rmd
-
 Unstaged changes:
-    Modified:   analysis/klashier.Rmd
-    Modified:   analysis/predicted_risks.Rmd
+    Modified:   analysis/flash2.Rmd
 
 </code></pre>
 <p>
@@ -584,14 +580,81 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/flash2.Rmd</code>) and HTML
+(<code>docs/flash2.html</code>) files. If you’ve configured a remote Git
+repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
+in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/analysis/flash2.Rmd" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+<td>
+update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/flash2.html" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+<td>
+update
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
 </div>
+<div id="age-up-to-and-including" class="section level1">
+<h1>Age up to and including</h1>
+<p>Here we will examine the sparse factor analysis of individuals who
+receive a code at the age under each plot indicated</p>
 <pre class="r"><code>#remotes::install_github(&quot;willwerscheid/flashier&quot;, ref = &quot;sparse_tensors&quot;)
 library(flashier)
 library(data.table)
@@ -639,10 +702,430 @@ for (i in 1:length(age_cutoffs)) {
   for (k in 2:f$n_factors) {
     barplot(head(sort(f[[&quot;F_pm&quot;]][, k], decreasing = T), n = 20),
             las = 2,
-            main = paste0(&quot;Age&quot;, age_threshold))
+            main = paste(&quot;Age leq&quot;, age_threshold))
   }
 }</code></pre>
-<p><img src="figure/flash2.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-6.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-7.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-8.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-9.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-10.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-2-11.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-1.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-2">
+Past versions of unnamed-chunk-2-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-2.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-3">
+Past versions of unnamed-chunk-2-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-3.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-4">
+Past versions of unnamed-chunk-2-4.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-4.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-5">
+Past versions of unnamed-chunk-2-5.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-5.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-6">
+Past versions of unnamed-chunk-2-6.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-6" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-6.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-7.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-7">
+Past versions of unnamed-chunk-2-7.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-7" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-7.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-8.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-8">
+Past versions of unnamed-chunk-2-8.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-8" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-8.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-9.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-9">
+Past versions of unnamed-chunk-2-9.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-9" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-9.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-10.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-10">
+Past versions of unnamed-chunk-2-10.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-10" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-10.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-2-11.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-11">
+Past versions of unnamed-chunk-2-11.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-11" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-2-11.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="all-ages" class="section level1">
+<h1>All ages</h1>
 <p>We can also do for all, but we’ll need to first remove rows with 0s
 and binarize the matrix such as non-zero values are 1 and zero values
 are 0.</p>
@@ -657,21 +1140,59 @@ X=as.matrix(dfw)
 X=X[,which(colSums(X)&gt;500)]
 X=X[which(rowSums(X)&gt;0),]
 X=Matrix(X,sparse = T)
-K=20
+K=10
 f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = K)</code></pre>
-<div id="now-for-all" class="section level1">
-<h1>now for all</h1>
+<p>Here we make no restriction and examine the top 20 variable
+loadings:</p>
 <pre class="r"><code>f = readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds&quot;)
 par(mfrow=c(3,3))
 for(k in 2:10){
 barplot(head(sort(f[[&quot;F_pm&quot;]][,k],decreasing = T),n=20),las=2)
 }</code></pre>
 <p><img src="figure/flash2.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<div
-id="we-can-also-do-by-age-looking-at-the-codes-that-occur-exactly-at-that-age-group"
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-4-1.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="group-by-age" class="section level1">
+<h1>Group by age</h1>
+<div id="looking-at-the-codes-that-occur-exactly-at-that-age-group"
 class="section level2">
-<h2>we can also do by age looking at the codes that occur exactly at
-that age group</h2>
+<h2>looking at the codes that occur exactly at that age group</h2>
 <pre class="r"><code>#remotes::install_github(&quot;willwerscheid/flashier&quot;, ref = &quot;sparse_tensors&quot;)
 df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds&quot;)
 #df.phecode.wide[is.na(df.phecode.wide)]=0
@@ -719,7 +1240,234 @@ for (i in 1:length(age_cutoffs)) {
             main = paste0(&quot;Age&quot;, age_threshold))
   }
 }</code></pre>
-<p><img src="figure/flash2.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-6-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-6-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-6-5.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-6-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-1.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-2">
+Past versions of unnamed-chunk-6-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-2.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-3">
+Past versions of unnamed-chunk-6-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-3.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-4">
+Past versions of unnamed-chunk-6-4.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-4.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-5">
+Past versions of unnamed-chunk-6-5.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-5.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-6-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-6">
+Past versions of unnamed-chunk-6-6.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-6" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-6.png" target="_blank">a454652</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -740,7 +1488,7 @@ LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlap
 locale:
 [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 
-time zone: Europe/London
+time zone: America/New_York
 tzcode source: internal
 
 attached base packages:
@@ -751,19 +1499,19 @@ loaded via a namespace (and not attached):
  [5] ashr_2.2-63       stringi_1.8.2     lattice_0.22-5    digest_0.6.33    
  [9] magrittr_2.0.3    evaluate_0.23     grid_4.3.1        fastmap_1.1.1    
 [13] rprojroot_2.0.4   workflowr_1.7.1   jsonlite_1.8.7    Matrix_1.6-3     
-[17] mixsqp_0.3-48     promises_1.2.1    purrr_1.0.2       fansi_1.0.5      
-[21] scales_1.2.1      truncnorm_1.0-9   invgamma_1.1      jquerylib_0.1.4  
-[25] cli_3.6.1         rlang_1.1.2       deconvolveR_1.2-1 munsell_0.5.0    
-[29] splines_4.3.1     cachem_1.0.8      yaml_2.3.7        ebnm_1.1-2       
-[33] parallel_4.3.1    tools_4.3.1       SQUAREM_2021.1    softImpute_1.4-1 
-[37] dplyr_1.1.4       colorspace_2.1-0  ggplot2_3.4.4     httpuv_1.6.12    
-[41] vctrs_0.6.4       R6_2.5.1          lifecycle_1.0.4   git2r_0.32.0     
-[45] stringr_1.5.1     fs_1.6.3          trust_0.1-8       irlba_2.3.5.1    
-[49] pkgconfig_2.0.3   pillar_1.9.0      bslib_0.6.0       later_1.3.1      
-[53] gtable_0.3.4      glue_1.6.2        Rcpp_1.0.11       highr_0.10       
-[57] xfun_0.41         tibble_3.2.1      tidyselect_1.2.0  rstudioapi_0.15.0
-[61] knitr_1.45        htmltools_0.5.7   rmarkdown_2.25    flashier_1.0.19  
-[65] compiler_4.3.1    horseshoe_0.2.0  </code></pre>
+[17] whisker_0.4.1     mixsqp_0.3-48     promises_1.2.1    purrr_1.0.2      
+[21] fansi_1.0.5       scales_1.2.1      truncnorm_1.0-9   invgamma_1.1     
+[25] jquerylib_0.1.4   cli_3.6.1         rlang_1.1.2       deconvolveR_1.2-1
+[29] munsell_0.5.0     splines_4.3.1     cachem_1.0.8      yaml_2.3.7       
+[33] ebnm_1.1-2        parallel_4.3.1    tools_4.3.1       SQUAREM_2021.1   
+[37] softImpute_1.4-1  dplyr_1.1.4       colorspace_2.1-0  ggplot2_3.4.4    
+[41] httpuv_1.6.12     vctrs_0.6.4       R6_2.5.1          lifecycle_1.0.4  
+[45] git2r_0.32.0      stringr_1.5.1     fs_1.6.3          trust_0.1-8      
+[49] irlba_2.3.5.1     pkgconfig_2.0.3   gtable_0.3.4      pillar_1.9.0     
+[53] bslib_0.6.0       later_1.3.1       glue_1.6.2        Rcpp_1.0.11      
+[57] highr_0.10        xfun_0.41         tibble_3.2.1      tidyselect_1.2.0 
+[61] rstudioapi_0.15.0 knitr_1.45        htmltools_0.5.7   rmarkdown_2.25   
+[65] flashier_1.0.19   compiler_4.3.1    horseshoe_0.2.0  </code></pre>
 </div>
 </div>
 </div>

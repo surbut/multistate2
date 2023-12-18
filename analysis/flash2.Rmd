@@ -8,6 +8,10 @@ date: "2023-12-18"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Age up to and including
+
+Here we will examine the sparse factor analysis of individuals who receive a code at the age under each plot indicated
+
 ```{r,eval=F}
 #remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 library(flashier)
@@ -60,11 +64,14 @@ for (i in 1:length(age_cutoffs)) {
   for (k in 2:f$n_factors) {
     barplot(head(sort(f[["F_pm"]][, k], decreasing = T), n = 20),
             las = 2,
-            main = paste0("Age", age_threshold))
+            main = paste("Age leq", age_threshold))
   }
 }
 
 ```
+
+
+# All ages
 
 We can also do for all, but we'll need to first remove rows with 0s and binarize the matrix such as non-zero values are 1 and zero values are 0.
 
@@ -80,12 +87,12 @@ X=as.matrix(dfw)
 X=X[,which(colSums(X)>500)]
 X=X[which(rowSums(X)>0),]
 X=Matrix(X,sparse = T)
-K=20
+K=10
 f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = K)
 
 ```
 
-# now for all
+Here we make no restriction and examine the top 20 variable loadings:
 
 ```{r}
 f = readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds")
@@ -97,7 +104,8 @@ barplot(head(sort(f[["F_pm"]][,k],decreasing = T),n=20),las=2)
 ```
 
 
-## we can also do by age looking at the codes that occur exactly at that age group
+# Group by age
+## looking at the codes that occur exactly at that age group
 
 ```{r,eval=F}
 #remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
