@@ -186,7 +186,7 @@ summary(matcher)
 #extract matched data
 match_dat=match.data(matcher)
 
-
+match_dat=rename(match_dat,c(sex=f.31.0.0,birth_year=f.34.0.0))%>%select(-c(BMI,weights,subclass))
 pop.quants=quantile(prs_subset$BMI,probs = seq(0,1,by=0.25))
 match_dat$prs.group=cut(match_dat$bmi.prs,breaks = pop.quants,labels = c(1:4))
 
@@ -199,16 +199,16 @@ match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
 match_dat$pretreat_weight=match_dat$pretreat_bmi
 
 
-model=lm(delta~treat+treat:bmi.prs+pretreat_weight,match_dat)
+model=lm(delta~treat+treat:bmi.prs+pretreat_weight+pretreat_weight+sex+birth_year,match_dat)
 
-model1=lm(delta~treat+treat:bmi.prs,match_dat)
+#model1=lm(delta~treat+treat:bmi.prs,match_dat)
 
 
 summary(model)
 confint.lm(model)
 t.test(match_dat$delta[match_dat$treat==1])
 
-summary(match_dat$delta[match_dat$treat==0])
+t.test(match_dat$delta[match_dat$treat==0])
 ```
 
 
@@ -295,13 +295,13 @@ dat=match_dat
 dat$HyperLip_0_Any=factor(dat$HyperLip_0_Any,levels = c(1,2),labels = c("No","Yes"))
 dat$Ht_0_Any=factor(dat$Ht_0_Any,levels = c(1,2),labels = c("No","Yes"))
 dat$Dm_0_Any=factor(dat$Dm_0_Any,levels = c(1,2),labels = c("No","Yes"))
-dat$f.31.0.0.x=factor(dat$f.31.0.0.x,levels = c(0,1),labels = c("Female","Male"))
+dat$sex=factor(dat$sex,levels = c(0,1),labels = c("Female","Male"))
 dat$enrollage=as.numeric(dat$enrollage)
 dat$smoke=factor(dat$smoke,levels=c(0,1),labels = c("No","Yes"))
 dat$antihtn=factor(dat$antihtn,levels=c(0,1),labels = c("No","Yes"))
 dat$statin=factor(dat$statin,levels=c(0,1),labels = c("No","Yes"))
 dat$treat=factor(dat$treat,levels=c(0,1),labels=c("Untreated","Treated"))
-label(dat$f.31.0.0.x)<- "Sex"
+label(dat$sex)<- "Sex"
 label(dat$enrollage) <- "Age"
 label(dat$pretreat_bmi) <- "Pre-Treat BMI"
 label(dat$HyperLip_0_Any) = "Hyperlipidemia"
@@ -312,7 +312,7 @@ label(dat$statin)="Statin"
 label(dat$smoke)="Current Smoker"
 label(dat$antihtn)="Anti Htn"
 # One level of stratification
-table1(~f.31.0.0.x + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+statin+smoke+antihtn|treat,dat)
+table1(~sex + enrollage +pretreat_bmi+HyperLip_0_Any+Ht_0_Any+Dm_0_Any+statin+smoke+antihtn|treat,dat)
 
 ```
 
@@ -481,3 +481,47 @@ ggplot(plot_data, aes(x)) +
 
 
 
+## Let's examine other PCS
+
+```{r}
+df_with_prs=merge(df_with_prs,prs_subset[,c("Identifier","BC","CAD","T2D","LDL_SF","HT","ISS")],by.x="eid",by.y=
+                  "Identifier")
+matcher=matchit(treat~pretreat_bmi+f.34.0.0+f.31.0.0+time_diff+BMI,data = df_with_prs)
+
+#extract matched data
+match_dat=match.data(matcher)
+
+
+match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
+match_dat$pretreat_weight=match_dat$pretreat_bmi
+
+
+
+#eliminate those with CAD at baseline measure
+#match_dat=match_dat[match_dat$Cad_censor_age>match_dat$first_bmi_age,]
+
+match_dat=rename(match_dat,c(sex=f.31.0.0,birth_year=f.34.0.0))%>%select(-c(weights,subclass))
+
+
+
+
+prs_cols <- c("BC","CAD","T2D","LDL_SF","HT","ISS") # replace with your actual column names
+models <- list() # to store all the models
+
+for (prs_col in prs_cols) {
+  # Construct the formula as a string
+  formula_str <- paste("delta ~ treat+sex+pretreat_weight+birth_year + treat:", prs_col, sep = "")
+  
+  # Convert the string to a formula
+  formula <- as.formula(formula_str)
+  
+  # Fit the model using lm()
+  model <- lm(formula, data = match_dat)
+  
+  # Store the model in the list
+  models[[prs_col]] <- summary(model)
+}
+
+models
+
+```

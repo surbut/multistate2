@@ -84,17 +84,32 @@ dfw[!is.na(dfw)]=1
 dfw[is.na(dfw)]=0
 X=as.matrix(dfw)
 #install.packages("flashier")
-X=X[,which(colSums(X)>500)]
+X=X[,which(colSums(X)>0)]
 X=X[which(rowSums(X)>0),]
 X=Matrix(X,sparse = T)
-K=10
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = K)
+#K=10
+# f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+# saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_withoutfixingS_930.rds")
+# saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_withoutfixingS.rds")
 
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_norestrictions.rds")
+rm(f2)
+
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=0)
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_s0.rds")
+rm(f2)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1)
+saveRDS(f2,"~/Library/CloudStorage/Dropbox-Personal/factor_run47_s1.rds")
 ```
 
 Here we make no restriction and examine the top 20 variable loadings:
 
 ```{r}
+## this one was with the colSums must be >500 and no specification on S
 f = readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds")
 par(mfrow=c(3,3))
 for(k in 2:10){
@@ -162,4 +177,8 @@ for (i in 1:length(age_cutoffs)) {
 
 ```
 
-
+# Wth fixed s0
+```{r}
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
+file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
+head(sort(f2$F_pm[,2],decreasing = T))
