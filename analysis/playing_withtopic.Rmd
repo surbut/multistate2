@@ -275,3 +275,25 @@ ggplot(theta_patient1_long, aes(x = Time, y = Proportion, fill = Topic)) +
   labs(x = "Time", y = "Topic Proportion", fill = "Topic") +
   ggtitle("Distribution of Topics for Patient 1 Over Time")
 ```
+
+## TODO: affect speed based through transitions based on genetics
+```{r}
+# Pseudocode - Adjusting spline coefficients based on a regression model
+
+# Assume a regression model is built to predict coefficients from genetic data
+# coef_model <- lm(coef ~ genetic_factors, data = training_data)
+
+# For each individual
+for (i in 1:N_individuals) {
+  # Get individual's genetic data
+  genetic_data_i <- get_genetic_data_for_individual(i)
+
+  # Predict/adjust coefficients based on genetic data
+  predicted_coef <- predict(coef_model, newdata = genetic_data_i)
+
+  # Use these coefficients for the spline
+  bspline_basis <- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
+  spline_values <- bspline_basis %*% predicted_coef
+  phi_individual[i, , ] <- spline_values
+}
+```
