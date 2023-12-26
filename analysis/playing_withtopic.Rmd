@@ -51,7 +51,7 @@ Nd=rpois(M,lambda = 10)
 N=sum(Nd)
 
 # number of disease total
-V=1000
+V=300
 ```
 
 
@@ -61,39 +61,104 @@ V=1000
 
 alpha=rep(0.1,K)
 
-## make sparse so that most mass concentrated on one word 
-beta=rep(0.1,V)
+## make sparse so that most mass concentrated on one disease 
+beta=rep(1/V,V)
 
 ## distribution of topics per pt
 theta=rdirichlet(M,shape = alpha)
 dim(theta)
 
-## distribution of words per topic
+## distribution of words per topic, load heavily on some
+# d will be stron gdisease per topic
+d=10
+topic_spec_disease=matrix(sample(V,size = K*d),nrow=K,byrow = T)
 phi=rdirichlet(K,shape = beta)
-dim(phi)
 
-disease <- list() # Initialize the list outside the loop
-for(i in 1:M){
-  disease[[i]] <- vector("list", Nd[i]) # Initialize the ith list
-  for(j in 1:Nd[i]){
-    zij <- which(rmultinom(1, size = 1, prob = theta[i,]) == 1)
-    wij <- which(rmultinom(1, 1, prob = phi[zij,]) == 1)
-    disease[[i]][j] <- wij # diagnose your patient with some badness 
+for (k in 1:K) {
+    for (v in 1:V) {
+        # Assign higher probabilities to certain diseases for each topic
+        # Placeholder: Assigning higher weights to some diseases
+        if (v%in%topic_spec_disease[k,]) {
+            beta[v] <- (V-d)/V
+        } else {
+            beta[v] <- beta[v]
+        }
+    }
+    phi[k, ] <- rdirichlet(1, beta)
+}
+
+dim(phi)
+order(topic_spec_disease[1,]%in%phi[1,])
+# check to make sure topic specific disease highly loaded
+which(order(phi[1,],decreasing = T)%in%topic_spec_disease[1,])
+
+## decide if we want all his or her diseases to come from same topic, no repeat diangoses
+# disease <- list() # Initialize the list outside the loop
+# for(i in 1:M){
+#   disease[[i]] <- vector("list", Nd[i]) # Initialize the ith list
+#   for(j in 1:Nd[i]){
+#     zij <- which(rmultinom(1, size = 1, prob = theta[i,]) == 1)
+#     wij <- which(rmultinom(1, 1, prob = phi[zij,]) == 1)
+#     disease[[i]][j] <- wij # diagnose your patient with some badness 
+#   }
+# }
+
+
+
+disease <- list()  # Initialize the list outside the loop
+
+for (i in 1:M) {
+  # Check if the patient has any diagnoses to assign
+  if (Nd[i] > 0) {
+    disease[[i]] <- vector("list", Nd[i])  # Initialize the ith list if diagnoses are to be assigned
+    assigned_diagnoses <- integer(0)  # Keep track of diagnoses already assigned to this patient
+
+    for (j in 1:Nd[i]) {
+      zij <- which(rmultinom(1, size = 1, prob = theta[i,]) == 1)
+    
+      # Exclude already assigned diagnoses when selecting a new one
+      valid_diagnoses <- setdiff(1:V, assigned_diagnoses)
+      
+      # normalize so sums to 1
+      prob_valid_diagnoses <- phi[zij, valid_diagnoses] / sum(phi[zij, valid_diagnoses])
+
+      if (length(valid_diagnoses) > 0) {
+        wij <- sample(valid_diagnoses, 1, prob = prob_valid_diagnoses)
+        disease[[i]][[j]] <- wij
+        assigned_diagnoses <- c(assigned_diagnoses, wij)  # Update the list of assigned diagnoses
+      } else {
+        # Handle the case where all diagnoses have been assigned
+        # Placeholder: Assign a random diagnosis or handle as per your model's requirements
+        disease[[i]][[j]] <- sample(1:V, 1)
+      }
+    }
+  } else {
+    disease[[i]] <- NULL  # Assign NULL or an appropriate placeholder for patients with no diagnoses
   }
 }
 
 ```
 
-Show the distirbtuion of theta and phi
+Show the distirbtuion of $theta$ and $phi$ to demonstrate that individuals are minimally loaded on one topic and each topic is minimally loaded on a few diseases:
 
 ```{r}
-
-ggplot(data = melt(theta),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x="Theta_m",y="Density")+
-  theme_classic()
+ggplot(data = melt(theta),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x="Theta_m",y="Density")+theme_classic()
 
 ggplot(data = melt(phi),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x="Phi_k",y="Density")+theme_classic()
 ```
 
+But overall, `we can see that topic specific diseases have a higher $phi$ than those that don't:
+
+```{r}
+par(mfrow=c(1,2))
+hist(colSums(phi),main="Phi:all diseases",freq = F,nclass=20,col="red",xlim=c(0,0.5))
+hist(colSums(phi[,topic_spec_disease]),main="Phi: topic spec diseases",freq = F,nclass=20,col="blue",xlim=c(0,0.5))
+
+```
+
+## Observed data
+
+Here we simulate the observed diagoses for sample individuals
 
 ```{r}
 # Assuming 'disease' is your list of words for each person
@@ -110,9 +175,18 @@ ggplot(disease_data[disease_data$person%in%random_peeps,], aes(x = disease,fill=
   labs(x = "Disease", y = "Frequency", title = "Disease Distribution per Person",fill="Disease")+theme_classic()
 ```
 
+We can see that most people have on average 10 diagnoses from a set of V = `r V`.
+The people we choose `r random_peeps`, were heavily loaded on the following: 
+
+`r sapply(random_peeps,function(x){which.max(theta[x,])})`
+
+`r length(intersect(disease[[1]],topic_spec_disease[1,]))/10`.
+
+
+
 ## Adding a time element
 
-Now, in McVean et al, instead of having only one phi_k per topic, there are phi_kt for a time and topic specific diagnosis distribution.
+Now, in McVean et al, instead of having only one V vector with N_{i} sparse indicators in $\phi_k$ per topic, there are $\phi_kt$ for a time and topic specific diagnosis distribution.
 
 Easy enough! Recall before we had a matrix that was KxV for the disease distribtuion per topic.
 
@@ -124,37 +198,52 @@ The trick is that these need to be somewhat continuous -- you can't go from a 10
 ```{r}
 K <- length(alpha)  # Number of topics
 V <- length(beta)   # Number of diagnoses
-T <- 10             # Number of time points
-time_points <- seq(0, 10, length.out = T)
+T <- 100            # Number of time points
+time_points <- seq(0, 100, length.out = T)
 phi <- array(dim = c(K, V, T))
 
-# Generate the spline for each topic and diagnosis
+# Initialize phi with sparsity
 for (k in 1:K) {
   for (v in 1:V) {
-    # Generate coefficients for the spline - should be of length 5
-   
+    # Assign higher probabilities to certain diseases for each topic
+    if (v%in%topic_spec_disease[k,]) {
+      phi[k, v, 1] <- 0.9  # Higher value for specific diseases
+    } else {
+      phi[k, v, 1] <- 0.1  # Lower value otherwise
+    }
+  }
+}
+
+
+
+# Normalize initial phi
+phi[, , 1] <- apply(phi[, , 1], 1, function(x) x / sum(x))
+
+# Apply spline transformation while respecting sparsity
+for (k in 1:K) {
+  for (v in 1:V) {
     # Generate a B-spline basis
-    knots <- c(0.5) # Example knot
-    degree=3
+    knots <- c(0.5)  # Example knot
+    degree <- 3
     bspline_basis <- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
-    coef <- runif(length(knots)+degree+1) # Adjust based on the number of columns in the bspline_basis
+    
+    # Generate coefficients for the spline - scaling by initial phi value
+    coef <- runif(length(knots) + degree + 1, min = -0.5, max = 0.5) * phi[k, v, 1]
 
-
-    # Calculate the spline values
+    # Calculate and store the spline values, maintaining sparsity
     spline_values <- bspline_basis %*% coef
-
-    # Store the values in the phi array
     phi[k, v, ] <- spline_values
   }
 }
 
-# Normalize probabilities in phi
-phi <- apply(phi, c(1, 3), function(x) {
-  x <- pmax(x, 0) # Ensure non-negative
-  x / sum(x)      # Normalize
-})
-
-dim(phi)
+# Normalize phi over time
+for (t in 1:T) {
+  phi[, , t] <- apply(phi[, , t], 1, function(x) {
+    x <- pmax(x, 0)  # Ensure non-negative
+    x / sum(x)       # Normalize
+  })
+}
+```
 ```
 
 Now $\phi$ is the array of diseases x topics x time, so for a given topic, this should be continous. Let's look at a sample topic with a few diseases to check:
@@ -166,7 +255,7 @@ selected_topic <- 2
 selected_diseases=sample(V,size = 10)
 
 # Extract the data for this topic
-topic_data <- phi[c(selected_diseases),selected_topic, ]
+topic_data <- phi[,selected_topic, ]
 
 # Create a sequence of time points for the x-axis
 time_points <- seq(0, 10, length.out = dim(phi)[3])
@@ -178,6 +267,30 @@ matplot(time_points, t(topic_data), type = 'l', lty = 1,
 legend("topright", legend = paste("Disease", 1:dim(phi)[2]), col = 1:dim(phi)[2], lty = 1)
 ```
 
+In fact, if we want to visualize all diseases over time, we can consider the heatmap of $\phi_{k}$
+```{r}
+library(ggplot2)
+library(reshape2)
+
+# Example: Creating a heatmap for Topic 1
+# Extract the matrix for Topic 1 over time
+phi_topic1 <- phi[,1 , ]
+
+# Convert to data frame
+phi_topic1_df <- as.data.frame(t(phi_topic1))
+names(phi_topic1_df) <- paste("Diagnosis", 1:V, sep = "_")
+phi_topic1_df$Time <- 1:nrow(phi_topic1_df)
+
+# Melt the data frame to long format
+phi_topic1_long <- melt(phi_topic1_df, id.vars = "Time", variable.name = "Diagnosis", value.name = "Probability")
+
+# Create heatmap
+ggplot(phi_topic1_long, aes(x = Time, y= Diagnosis, fill = Probability)) +
+  geom_tile() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "Diagnosis", y = "Time", fill = "Probability") +
+  ggtitle("Disease Distribution in Topic 1 Over Time") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ## However this assumes that an individual stays within a topic
 
