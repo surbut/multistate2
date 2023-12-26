@@ -199,7 +199,7 @@ match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
 match_dat$pretreat_weight=match_dat$pretreat_bmi
 
 
-model=lm(delta~treat+treat:bmi.prs+pretreat_weight+pretreat_weight+sex+birth_year,match_dat)
+model=lm(delta~treat+treat:bmi.prs+pretreat_weight+sex+birth_year,match_dat)
 
 #model1=lm(delta~treat+treat:bmi.prs,match_dat)
 
@@ -374,35 +374,6 @@ match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(media
 
 match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(median(delta),IQR(delta),sd(delta))
 
-# dft=match_dat[match_dat$treat=="Treated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
-#                                                iqr=IQR(delta),
-#                                                sd=sd(delta),
-#                                               )
-# dfu=match_dat[match_dat$treat=="Untreated",]%>%group_by(prs.group)%>%summarise(mean_change=median(delta),
-#                                                iqr=IQR(delta),
-#                                                sd=sd(delta),
-#                                               )
-
-# library(ggplot2)
-# 
-# 
-# treat=ggplot(dft, aes(x = prs.group, y = mean_change)) +
-#   geom_point() +
-#   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
-#   coord_flip() +  # Flips the axes
-#   xlab("PRS Quartile") +
-#   ylab("Change in Weight (kg),Treated") +
-#   theme_minimal()
-# 
-# untreat=ggplot(dfu, aes(x = prs.group, y = mean_change)) +
-#   geom_point() +
-#   geom_errorbar(aes(ymin = mean_change-1.96*sd, ymax =  mean_change+1.96*sd), width = 0.1) +
-#   coord_flip() +  # Flips the axes
-#   xlab("PRS Quartile") +
-#   ylab("Change in Weight (kg), Untreated") +
-#   theme_minimal()
-# 
-# ggarrange(untreat,treat,nrow=1)
 ```
 
 
@@ -419,6 +390,7 @@ ggplot(data = match_dat,aes(x=pretreat_bmi,y=delta,col=as.factor(treat),fill=as.
 ## Now let's use the results from UKB as a prior in an analysis of the GLP1 data in AoU:
 
 # Bayesian Analysis with Conjugate Normals
+
 ```{r}
 # Prior parameters (from first dataset)
 mu_0 <- -0.44 # mean of the prior
@@ -524,4 +496,60 @@ for (prs_col in prs_cols) {
 
 models
 
+
+```
+
+## summarize by med type
+
+```{r}
+glp1_set=glp1[glp1$Identifier%in%match_dat$eid,]
+glp1_set$base=str_split_fixed(glp1_set$V7,pattern = " +",n=2)[,1]
+
+df=data.frame(glp1_set%>%group_by(base)%>%summarize(length(base),length(unique(Identifier))))
+
+df=rename(df,"Total Scripts"=length.base.,"Unique Individuals"=length.unique.Identifier..)
+
+m=melt(df)
+ggplot(m,aes(x = base,y=value,fill=variable))+
+  geom_bar(stat = "identity",position = "dodge")+
+  theme_classic()
+
+# Initialize an empty data frame to store results
+results <- data.frame(Drug = character(), 
+                      PredictedLoss = numeric(), 
+                      StdError = numeric())
+
+
+for(drug in c("Bydureon","Byetta","Dulaglutide","Exenatide","Liraglutide","Lixisenatide","Trulicity","Victoza")){
+  print(drug)
+  i=glp1_set$Identifier[glp1_set$base%in%drug]
+  d=match_dat[match_dat$eid%in%i&match_dat$treat==1,]
+  d$sex=as.factor(d$sex)
+  fit=lm(delta~bmi.prs+pretreat_weight+sex+birth_year,d)
+  print(fit$coefficients)
+  print(mean(d$bmi.prs))
+  print(mean(d$pretreat_weight))
+    mean_values <- data.frame(
+    bmi.prs = 1,
+    pretreat_weight = mean(d$pretreat_weight, na.rm = TRUE),
+    sex = factor(0, levels = levels(d$sex)),  # Assuming '1' is the most common category
+    birth_year = mean(d$birth_year, na.rm = TRUE)
+  )
+
+ pred <- predict(fit, newdata = mean_values, se.fit = TRUE)
+  
+  # Add results to the data frame
+  results <- rbind(results, data.frame(Drug = drug, 
+                                       PredictedLoss = pred$fit, 
+                                       StdError = pred$se.fit))
+}
+
+
+ggplot(results, aes(x = Drug, y = PredictedLoss, ymin = PredictedLoss - StdError, ymax = PredictedLoss + StdError)) +
+  geom_point() +
+  geom_errorbar(width = 0.2) +
+  theme_minimal() +
+  xlab("Drug Class") +
+  ylab("Predicted Weight Loss") +
+  ggtitle("Predicted Weight Loss per Drug Class with Standard Errors")
 ```

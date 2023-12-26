@@ -303,3 +303,17 @@ f2=flashier::flash(new_array,greedy_Kmax = 10,ebnm_fn = c(ebnm_point_normal,ebnm
 ```
 
 ```{r}
+library(Matrix)
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[is.na(dfw)]=0
+dat=as.matrix(dfw)
+rm(dfw)
+age_cutoffs <- seq(40, 90, by = 5)
+tdat <- lapply(age_cutoffs, function(cutoff) Matrix(ifelse(dat > 0 & dat < cutoff,1,0), sparse = TRUE))
+class(tdat) <- "sptensor"
+remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
+
+f=flashier::flash(data = tdat,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20)

@@ -8,12 +8,34 @@ date: "2023-12-18"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+## The EBMF Model
+
+Empirical Bayes matrix factorization (Wang and Stephens, 2021) decomposes a data matrix $Y \in \mathbb{R}^{n \times p}$ as
+$$ Y = LF' + E, $$
+with "loadings" $L \in \mathbb{R}^{n \times K}$, "factors" $F \in \mathbb{R}^{p \times K}$, and residual errors
+$$ e_{ij} \sim N(0, 1 / \tau_{ij}).$$
+The model puts priors on each factor and each set of loadings:
+$$f_{\cdot k} \sim g^{(f)}_k,\ \ell_{\cdot k} \sim g^{(\ell)}_k,$$
+with $g^{(\ell)}_k$ and $g^{(f)}_k$ assumed to belong to some families of distributions $\mathcal{G}^{(\ell)}$ and $\mathcal{G}^{(f)}$ and estimated using the data. The default choice of prior family for both factors and loadings is the family of point-normal distributions:
+$$ g \sim \pi_0 \delta_0 + (1 - \pi_0) N(0, \sigma^2), $$
+where both $\pi_0$ and $\sigma^2$ are free parameters. This family is especially useful when factors and loadings can be expected to be at least modestly sparse; in other settings, different prior families might be preferred.
+
+To avoid over-parametrization, it is necessary to make some assumptions about the precision parameters $\tau_{ij}$. The default assumption is that all $\tau_{ij}$s are equal:
+$$ e_{ij} \sim N(0, 1 / \tau).$$
+
+Note that when the prior families $\mathcal{G}^{(\ell)}$ and $\mathcal{G}^{(f)}$ are closed under scaling (as is typically the case), then the model as formulated above is not identifiable, since we can scale each set of loadings $\ell_{\cdot k}$ by any constant $d_k \ne 0$ if we also scale factor $f_{\cdot k}$ by $1 / d_k$. 
+
+We can make the matrix factorization unique by writing
+$$ Y = LDF' + E, $$
+with the scales of loadings $\ell_{\cdot 1}, \ldots, \ell_{\cdot K}$ and factors $f_{\cdot 1}, \ldots, f_{\cdot K}$ constrained in some fashion (for example, by requiring $\| \ell_{\cdot k} \|_2 = 1$ and $\| f_{\cdot k} \|_2 = 1$ for all $k$). We refer to such a factorization as an **LDF factorization**.
+
 # Age up to and including
 
 Here we will examine the sparse factor analysis of individuals who receive a code at the age under each plot indicated
 
 ```{r,eval=F}
-#remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
+remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 library(flashier)
 library(data.table)
 library(Matrix)
@@ -78,6 +100,8 @@ We can also do for all, but we'll need to first remove rows with 0s and binarize
 Recall we shall keep a non-negative prior on the factors and loadings,
 
 ```{r,eval=F}
+library(Matrix)
+library(flashier)
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
 dfw=df.phecode.wide[,-c(1:5)]
 dfw[!is.na(dfw)]=1
@@ -104,6 +128,11 @@ rm(f2)
 
 f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1)
 saveRDS(f2,"~/Library/CloudStorage/Dropbox-Personal/factor_run47_s1.rds")
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run10_s0.rds")
+rm(f2)
+
 ```
 
 Here we make no restriction and examine the top 20 variable loadings:
@@ -129,7 +158,7 @@ df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phec
 dfw=df.phecode.wide[,-c(1:5)]
 age_cutoffs <- seq(40, 90, by = 10)
 ## for age 40 we specify that 
-for(i in 2:length(age_cutoffs)){
+for(i in 1:length(age_cutoffs)){
 dat=df.phecode.wide[,-c(1:5)]
 age_threshold=age_cutoffs[i]
 min=ifelse(i==1,0,age_cutoffs[i-1])
@@ -146,7 +175,7 @@ X=X[,which(colSums(X)>0)]
 X=X[which(rowSums(X)>0),]
 X=Matrix(X,sparse = T)
 print(dim(X))
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10)
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,s=1/1500)
 rm(X)
 rm(dat)
 saveRDS(f2,paste0("~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age_exact",age_threshold,".rds"))
@@ -177,8 +206,118 @@ for (i in 1:length(age_cutoffs)) {
 
 ```
 
-# Wth fixed s0
+# Wth fixed s0 and k=10 
+*  why does mean come out when K = 10 but not K=47
 ```{r}
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
-file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
-head(sort(f2$F_pm[,2],decreasing = T))
+#f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
+#saveRDS(f2,file= "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
+f=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_s0.rds")
+plot(f2)
+f2=head(sort(f2$F_pm[,2],decreasing = T))
+
+```
+
+For Jordan:
+
+```{r}
+plot(l)
+
+barplot(sort(l$F_pm[,25],decreasing = T)[1:20],las=2)
+
+apply(df.phecode.wide[,..w],2,function(x){median(na.omit(x))})
+```
+
+Let's try with a very small s
+```{r}
+
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+X=as.matrix(dfw)
+
+X=X[,which(colSums(X)>0)]
+X=X[which(rowSums(X)>0),]
+X=Matrix(X,sparse = T)
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+
+# smin=min(f$residuals_sd)
+# f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=smin)
+# saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run48_smin.rds")
+# ## but the elbo is worse here than not specifying s
+
+
+# f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1/sqrt(ncol(X)))
+# saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run50_sqrtncol.rds")
+
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+#saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run50_nospec.rds")
+
+# array
+# dfw[is.na(dfw)]=0
+# dat=as.matrix(dfw)
+# rm(dfw)
+# age_cutoffs <- seq(40, 90, by = 5)
+# tdat <- lapply(age_cutoffs, function(cutoff) Matrix(ifelse(dat > 0 & dat < cutoff,1,0), sparse = TRUE))
+# class(tdat) <- "sptensor"
+
+#f=flashier::flash(data = tdat,ebnm_fn = c(ebnm_point_exponential,ebnm_point_laplace,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10)
+#saveRDS(f,file = "~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
+# f2=flashier::flash(data = tdat,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20)
+# saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
+```
+
+Show that perhaps the point exponential forces cardiac away and weird removal of factors:
+
+```{r}
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+
+## with no positivity constraint
+fit=readRDS(paste0(filepath,"fit_default_all.rds"))
+
+fit$F_ghat[[1]]
+
+head(sort(fit$F_pm[,2],decreasing = T,n=20))
+tail(sort(fit$F_pm[,2],decreasing = T,n=20))
+
+head(sort(fit$F_pm[,3],decreasing = T,n=20))
+tail(sort(fit$F_pm[,3],decreasing = T,n=20))
+
+head(sort(fit$F_pm[,4],decreasing = T,n=20))
+tail(sort(fit$F_pm[,4],decreasing = T,n=20))
+
+## with positivity constraint
+f=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
+lapply(seq(1:10),function(x){head(sort(f$F_pm[,x],decreasing = T),n=10)})
+
+
+
+## with ebnm_point_exponential,ebnm_point_laplace,ebnm_point_exponential
+f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
+lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=10)})
+
+## with  all positive array
+
+f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
+lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=10)})
+
+#### redo without removing
+
+df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+X=as.matrix(dfw)
+
+X=X[,which(colSums(X)>0)]
+#X=X[which(rowSums(X)>0),]
+X=Matrix(X,sparse = T)
+
+remotes::install_github("willwerscheid/flashier", ref = "allow_zero_rows")
+library(flashier)
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T)
+
+### make the loadings flexible but non negaitve
+## backfit
+### clone branch with s very samll so i don't have to (allow 0 rows)
