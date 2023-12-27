@@ -211,7 +211,7 @@ for (i in 1:length(age_cutoffs)) {
 ```{r}
 #f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
 #saveRDS(f2,file= "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
-f=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/factor_run47_s0.rds")
+f=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run47_s0.rds")
 plot(f2)
 f2=head(sort(f2$F_pm[,2],decreasing = T))
 
@@ -222,7 +222,7 @@ For Jordan:
 ```{r}
 plot(l)
 
-barplot(sort(l$F_pm[,25],decreasing = T)[1:20],las=2)
+barplot(sort(l$F_pm[,25],decreasing = TRUE)[1:20],las=2)
 
 apply(df.phecode.wide[,..w],2,function(x){median(na.omit(x))})
 ```
@@ -288,14 +288,20 @@ head(sort(fit$F_pm[,4],decreasing = T,n=20))
 tail(sort(fit$F_pm[,4],decreasing = T,n=20))
 
 ## with positivity constraint
-f=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
-lapply(seq(1:10),function(x){head(sort(f$F_pm[,x],decreasing = T),n=10)})
+# flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+# Nullchecking 50 factors...
+# Factor1set to zero, increasing objective by 1.045e+07.
+# Factor5set to zero, increasing objective by 9.593e+05.
+# Factor11set to zero, increasing objective by 5.946e+05.
+
+#f=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
+lapply(seq(1:10),function(x){head(sort(f$F_pm[,x],decreasing = T),n=20)})
 
 
 
 ## with ebnm_point_exponential,ebnm_point_laplace,ebnm_point_exponential
 f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
-lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=10)})
+lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=20)})
 
 ## with  all positive array
 
@@ -303,21 +309,51 @@ f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
 lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=10)})
 
 #### redo without removing
-
+remotes::install_github("willwerscheid/flashier", ref = "allow_zero_rows",force=T)
+library(flashier)
+library(Matrix)
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
 dfw=df.phecode.wide[,-c(1:5)]
 dfw[!is.na(dfw)]=1
 dfw[is.na(dfw)]=0
 X=as.matrix(dfw)
-
 X=X[,which(colSums(X)>0)]
-#X=X[which(rowSums(X)>0),]
+X=X[which(rowSums(X)>0),]
 X=Matrix(X,sparse = T)
 
-remotes::install_github("willwerscheid/flashier", ref = "allow_zero_rows")
-library(flashier)
 f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T)
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit.rds")
+
+
+f3=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
+#saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds")
+
+lapply(seq(1:10),function(x){head(sort(f3$F_pm[,x],decreasing = T),n=20)})
+
+
+f3=flashier::flash(data = X,var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
+saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz.rds")
+f3=readRDS("~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz.rds")
+lapply(seq(1:40),function(x){head(sort(f3$F_pm[,x],decreasing = TRUE),n=10)})
 
 ### make the loadings flexible but non negaitve
 ## backfit
 ### clone branch with s very samll so i don't have to (allow 0 rows)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T,S=1/1500)
+
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz_allrows.rds")
+
+
+
+### make all non negaitve
+## backfit
+### clone branch with s very samll so i don't have to (allow 0 rows)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = F,backfit = T,S=1/1500)
+
+saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/matrix_pn_pe_backfit_nonneg_allrows.rds")
+
+f2=readRDS("~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz_allrows.rds")
+lapply(seq(1:20),function(x){head(sort(f2$F_pm[,x],decreasing = TRUE),n=10)})
+```

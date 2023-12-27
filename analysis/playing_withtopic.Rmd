@@ -54,9 +54,9 @@ N | integer | total number of diseases in all persons; sum of all \(N_d\) values
 \(\phi_{k_{1..K},w_{1..V}}\) | probability (real number between 0 and 1) | probability of disease \(w\) occurring in topic \(k\)
 \(\Phi_{k_{1..K}}\) | V-dimensional vector of probabilities, which must sum to 1 | distribution of diseases in topic \(k\)
 \(\theta_{d_{1..M},k_{1..K}}\) | probability (real number between 0 and 1) | probability of topic \(k\) occurring in person \(d\)
-\(\Theta_{d_{1..M}}\) | K-dimensional vector of probabilities, which must sum to 1 | distribution of topics in document \(d\)
-\(z_{d_{1..M},w_{1..N_d}}\) | integer between 1 and K | identity of topic of disease \(w\) in document \(d\)
-Z | N-dimensional vector of integers between 1 and K | identity of topic of all diseases in all documents
+\(\Theta_{d_{1..M}}\) | K-dimensional vector of probabilities, which must sum to 1 | distribution of topics in person \(d\)
+\(z_{d_{1..M},w_{1..N_d}}\) | integer between 1 and K | identity of topic of disease \(w\) in person \(d\)
+Z | N-dimensional vector of integers between 1 and K | identity of topic of all diseases in all persons
 \(w_{d_{1..M},w_{1..N_d}}\) | integer between 1 and V | identity of disease \(w\) in person \(d\)
 W | N-dimensional vector of integers between 1 and V | identity of all diseases in all persons
 

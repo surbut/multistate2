@@ -114,7 +114,7 @@ ggplot(mt,aes(age,value,col=variable))+geom_smooth()+
 ```{r}
 c=cor(prs_subset[,-ncol(prs_subset)])
 colnames(c)=rownames(c)=names(prs_subset[-ncol(prs_subset)])
-corrplot::corrplot(c,method="square"
+corrplot::corrplot(c,method="square")
 
 
 
