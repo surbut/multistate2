@@ -522,15 +522,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree0e5a222970387b0c1ee8756e8712f65825e150f3targetblank0e5a222a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee83fb18a5cdd23e13b11f66a5137d2db23ae3368targetblanke83fb18a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/0e5a222970387b0c1ee8756e8712f65825e150f3" target="_blank">0e5a222</a>
+<a href="https://github.com/surbut/multistate2/tree/e83fb18a5cdd23e13b11f66a5137d2db23ae3368" target="_blank">e83fb18</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree0e5a222970387b0c1ee8756e8712f65825e150f3targetblank0e5a222a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treee83fb18a5cdd23e13b11f66a5137d2db23ae3368targetblanke83fb18a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +540,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/0e5a222970387b0c1ee8756e8712f65825e150f3" target="_blank">0e5a222</a>.
+<a href="https://github.com/surbut/multistate2/tree/e83fb18a5cdd23e13b11f66a5137d2db23ae3368" target="_blank">e83fb18</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -563,9 +563,6 @@ Ignored files:
     Ignored:    lesliepics/.DS_Store
     Ignored:    output/
     Ignored:    plots/.DS_Store
-
-Untracked files:
-    Untracked:  analysis/figure/
 
 Unstaged changes:
     Modified:   analysis/playing_withtopic.Rmd
@@ -614,6 +611,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/analysis/playing_withtopic.Rmd" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/playing_withtopic.html" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -700,27 +731,157 @@ this as a poisson RV with mean of 10 diagnoses per patient.</p>
 _{i=1}^{M}N_{i}\)</span> diagnoses over all individuals.</p>
 <p>There are a total of <span class="math inline">\(V\)</span> disease
 codes entirely.</p>
-<p>For each person, they have a distribution of topic responsibility on
-K topics, <span class="math inline">\(\theta_{i}\)</span>.</p>
-<p>This topic distribution, <span
+<p>For each of the M individuals, there exists a distribution over K
+topics, <span class="math inline">\(\theta_{i}\)</span>.</p>
+<p>This topic distribution for a given individual, <span
 class="math inline">\(\theta_i\)</span> will be sparsely simulated so
 individuals are loaded on a minimal number of topics using a random
-dirichlet with <span class="math inline">\(\alpha\)</span> =
-0.1_{RK}.</p>
-<p>For each of the K topics, there is a distribution on diseases. There
-are a total of V diseases. This parameter <span
-class="math inline">\(\phi\)</span>, over diseases, is simulated also
+dirichlet with <span class="math inline">\(\alpha\)</span> = [0.1,…K]
+.</p>
+<p>For each of the K topics, there is a distribution on V diseases.
+There are a total of V diseases. This parameter <span
+class="math inline">\(\phi_k\)</span>, over diseases, is simulated also
 according to a sparse dirichlet, this time with hyperparameter <span
 class="math inline">\(\beta\)</span> for example also = 0.1_RV</p>
+<p>Here we allow that each topic has a special ‘topic specific’ disease
+enrichment, such that for a select number d of randomly sampled
+diseases, here d=10, is (V-d)/V with the remaining = 1/V.</p>
+</div>
+<div id="generative-model" class="section level1">
+<h1>Generative model</h1>
 <p>Now each disease arises from a topic (there can be overlap such that
 one disease can be featured in several topics) with latent indicator
 <span class="math inline">\(z_{i=1..M,j=1:Ni}\)</span> with an integer
-from 1:K. <span class="math inline">\(1:Ni\)</span> here represents the
-fact that an individual can have up to Ni diagnoses, so that <span
+from 1:K.</p>
+<p><span class="math inline">\(1:Ni\)</span> here represents the fact
+that an individual can have up to Ni diagnoses, so that <span
 class="math inline">\(Z\)</span> is a giant vector of length N.</p>
-<p>Now according to the assigned topic (1:K) for that diagnosis, the
+<p>According to the assigned topic (1:K) for that diagnosis, the
 probability of the given diagnosis is drawn according to <span
 class="math inline">\(\phi_{kd}\)</span></p>
+</div>
+<div id="table-of-variables" class="section level1">
+<h1>Table of Variables</h1>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>K</td>
+<td>integer</td>
+<td>number of topics (e.g. 50)</td>
+</tr>
+<tr class="even">
+<td>V</td>
+<td>integer</td>
+<td>number of diseases in the vocabulary (e.g. 50,000 or 1,000,000)</td>
+</tr>
+<tr class="odd">
+<td>M</td>
+<td>integer</td>
+<td>number of persons</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(N_{i_{1..M}}\)</span></td>
+<td>integer</td>
+<td>number of diseases in person <span
+class="math inline">\(i\)</span></td>
+</tr>
+<tr class="odd">
+<td>N</td>
+<td>integer</td>
+<td>total number of diseases in all persons; sum of all <span
+class="math inline">\(N_d\)</span> values, i.e. <span
+class="math inline">\(N = \sum_{i=1}^{M} N_i\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\alpha_{k_{1..K}}\)</span></td>
+<td>positive real</td>
+<td>prior weight of topic <span class="math inline">\(k\)</span> in a
+person; usually the same for all topics; normally a number less than 1,
+e.g. 0.1, to prefer sparse topic distributions, i.e. few topics per
+person</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\alpha\)</span></td>
+<td>K-dimensional vector of positive reals</td>
+<td>collection of all <span class="math inline">\(\alpha_k\)</span>
+values, viewed as a single vector</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\beta_{w_{1..V}}\)</span></td>
+<td>positive real</td>
+<td>prior weight of disease <span class="math inline">\(w\)</span> in a
+topic; usually the same for all diseases; normally a number much less
+than 1, e.g. 0.001, to strongly prefer sparse disease distributions,
+i.e. few diseases per topic</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\beta\)</span></td>
+<td>V-dimensional vector of positive reals</td>
+<td>collection of all <span class="math inline">\(\beta_w\)</span>
+values, viewed as a single vector</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\phi_{k_{1..K},w_{1..V}}\)</span></td>
+<td>probability (real number between 0 and 1)</td>
+<td>probability of disease <span class="math inline">\(w\)</span>
+occurring in topic <span class="math inline">\(k\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\Phi_{k_{1..K}}\)</span></td>
+<td>V-dimensional vector of probabilities, which must sum to 1</td>
+<td>distribution of diseases in topic <span
+class="math inline">\(k\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\theta_{d_{1..M},k_{1..K}}\)</span></td>
+<td>probability (real number between 0 and 1)</td>
+<td>probability of topic <span class="math inline">\(k\)</span>
+occurring in person <span class="math inline">\(d\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\Theta_{d_{1..M}}\)</span></td>
+<td>K-dimensional vector of probabilities, which must sum to 1</td>
+<td>distribution of topics in document <span
+class="math inline">\(d\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(z_{d_{1..M},w_{1..N_d}}\)</span></td>
+<td>integer between 1 and K</td>
+<td>identity of topic of disease <span class="math inline">\(w\)</span>
+in document <span class="math inline">\(d\)</span></td>
+</tr>
+<tr class="odd">
+<td>Z</td>
+<td>N-dimensional vector of integers between 1 and K</td>
+<td>identity of topic of all diseases in all documents</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(w_{d_{1..M},w_{1..N_d}}\)</span></td>
+<td>integer between 1 and V</td>
+<td>identity of disease <span class="math inline">\(w\)</span> in person
+<span class="math inline">\(d\)</span></td>
+</tr>
+<tr class="odd">
+<td>W</td>
+<td>N-dimensional vector of integers between 1 and V</td>
+<td>identity of all diseases in all persons</td>
+</tr>
+</tbody>
+</table>
+<div id="simulation" class="section level2">
+<h2>Simulation</h2>
 <pre class="r"><code>set.seed(123)
 library(rBeta2009)
 library(ggplot2)
@@ -742,8 +903,6 @@ N=sum(Nd)
 # number of disease total
 V=300</code></pre>
 <pre class="r"><code>## make sparse so that most mass concentrated on one topic 
-
-
 alpha=rep(0.1,K)
 
 ## make sparse so that most mass concentrated on one disease 
@@ -753,8 +912,9 @@ beta=rep(1/V,V)
 theta=rdirichlet(M,shape = alpha)
 dim(theta)</code></pre>
 <pre><code>[1] 100   5</code></pre>
-<pre class="r"><code>## distribution of words per topic, load heavily on some
-# d will be stron gdisease per topic
+<pre class="r"><code>## distribution of diseases per topic, load heavily on some
+# d will be number of strong disease per topic
+
 d=10
 topic_spec_disease=matrix(sample(V,size = K*d),nrow=K,byrow = T)
 phi=rdirichlet(K,shape = beta)
@@ -774,8 +934,6 @@ for (k in 1:K) {
 
 dim(phi)</code></pre>
 <pre><code>[1]   5 300</code></pre>
-<pre class="r"><code>order(topic_spec_disease[1,]%in%phi[1,])</code></pre>
-<pre><code> [1]  1  2  3  4  5  6  7  8  9 10</code></pre>
 <pre class="r"><code># check to make sure topic specific disease highly loaded
 which(order(phi[1,],decreasing = T)%in%topic_spec_disease[1,])</code></pre>
 <pre><code> [1]  1  2  3  4  5  6  7  8  9 10</code></pre>
@@ -791,7 +949,7 @@ which(order(phi[1,],decreasing = T)%in%topic_spec_disease[1,])</code></pre>
 # }
 
 
-
+# recall we also want no diseases to come from same topic
 disease &lt;- list()  # Initialize the list outside the loop
 
 for (i in 1:M) {
@@ -823,11 +981,15 @@ for (i in 1:M) {
     disease[[i]] &lt;- NULL  # Assign NULL or an appropriate placeholder for patients with no diagnoses
   }
 }</code></pre>
-<p>Show the distirbtuion of <span class="math inline">\(theta\)</span>
-and <span class="math inline">\(phi\)</span> to demonstrate that
-individuals are minimally loaded on one topic and each topic is
-minimally loaded on a few diseases:</p>
-<pre class="r"><code>ggplot(data = melt(theta),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x=&quot;Theta_m&quot;,y=&quot;Density&quot;)+theme_classic()</code></pre>
+</div>
+</div>
+<div id="visualizing-basic-simulation" class="section level1">
+<h1>Visualizing Basic Simulation</h1>
+<p>Here we whow the distirbtuion of <span
+class="math inline">\(theta\)</span> and <span
+class="math inline">\(phi\)</span> to demonstrate that individuals are
+minimally loaded on one topic and each topic is minimally loaded on a
+few diseases:</p>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
@@ -853,6 +1015,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-1-1.png" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-1-1.png" target="_blank">b297d53</a>
 </td>
 <td>
@@ -866,7 +1039,6 @@ Sarah Urbut
 </table>
 </div>
 </div>
-<pre class="r"><code>ggplot(data = melt(phi),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x=&quot;Phi_k&quot;,y=&quot;Density&quot;)+theme_classic()</code></pre>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-1-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-2">
@@ -892,6 +1064,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-1-2.png" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-1-2.png" target="_blank">b297d53</a>
 </td>
 <td>
@@ -907,9 +1090,6 @@ Sarah Urbut
 </div>
 <p>But overall, `we can see that topic specific diseases have a higher
 <span class="math inline">\(phi\)</span> than those that don’t:</p>
-<pre class="r"><code>par(mfrow=c(1,2))
-hist(colSums(phi),main=&quot;Phi:all diseases&quot;,freq = F,nclass=20,col=&quot;red&quot;,xlim=c(0,0.5))
-hist(colSums(phi[,topic_spec_disease]),main=&quot;Phi: topic spec diseases&quot;,freq = F,nclass=20,col=&quot;blue&quot;,xlim=c(0,0.5))</code></pre>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
@@ -935,6 +1115,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-2-1.png" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-2-1.png" target="_blank">b297d53</a>
 </td>
 <td>
@@ -949,11 +1140,13 @@ Sarah Urbut
 </div>
 </div>
 </div>
-<div id="observed-data" class="section level2">
-<h2>Observed data</h2>
-<p>Here we simulate the observed diagoses for sample individuals</p>
-<pre class="r"><code># Assuming &#39;disease&#39; is your list of words for each person
+<div id="observed-data" class="section level1">
+<h1>Observed data</h1>
+<p>Now, we want to simulate the observed diagnoses <span
+class="math inline">\(w_{ij}\)</span> for sample individuals</p>
+<pre class="r"><code># Assuming &#39;disease&#39; is your list of diagnoses for each person from above
 # Convert &#39;disease&#39; list into a data frame for plotting
+
 disease_data &lt;- data.frame(person = rep(seq_along(disease), sapply(disease, length)),
                         disease = unlist(disease))
 
@@ -965,25 +1158,73 @@ ggplot(disease_data[disease_data$person%in%random_peeps,], aes(x = disease,fill=
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(x = &quot;Disease&quot;, y = &quot;Frequency&quot;, title = &quot;Disease Distribution per Person&quot;,fill=&quot;Disease&quot;)+theme_classic()</code></pre>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>We can see that most people have on average 10 diagnoses from a set
-of V = 300. The people we choose 92, 94, 68, 3, 59, were heavily loaded
-on the following:</p>
-<p>1, 3, 4, 4, 1</p>
-<p>0.5.</p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-3-1.png" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="adding-a-time-element" class="section level2">
-<h2>Adding a time element</h2>
+</div>
+<p>We can see that most people have on average 10 diagnoses from a set
+of V = 300. The people we choose, 92, 94, 68, 3, 59, were heavily loaded
+on the following topics:</p>
+<p>1, 3, 4, 4, 1</p>
+<p>For example, our first person 92 has 15 diagnoses. He is most heavily
+loaded on 1. In turn this topic was chosen to have concentration of
+<span class="math inline">\(phi_{k}\)</span> at 4, 35, 238, 210, 266,
+12, 128, 259, 282, 204 these disease.</p>
+<p>We can see that a high proportion of his diagnoses emanate from one
+of these topic-specific diseases:</p>
+<ol style="list-style-type: decimal">
+<li></li>
+</ol>
+</div>
+<div id="adding-a-time-element" class="section level1">
+<h1>Adding a time element</h1>
 <p>Now, in McVean et al, instead of having only one V vector with N_{i}
 sparse indicators in <span class="math inline">\(\phi_k\)</span> per
-topic, there are <span class="math inline">\(\phi_kt\)</span> for a time
-and topic specific diagnosis distribution.</p>
+topic, there are <span class="math inline">\(\phi_{kt}\)</span> for a
+time and topic specific diagnosis distribution.</p>
 <p>Easy enough! Recall before we had a matrix that was KxV for the
-disease distribtuion per topic.</p>
+disease distribution per topic.</p>
 <p>Now we will initialize an <em>array</em> that is KxVxT that has a
 disease distribution per topic per time.</p>
 <p>The trick is that these need to be somewhat continuous – you can’t go
-from a 100% probability of hypertension to 0 overnight. So … they use a
-natural spline.</p>
+from a 100% probability of hypertension to 0 overnight.</p>
+<p>So … they use a natural spline. Here, we introduce a scaled bspline
+basis (with a knot at 0.5 and 3 degrees) that is scaled by the <span
+class="math inline">\(\phi\)</span> we just described inorder to
+introduce both continuity and preserve sparsity.</p>
 <pre class="r"><code>K &lt;- length(alpha)  # Number of topics
 V &lt;- length(beta)   # Number of diagnoses
 T &lt;- 100            # Number of time points
@@ -1038,7 +1279,51 @@ for (k in 1:K) {
     }
 }
 
-# Normalize phi over time after spline transformation
+matplot(bspline_basis)</code></pre>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-4-1.png" target="_blank">b297d53</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-25
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="normalization" class="section level1">
+<h1>Normalization</h1>
+<p>We need to normalize phi over time after this spline transfomration
+to ensure a proper distribution:</p>
+<pre class="r"><code># Normalize phi over time after spline transformation
 for (t in 1:T) {
     for (k in 1:K) {
         sum_phi_kt &lt;- sum(phi[k, , t])
@@ -1062,29 +1347,13 @@ print(all_normalized)  # Should print TRUE if all are normalized```</code></pre>
 diseases x topics x time, so for a given topic, this should be
 continous. Let’s look at a sample topic with a few diseases to
 check:</p>
-<pre class="r"><code># Assuming phi is already created and is a KxVxT array
-# Choose a topic to plot, for example, the first topic
-selected_topic &lt;- 2
-selected_diseases=sample(V,size = 10)
-
-# Extract the data for this topic
-topic_data &lt;- phi[selected_topic, ,]
-
-# Create a sequence of time points for the x-axis
-time_points &lt;- seq(0, 10, length.out = dim(phi)[3])
-
-# Plotting
-matplot(time_points, t(topic_data), type = &#39;l&#39;, lty = 1,
-        xlab = &quot;Time&quot;, ylab = &quot;Probability&quot;,
-        main = paste(&quot;Disease Probabilities Over Time for Topic&quot;, selected_topic))
-legend(&quot;topright&quot;, legend = paste(&quot;Disease&quot;, 1:dim(phi)[2]), col = 1:dim(phi)[2], lty = 1)</code></pre>
-<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
-Past versions of unnamed-chunk-5-1.png
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
 </button>
 </p>
-<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div id="fig-unnamed-chunk-6-1" class="collapse">
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
 <thead>
@@ -1103,13 +1372,13 @@ Date
 <tbody>
 <tr>
 <td>
-<a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-5-1.png" target="_blank">b297d53</a>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-6-1.png" target="_blank">e83fb18</a>
 </td>
 <td>
 Sarah Urbut
 </td>
 <td>
-2023-12-25
+2023-12-26
 </td>
 </tr>
 </tbody>
@@ -1118,33 +1387,14 @@ Sarah Urbut
 </div>
 <p>We can see that this corresponds with the disease we’ve chosen in
 topic_disease.</p>
-<p>In fact, if we want to visualize all diseases over time, we can
-consider the heatmap of <span
-class="math inline">\(\phi_{k}\)</span></p>
-<pre class="r"><code>library(ggplot2)
-library(reshape2)
-
-# Example: Creating a heatmap for Topic 1
-# Extract the matrix for Topic 1 over time
-phi_topic1 &lt;- phi[1 ,, ]
-
-# Convert to data frame
-phi_topic1_df &lt;- as.data.frame(t(phi_topic1))
-names(phi_topic1_df) &lt;- paste(&quot;Diagnosis&quot;, 1:V, sep = &quot;_&quot;)
-phi_topic1_df$Time &lt;- 1:nrow(phi_topic1_df)
-
-# Melt the data frame to long format
-phi_topic1_long &lt;- melt(phi_topic1_df, id.vars = &quot;Time&quot;, variable.name = &quot;Diagnosis&quot;, value.name = &quot;Probability&quot;)
-
-# Create heatmap
-ggplot(phi_topic1_long, aes(x = Time, y= Diagnosis, fill = Probability)) +
-  geom_tile() +
-  scale_fill_gradient(low = &quot;blue&quot;, high = &quot;red&quot;) +
-  labs(x = &quot;Time&quot;, y = &quot;Diagnosis&quot;, fill = &quot;Probability&quot;) +
-  ggtitle(&quot;Disease Distribution in Topic 1 Over Time&quot;) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))</code></pre>
-<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
+<div id="visualization-part-2" class="section level1">
+<h1>Visualization part 2</h1>
+<p>In fact, if we want to visualize all diseases over time, we can
+consider the heatmap of <span class="math inline">\(\phi_{k}\)</span>,
+and see that only the diseases that are part of the chosen topic
+specific disease have a non trivial coloring here.</p>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div id="however-this-assumes-that-an-individual-stays-within-a-topic"
 class="section level2">
 <h2>However this assumes that an individual stays within a topic</h2>
@@ -1162,6 +1412,7 @@ affected by these intrinsic factors</p></li>
 <li><p>Finally, occupancy in one topic necessarily may prevent other
 topics</p></li>
 </ul>
+</div>
 </div>
 <div id="example-function-to-update-theta-based-on-new-diagnosis"
 class="section level1">
@@ -1256,28 +1507,17 @@ for (time in 2:T) {
   }
 }
 
-
+## should  all be 1
 rowSums(theta_over_time[2,,])</code></pre>
 <pre><code>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  [75] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</code></pre>
-<pre class="r"><code># Select data for a specific patient, e.g., patient 1
-pt=sample(M,size = 1)
-theta_patient1 &lt;- theta_over_time[,pt , ]
-
-# Convert to a data frame and reshape
-theta_patient1_df &lt;- as.data.frame(theta_patient1)
-colnames(theta_patient1_df) &lt;- paste(&quot;Topic&quot;, 1:K, sep = &quot;&quot;)
-theta_patient1_df$Time &lt;- 1:nrow(theta_patient1_df)
-
-theta_patient1_long &lt;- melt(theta_patient1_df, id.vars = &quot;Time&quot;, variable.name = &quot;Topic&quot;, value.name = &quot;Proportion&quot;)
-
-# Plot
-ggplot(theta_patient1_long, aes(x = Time, y = Proportion, fill = Topic)) +
-  geom_area(position = &#39;stack&#39;) +
-  labs(x = &quot;Time&quot;, y = &quot;Topic Proportion&quot;, fill = &quot;Topic&quot;) +
-  ggtitle(&quot;Distribution of Topics for Patient 1 Over Time&quot;)</code></pre>
-<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="topic-distribtuion-per-patient" class="section level1">
+<h1>Topic distribtuion per patient</h1>
+<p>Now let’s select for a sample patient and view his topic distribution
+over time.</p>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div id="todo-affect-speed-based-through-transitions-based-on-genetics"
 class="section level2">
 <h2>TODO: affect speed based through transitions based on genetics</h2>

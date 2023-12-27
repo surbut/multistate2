@@ -5,31 +5,62 @@ date: "2023-12-25"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+knitr::opts_chunk$set(warning = FALSE,message = FALSE)
 ```
 
 ## Overview of Topic Modeling
 
 We first lay out a basic topic model without any accounting for time. 
 
-In this model, we have a number of people, M.
+\item In this model, we have a number of people, M.
 
-Each individual has a number of diagnoses, N_{i=1\dots M}.We will simulate this as a poisson RV with mean of 10 diagnoses per patient.
+\item Each individual has a number of diagnoses, N_{i=1\dots M}.We will simulate this as a poisson RV with mean \lambda of 10 diagnoses per patient.
 
-There are a total number of $N=\sum _{i=1}^{M}N_{i}$ diagnoses over all individuals.
+\item There are a total number of $N=\sum _{i=1}^{M}N_{i}$ diagnoses over all individuals.
 
-There are a total of $V$ disease codes entirely.
+\item There are a total of $V$ disease codes entirely.
 
-For each person, they have a distribution of topic responsibility on K topics, $\theta_{i}$. 
+\item For each of the M individuals, there exists a distribution over K topics, $\theta_{i}$. 
 
-This topic distribution, $\theta_i$ will be sparsely simulated so individuals are loaded on a minimal number of topics using a random dirichlet with $\alpha$ = 0.1_{RK}.
+\item This topic distribution for a given individual, $\theta_i$ will be sparsely simulated so individuals are loaded on a minimal number of topics using a random dirichlet with $\alpha$ = [0.1,...K] .
 
-For each of the K topics, there is a distribution on diseases. There are a total of V diseases.
-This parameter $\phi$, over diseases, is simulated also according to a sparse dirichlet, this time with hyperparameter $\beta$ for example also = 0.1_RV
+\item For each of the K topics, there is a distribution on V diseases. There are a total of V diseases.
+This parameter $\phi_k$, over diseases, is simulated also according to a sparse dirichlet, this time with hyperparameter $\beta$ for example also = 0.1_RV
 
-Now each disease arises from a topic (there can be overlap such that one disease can be featured in several topics) with latent indicator $z_{i=1..M,j=1:Ni}$ with an integer from 1:K. $1:Ni$ here represents the fact that an individual can have up to Ni diagnoses, so that $Z$ is a giant vector of length N.
+\item Here we allow that each topic has a special 'topic specific' disease enrichment, such that for a select number d of randomly sampled diseases, here d=10, \beta is (V-d)/V with the remaining \beta = 1/V.
 
-Now according to the assigned topic (1:K) for that diagnosis, the probability of the given diagnosis is drawn according to $\phi_{kd}$
+# Generative model 
+Now each disease arises from a topic (there can be overlap such that one disease can be featured in several topics) with latent indicator $z_{i=1..M,j=1:Ni}$ with an integer from 1:K.
+
+$1:Ni$ here represents the fact that an individual can have up to Ni diagnoses, so that $Z$ is a giant vector of length N.
+
+According to the assigned topic (1:K) for that diagnosis, the probability of the given diagnosis is drawn according to $\phi_{kd}$
+
+
+
+# Table of Variables
+
+Variable | Type | Meaning
+--- | --- | ---
+K | integer | number of topics (e.g. 50)
+V | integer | number of diseases in the vocabulary (e.g. 50,000 or 1,000,000)
+M | integer | number of persons
+\(N_{i_{1..M}}\) | integer | number of diseases in person \(i\)
+N | integer | total number of diseases in all persons; sum of all \(N_d\) values, i.e. \(N = \sum_{i=1}^{M} N_i\)
+\(\alpha_{k_{1..K}}\) | positive real | prior weight of topic \(k\) in a person; usually the same for all topics; normally a number less than 1, e.g. 0.1, to prefer sparse topic distributions, i.e. few topics per person
+\(\alpha\) | K-dimensional vector of positive reals | collection of all \(\alpha_k\) values, viewed as a single vector
+\(\beta_{w_{1..V}}\) | positive real | prior weight of disease \(w\) in a topic; usually the same for all diseases; normally a number much less than 1, e.g. 0.001, to strongly prefer sparse disease distributions, i.e. few diseases per topic
+\(\beta\) | V-dimensional vector of positive reals | collection of all \(\beta_w\) values, viewed as a single vector
+\(\phi_{k_{1..K},w_{1..V}}\) | probability (real number between 0 and 1) | probability of disease \(w\) occurring in topic \(k\)
+\(\Phi_{k_{1..K}}\) | V-dimensional vector of probabilities, which must sum to 1 | distribution of diseases in topic \(k\)
+\(\theta_{d_{1..M},k_{1..K}}\) | probability (real number between 0 and 1) | probability of topic \(k\) occurring in person \(d\)
+\(\Theta_{d_{1..M}}\) | K-dimensional vector of probabilities, which must sum to 1 | distribution of topics in document \(d\)
+\(z_{d_{1..M},w_{1..N_d}}\) | integer between 1 and K | identity of topic of disease \(w\) in document \(d\)
+Z | N-dimensional vector of integers between 1 and K | identity of topic of all diseases in all documents
+\(w_{d_{1..M},w_{1..N_d}}\) | integer between 1 and V | identity of disease \(w\) in person \(d\)
+W | N-dimensional vector of integers between 1 and V | identity of all diseases in all persons
+
+## Simulation
 
 
 ```{r cars}
@@ -58,8 +89,6 @@ V=300
 
 ```{r sparse, echo=TRUE}
 ## make sparse so that most mass concentrated on one topic 
-
-
 alpha=rep(0.1,K)
 
 ## make sparse so that most mass concentrated on one disease 
@@ -69,8 +98,9 @@ beta=rep(1/V,V)
 theta=rdirichlet(M,shape = alpha)
 dim(theta)
 
-## distribution of words per topic, load heavily on some
-# d will be stron gdisease per topic
+## distribution of diseases per topic, load heavily on some
+# d will be number of strong disease per topic
+
 d=10
 topic_spec_disease=matrix(sample(V,size = K*d),nrow=K,byrow = T)
 phi=rdirichlet(K,shape = beta)
@@ -89,7 +119,7 @@ for (k in 1:K) {
 }
 
 dim(phi)
-order(topic_spec_disease[1,]%in%phi[1,])
+
 # check to make sure topic specific disease highly loaded
 which(order(phi[1,],decreasing = T)%in%topic_spec_disease[1,])
 
@@ -105,7 +135,7 @@ which(order(phi[1,],decreasing = T)%in%topic_spec_disease[1,])
 # }
 
 
-
+# recall we also want no diseases to come from same topic
 disease <- list()  # Initialize the list outside the loop
 
 for (i in 1:M) {
@@ -140,9 +170,11 @@ for (i in 1:M) {
 
 ```
 
-Show the distirbtuion of $theta$ and $phi$ to demonstrate that individuals are minimally loaded on one topic and each topic is minimally loaded on a few diseases:
+# Visualizing Basic Simulation
 
-```{r}
+Here we whow the distirbtuion of $theta$ and $phi$ to demonstrate that individuals are minimally loaded on one topic and each topic is minimally loaded on a few diseases:
+
+```{r,echo=F}
 ggplot(data = melt(theta),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x="Theta_m",y="Density")+theme_classic()
 
 ggplot(data = melt(phi),aes(x=value,fill=value,group=value))+geom_histogram()+labs(x="Phi_k",y="Density")+theme_classic()
@@ -150,20 +182,21 @@ ggplot(data = melt(phi),aes(x=value,fill=value,group=value))+geom_histogram()+la
 
 But overall, `we can see that topic specific diseases have a higher $phi$ than those that don't:
 
-```{r}
+```{r,echo=F}
 par(mfrow=c(1,2))
 hist(colSums(phi),main="Phi:all diseases",freq = F,nclass=20,col="red",xlim=c(0,0.5))
 hist(colSums(phi[,topic_spec_disease]),main="Phi: topic spec diseases",freq = F,nclass=20,col="blue",xlim=c(0,0.5))
 
 ```
 
-## Observed data
+# Observed data
 
-Here we simulate the observed diagoses for sample individuals
+Now, we want to simulate the observed diagnoses $w_{ij}$ for sample individuals
 
 ```{r}
-# Assuming 'disease' is your list of words for each person
+# Assuming 'disease' is your list of diagnoses for each person from above
 # Convert 'disease' list into a data frame for plotting
+
 disease_data <- data.frame(person = rep(seq_along(disease), sapply(disease, length)),
                         disease = unlist(disease))
 
@@ -177,23 +210,30 @@ ggplot(disease_data[disease_data$person%in%random_peeps,], aes(x = disease,fill=
 ```
 
 We can see that most people have on average 10 diagnoses from a set of V = `r V`.
-The people we choose `r random_peeps`, were heavily loaded on the following: 
+The people we choose, `r random_peeps`, were heavily loaded on the following topics:
 
 `r sapply(random_peeps,function(x){which.max(theta[x,])})`
 
-`r length(intersect(disease[[1]],topic_spec_disease[1,]))/10`.
+For example, our first person `r random_peeps[1]` has `r Nd[random_peeps[1]]` diagnoses. He is most heavily loaded on `r which.max(theta[random_peeps[1],])`. In turn this topic was chosen to have concentration of $phi_{k}$ at `r topic_spec_disease[which.max(theta[random_peeps[1],]),]` these disease. 
+
+We can see that a high proportion of his diagnoses emanate from one of these topic-specific diseases:
+
+`r length(intersect(unlist(disease[[random_peeps[1]]]),topic_spec_disease[which.max(theta[random_peeps[1],]),]))/d`.
 
 
 
-## Adding a time element
+# Adding a time element
 
-Now, in McVean et al, instead of having only one V vector with N_{i} sparse indicators in $\phi_k$ per topic, there are $\phi_kt$ for a time and topic specific diagnosis distribution.
+Now, in McVean et al, instead of having only one V vector with N_{i} sparse indicators in $\phi_k$ per topic, there are $\phi_{kt}$ for a time and topic specific diagnosis distribution.
 
-Easy enough! Recall before we had a matrix that was KxV for the disease distribtuion per topic.
+
+Easy enough! Recall before we had a matrix that was KxV for the disease distribution per topic.
 
 Now we will initialize an *array* that is KxVxT that has a disease distribution per topic per time. 
 
-The trick is that these need to be somewhat continuous -- you can't go from a 100% probability of hypertension to 0 overnight. So ... they use a natural spline.
+The trick is that these need to be somewhat continuous -- you can't go from a 100% probability of hypertension to 0 overnight. 
+
+So ... they use a natural spline. Here, we introduce a scaled bspline basis (with a knot at 0.5 and 3 degrees) that is scaled by the $\phi$ we just described inorder to introduce both continuity and preserve sparsity.
 
 
 ```{r}
@@ -250,6 +290,13 @@ for (k in 1:K) {
     }
 }
 
+matplot(bspline_basis)
+```
+
+# Normalization
+
+We need to normalize phi over time after this spline transfomration to ensure a proper distribution:
+```{r}
 # Normalize phi over time after spline transformation
 for (t in 1:T) {
     for (k in 1:K) {
@@ -273,7 +320,7 @@ print(all_normalized)  # Should print TRUE if all are normalized```
 
 Now $\phi$ is the array of diseases x topics x time, so for a given topic, this should be continous. Let's look at a sample topic with a few diseases to check:
 
-```{r}
+```{r, echo=F}
 # Assuming phi is already created and is a KxVxT array
 # Choose a topic to plot, for example, the first topic
 selected_topic <- 2
@@ -295,9 +342,11 @@ legend("topright", legend = paste("Disease", 1:dim(phi)[2]), col = 1:dim(phi)[2]
 
 We can see that this corresponds with the disease we've chosen in topic_disease.
 
+# Visualization part 2
 
-In fact, if we want to visualize all diseases over time, we can consider the heatmap of $\phi_{k}$
-```{r}
+In fact, if we want to visualize all diseases over time, we can consider the heatmap of $\phi_{k}$, and see that only the diseases that are part of the chosen topic specific disease have a non trivial coloring here.
+
+```{r,echo=F}
 library(ggplot2)
 library(reshape2)
 
@@ -340,7 +389,6 @@ Here, we will have the genetics influence change by a decau factor, and the upda
 $\theta_{t+1}=p(D|\theta_{t})*p(\tilde{\theta})$
 
 Here, $p(\tilde{\theta}$ represents the genetics-adapted prior distribtuion.
-
 
 
 ```{r}
@@ -429,9 +477,16 @@ for (time in 2:T) {
   }
 }
 
-
+## should  all be 1
 rowSums(theta_over_time[2,,])
 
+```
+
+# Topic distribtuion per patient
+
+Now let's select for a sample patient and view his topic distribution over time. 
+
+```{r,echo=F}
 # Select data for a specific patient, e.g., patient 1
 pt=sample(M,size = 1)
 theta_patient1 <- theta_over_time[,pt , ]
@@ -443,7 +498,7 @@ theta_patient1_df$Time <- 1:nrow(theta_patient1_df)
 
 theta_patient1_long <- melt(theta_patient1_df, id.vars = "Time", variable.name = "Topic", value.name = "Proportion")
 
-# Plot
+
 ggplot(theta_patient1_long, aes(x = Time, y = Proportion, fill = Topic)) +
   geom_area(position = 'stack') +
   labs(x = "Time", y = "Topic Proportion", fill = "Topic") +
@@ -451,6 +506,7 @@ ggplot(theta_patient1_long, aes(x = Time, y = Proportion, fill = Topic)) +
 ```
 
 ## TODO: affect speed based through transitions based on genetics
+
 ```{r,eval=F}
 # Pseudocode - Adjusting spline coefficients based on a regression model
 
