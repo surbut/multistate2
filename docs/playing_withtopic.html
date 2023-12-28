@@ -388,7 +388,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-12-27
+<strong>Last updated:</strong> 2023-12-28
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -522,15 +522,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree4d2ac756d3a856171b64cc96406171bce2918d39targetblank4d2ac75a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree8b0f4416d606f7afd838703627874aba1a34f2aftargetblank8b0f441a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/4d2ac756d3a856171b64cc96406171bce2918d39" target="_blank">4d2ac75</a>
+<a href="https://github.com/surbut/multistate2/tree/8b0f4416d606f7afd838703627874aba1a34f2af" target="_blank">8b0f441</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree4d2ac756d3a856171b64cc96406171bce2918d39targetblank4d2ac75a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree8b0f4416d606f7afd838703627874aba1a34f2aftargetblank8b0f441a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +540,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/4d2ac756d3a856171b64cc96406171bce2918d39" target="_blank">4d2ac75</a>.
+<a href="https://github.com/surbut/multistate2/tree/8b0f4416d606f7afd838703627874aba1a34f2af" target="_blank">8b0f441</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -565,8 +565,6 @@ Ignored files:
     Ignored:    plots/.DS_Store
 
 Unstaged changes:
-    Modified:   analysis/flash2.Rmd
-    Modified:   analysis/paris.Rmd
     Modified:   analysis/playing_withtopic.Rmd
 
 </code></pre>
@@ -613,6 +611,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/8b0f4416d606f7afd838703627874aba1a34f2af/analysis/playing_withtopic.Rmd" target="_blank">8b0f441</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-27
+</td>
+<td>
+Update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/8b0f4416d606f7afd838703627874aba1a34f2af/docs/playing_withtopic.html" target="_blank">8b0f441</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-27
+</td>
+<td>
+Update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1266,17 +1298,18 @@ V &lt;- length(beta)   # Number of diagnoses
 T &lt;- 100            # Number of time points
 time_points &lt;- seq(0, 100, length.out = T)
 phi &lt;- array(dim = c(K, V, T))
-
-# Initialize phi with sparsity
+beta=rep(1/V,V)
 for (k in 1:K) {
-  for (v in 1:V) {
-    # Assign higher probabilities to certain diseases for each topic
-    if (v%in%topic_spec_disease[k,]) {
-      phi[k, v, 1] &lt;- 0.9  # Higher value for specific diseases
-    } else {
-      phi[k, v, 1] &lt;- 0.1  # Lower value otherwise
+    for (v in 1:V) {
+        # Assign higher probabilities to certain diseases for each topic
+        # Placeholder: Assigning higher weights to some diseases
+        if (v%in%topic_spec_disease[k,]) {
+            beta[v] &lt;- (V-d)/V
+        } else {
+            beta[v] &lt;- beta[v]
+        }
     }
-  }
+    phi[k,,1 ] &lt;- rdirichlet(1, beta)
 }
 
 
@@ -1295,20 +1328,31 @@ print(all_normalized)  # Should print TRUE if all are normalized</code></pre>
 <pre class="r"><code>degree=3
 knots=0.5
 
+## in McVean they have a set of spline functions across time for each of the KxV diseases, so we choose each set of coefficients randomly for each disease
+
 # Apply spline transformation with positive coefficients
 for (k in 1:K) {
+     
     for (v in 1:V) {
-        # Generate a B-spline basis
-        bspline_basis &lt;- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
-        
-        # Generate positive coefficients for the spline
+      # First, generate a disease specific B-spline basis
+    bspline_basis &lt;- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
+   
+        # Generate positive coefficients for the spline, ensuring they are small enough
+        # to not dominate the topic-specific diseases
         coef &lt;- runif(length(knots) + degree + 1, min = 0, max = 0.5)
-
+        
         # Calculate spline values ensuring they are non-negative
         spline_values &lt;- bspline_basis %*% coef
 
-        # Scale the spline values based on initial phi value
-        scaled_spline_values &lt;- spline_values * phi[k, v, 1] / max(spline_values)
+        # For topic-specific diseases, scale the spline values based on initial phi
+        # For non-topic-specific diseases, dampen the effect to keep them low
+        if (v %in% topic_spec_disease[k,]) {
+            scaled_spline_values &lt;- spline_values * phi[k, v, 1] / max(spline_values)
+        } else {
+            # Apply a dampening factor to non-topic specific diseases
+            dampening_factor &lt;- 0.01
+            scaled_spline_values &lt;- spline_values * dampening_factor * phi[k, v, 1] / max(spline_values)
+        }
 
         # Store the scaled spline values
         phi[k, v, ] &lt;- scaled_spline_values
@@ -1316,55 +1360,7 @@ for (k in 1:K) {
 }
 
 matplot(bspline_basis)</code></pre>
-<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
-Past versions of unnamed-chunk-4-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-4-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/4d2ac756d3a856171b64cc96406171bce2918d39/docs/figure/playing_withtopic.Rmd/unnamed-chunk-4-1.png" target="_blank">4d2ac75</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-12-26
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-4-1.png" target="_blank">b297d53</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-12-25
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/playing_withtopic.Rmd/simulatedphi-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="normalization" class="section level1">
 <h1>Normalization</h1>
@@ -1394,6 +1390,64 @@ print(all_normalized)  # Should print TRUE if all are normalized```</code></pre>
 diseases x topics x time, so for a given topic, this should be
 continous. Let’s look at a sample topic with a few diseases to
 check:</p>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/e83fb18a5cdd23e13b11f66a5137d2db23ae3368/docs/figure/playing_withtopic.Rmd/unnamed-chunk-5-1.png" target="_blank">e83fb18</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/b297d53febeb50e785020ae47ba77ed1d0493a9d/docs/figure/playing_withtopic.Rmd/unnamed-chunk-5-1.png" target="_blank">b297d53</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-25
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>We can see that this corresponds with the disease we’ve chosen in
+topic_disease.</p>
+</div>
+<div id="visualization-part-2" class="section level1">
+<h1>Visualization part 2</h1>
+<p>In fact, if we want to visualize all diseases over time, we can
+consider the heatmap of <span class="math inline">\(\phi_{k}\)</span>,
+and see that only the diseases that are part of the chosen topic
+specific disease have a non trivial coloring here.</p>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
@@ -1443,53 +1497,6 @@ Sarah Urbut
 </table>
 </div>
 </div>
-<p>We can see that this corresponds with the disease we’ve chosen in
-topic_disease.</p>
-</div>
-<div id="visualization-part-2" class="section level1">
-<h1>Visualization part 2</h1>
-<p>In fact, if we want to visualize all diseases over time, we can
-consider the heatmap of <span class="math inline">\(\phi_{k}\)</span>,
-and see that only the diseases that are part of the chosen topic
-specific disease have a non trivial coloring here.</p>
-<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
-Past versions of unnamed-chunk-7-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-7-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/surbut/multistate2/blob/4d2ac756d3a856171b64cc96406171bce2918d39/docs/figure/playing_withtopic.Rmd/unnamed-chunk-7-1.png" target="_blank">4d2ac75</a>
-</td>
-<td>
-Sarah Urbut
-</td>
-<td>
-2023-12-26
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 <div id="however-this-assumes-that-an-individual-stays-within-a-topic"
 class="section level2">
 <h2>However this assumes that an individual stays within a topic</h2>
@@ -1514,13 +1521,18 @@ class="section level1">
 <h1>Example function to update theta based on new diagnosis</h1>
 <p>Let’s start by modeling an individual’s transition to a new topic
 distribtuion as a funciton of genetics.</p>
-<p>Here, we will have the genetics influence change by a decau factor,
+<p>That is, <span
+class="math inline">\(p(K=k|D)=p(D|K)*p(K)/p(D)\)</span></p>
+<p>Here, we will have the genetics influence change by a decay factor,
 and the updated theta be proportional to the likelihood of the new
 diagnosis:</p>
 <p><span
 class="math inline">\(\theta_{t+1}=p(D|\theta_{t})*p(\tilde{\theta})\)</span></p>
 <p>Here, <span class="math inline">\(p(\tilde{\theta}\)</span>
 represents the genetics-adapted prior distribtuion.</p>
+<p>Genetics keeps us in the prior distribtuion more at early ages than
+later, so the strength of genetics influence on the prior will decline
+over time</p>
 <pre class="r"><code>update_theta &lt;- function(current_theta, new_diagnosis, phi_time_dependent, genetics_influence, current_time, max_time) {
   # Ensure valid inputs
   if (any(is.na(current_theta)) || any(is.na(phi_time_dependent))) {
@@ -1543,6 +1555,8 @@ represents the genetics-adapted prior distribtuion.</p>
 
   # Adjusted prior and likelihood
   adjusted_prior &lt;- current_theta * adjusted_genetics_influence
+  
+  
   likelihood &lt;- phi_current_time[, new_diagnosis] / row_sums
 
   # Bayesian update
@@ -1555,7 +1569,7 @@ represents the genetics-adapted prior distribtuion.</p>
   return(updated_theta / total)  # Normalize the updated theta
 }</code></pre>
 <p>Simulate data:</p>
-<pre class="r"><code>M &lt;- 100          # Number of patients
+<pre class="r"><code>M &lt;- 400          # Number of patients
 K &lt;- 5            # Number of topics
 V &lt;- 300          # Number of diseases
 T &lt;- 100          # Number of time steps
@@ -1568,7 +1582,7 @@ initial_theta &lt;- rdirichlet(M, shape = rep(0.1, K))
 # Assuming phi is a 3D array (topics x diseases x time)
 # This needs to be defined based on your model
 
-# Genetics influence (for simplicity, assuming a constant vector for each patient)
+# Genetics influence (for simplicity, assuming a constant vector for each patient), how much they want to stay in a topic
 genetics_influence &lt;- matrix(runif(M * K, 0.5, 1.5), nrow = M, ncol = K)
 
 # Structure to hold theta values over time for each patient
@@ -1606,12 +1620,205 @@ for (time in 2:T) {
 rowSums(theta_over_time[2,,])</code></pre>
 <pre><code>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- [75] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</code></pre>
+ [75] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[112] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[149] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[186] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[223] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[260] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[297] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[334] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[371] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</code></pre>
 </div>
 <div id="topic-distribtuion-per-patient" class="section level1">
 <h1>Topic distribtuion per patient</h1>
 <p>Now let’s select for a sample patient and view his topic distribution
 over time.</p>
+<p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/4d2ac756d3a856171b64cc96406171bce2918d39/docs/figure/playing_withtopic.Rmd/unnamed-chunk-9-1.png" target="_blank">4d2ac75</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-12-26
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="todo-affect-speed-based-through-transitions-based-on-genetics"
+class="section level2">
+<h2>TODO: affect speed based through transitions based on genetics</h2>
+<p>To estimate the speed through a topic for a given polygenic score in
+a large-scale simulation, and to predict at what age diseases might
+occur for an individual, you can integrate the concept of a polygenic
+score into your topic model. This requires a nuanced approach where the
+polygenic score influences the rate of progression through a topic. The
+idea is similar to genetic penetrance, where certain genetic factors
+might lead to earlier or later onset of diseases.</p>
+<p>Steps to Integrate Polygenic Score: 1. Incorporate Polygenic Score in
+the Model:</p>
+<p>Polygenic Score (PGS): Assume each individual has a polygenic score
+that quantifies their genetic predisposition towards certain diseases or
+disease progressions. Model Adjustment: Adjust the dynamics of your
+topic model based on the PGS. Higher scores might imply earlier onset or
+faster progression through disease stages within a topic. 2. Modifying
+Spline Dynamics Based on PGS:</p>
+<p>Dynamic Splines: Use the PGS to alter the parameters of the spline
+functions governing the transition through topics. For example,
+individuals with a high PGS might have spline functions that shift the
+disease probabilities to earlier ages.</p>
+<p>Time Scaling: Consider scaling the time axis based on PGS. For
+instance, you can modify the time points at which the spline is
+evaluated, effectively ‘compressing’ or ‘expanding’ the time scale for
+individuals with higher or lower PGS, respectively.</p>
+<pre class="r"><code># Function to scale PRS from a normal distribution to a [0, 1] range
+scale_prs &lt;- function(prs) {
+  # Normalize PRS to be between 0 and 1
+  # This is a simple min-max scaling; you can also consider other scaling methods
+  scaled_prs &lt;- (prs - min(prs)) / (max(prs) - min(prs))
+  return(scaled_prs)
+}
+
+# Generate PRS for each individual - normally distributed
+
+N_individuals &lt;- 100  # Number of individuals
+prs_raw &lt;- rnorm(N_individuals, mean = 0, sd = 1)
+prs_values &lt;- scale_prs(prs_raw)
+
+# Simulate PGS values for individuals
+
+# Create an array to store individual-specific phi values, initialize with same for all 
+phi_base &lt;- matrix(nrow = K, ncol = V)
+
+for (k in 1:K) {
+    beta &lt;- rep(1/V, V)  # Start with low probabilities
+
+    # Set higher probabilities for topic-specific diseases
+    for (v in topic_spec_disease[k,]) {
+        beta[v] &lt;- (V-d)/V
+    }
+    
+    # Initialize baseline phi for topic k using a Dirichlet distribution
+    phi_base[k, ] &lt;- rdirichlet(1, beta)
+}
+
+## check to make sure mostly topic hits
+which(order(phi_base[1,],decreasing = T)%in%topic_spec_disease[1,])</code></pre>
+<pre><code> [1]  1  2  3  4  5  6  7  9 10 12</code></pre>
+<pre class="r"><code># Expand phi_base to create the initial phi array for all individuals
+phi &lt;- array(dim = c(length(prs_values), V, K, length(time_points)))
+for (i in 1:length(prs_values)) {
+    phi[i, , , 1] &lt;- t(phi_base)  # Set the baseline phi for each individual
+}
+
+## check to make sure mostly topic hits
+which(order(phi[i,,1,1],decreasing = T)%in%topic_spec_disease[1,])</code></pre>
+<pre><code> [1]  1  2  3  4  5  6  7  9 10 12</code></pre>
+<pre class="r"><code>which(order(phi[i,,2,1],decreasing = T)%in%topic_spec_disease[2,])</code></pre>
+<pre><code> [1]  1  2  3  5  6  7  8 10 11 13</code></pre>
+<pre class="r"><code>summary(rowSums(phi[,,,1]))</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      5       5       5       5       5       5 </code></pre>
+<pre class="r"><code>all_normalized &lt;- all(apply(phi[,, , 1], c(1,3), function(x) abs(sum(x) - 1) &lt; .Machine$double.eps^0.5))
+print(all_normalized)  # Sh</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code># Functions to calculate the effects of PRS on the spline coefficients and time scale
+# can&#39;t change coefficient if constained to proper probability distirbution
+
+
+time_scale_adjustment &lt;- function(prs) {
+  # Define the relationship between PRS and time scale
+  # This is a placeholder; you need to define how PRS affects time scale
+  return(1 - prs)  # PRS compresses time scale
+}
+
+
+# Apply time scale adjustment based on PRS
+for (k in 1:K) {
+  for (v in 1:V) {
+    # Use base coefficients for the spline, should be same for every person
+    base_coef &lt;- runif(length(knots) + degree + 1, min = 0, max = 5)
+    for (i in 1:length(prs_values)) {
+      # Adjust time points based on individual&#39;s PRS
+      prs_time &lt;- time_scale_adjustment(prs_values[i])
+      adjusted_time_points &lt;- time_points[-1] * prs_time
+      # Re-calculate the spline basis for the adjusted time points
+      adjusted_bspline_basis &lt;-
+        bs(
+          adjusted_time_points,
+          knots = knots,
+          degree = degree,
+          intercept = TRUE
+        )
+      # Calculate spline values with base coefficients
+      spline_values &lt;- adjusted_bspline_basis %*% base_coef
+      # Store the values in phi, normalized across diseases at each time point
+      phi[i, v , k ,-1] &lt;- spline_values * phi[i, v, k, 1]
+      # Normalize the values across diseases
+    }
+  }
+}
+
+high=order(prs_values,decreasing = TRUE)[3]
+low=order(prs_values,decreasing = FALSE)[3]
+
+
+## check to make sure same at time 1
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})</code></pre>
+<pre><code>[1] TRUE TRUE TRUE TRUE TRUE</code></pre>
+<pre class="r"><code>## normalize to a proper distribution
+for(i in 1:length(prs_values)){
+for(k in 1:K){
+  for(t in 1:T){
+    phi[i,,k,t]/sum(phi[i,,k,t])
+  }}}
+
+
+
+## check to make sure still same at time 1
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})</code></pre>
+<pre><code>[1] TRUE TRUE TRUE TRUE TRUE</code></pre>
+<pre class="r"><code>all_normalized &lt;- all(apply(phi[,, , 1], c(1,3), function(x) abs(sum(x) - 1) &lt; .Machine$double.eps^0.5))
+print(all_normalized)  </code></pre>
+<pre><code>[1] TRUE</code></pre>
+<p>So now we can visualize someone with a high risk and low risk PRS
+loaded on same topic:</p>
+<pre class="r"><code>high=order(prs_values,decreasing = TRUE)[3]
+low=order(prs_values,decreasing = FALSE)[3]
+
+## check to make sure initailization same
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})</code></pre>
+<pre><code>[1] TRUE TRUE TRUE TRUE TRUE</code></pre>
+<pre class="r"><code>par(mfrow=c(1,2))
+matplot(t(phi[high,topic_spec_disease[1,],1,]))
+matplot(t(phi[low,topic_spec_disease[1,],1,]))</code></pre>
 <p><img src="figure/playing_withtopic.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
@@ -1650,27 +1857,6 @@ Sarah Urbut
 </table>
 </div>
 </div>
-<div id="todo-affect-speed-based-through-transitions-based-on-genetics"
-class="section level2">
-<h2>TODO: affect speed based through transitions based on genetics</h2>
-<pre class="r"><code># Pseudocode - Adjusting spline coefficients based on a regression model
-
-# Assume a regression model is built to predict coefficients from genetic data
-# coef_model &lt;- lm(coef ~ genetic_factors, data = training_data)
-
-# For each individual
-for (i in 1:N_individuals) {
-  # Get individual&#39;s genetic data
-  genetic_data_i &lt;- get_genetic_data_for_individual(i)
-
-  # Predict/adjust coefficients based on genetic data
-  predicted_coef &lt;- predict(coef_model, newdata = genetic_data_i)
-
-  # Use these coefficients for the spline
-  bspline_basis &lt;- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
-  spline_values &lt;- bspline_basis %*% predicted_coef
-  phi_individual[i, , ] &lt;- spline_values
-}</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

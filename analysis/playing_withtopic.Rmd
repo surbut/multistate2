@@ -236,23 +236,24 @@ The trick is that these need to be somewhat continuous -- you can't go from a 10
 So ... they use a natural spline. Here, we introduce a scaled bspline basis (with a knot at 0.5 and 3 degrees) that is scaled by the $\phi$ we just described inorder to introduce both continuity and preserve sparsity.
 
 
-```{r}
+```{r simulatedphi}
 K <- length(alpha)  # Number of topics
 V <- length(beta)   # Number of diagnoses
 T <- 100            # Number of time points
 time_points <- seq(0, 100, length.out = T)
 phi <- array(dim = c(K, V, T))
-
-# Initialize phi with sparsity
+beta=rep(1/V,V)
 for (k in 1:K) {
-  for (v in 1:V) {
-    # Assign higher probabilities to certain diseases for each topic
-    if (v%in%topic_spec_disease[k,]) {
-      phi[k, v, 1] <- 0.9  # Higher value for specific diseases
-    } else {
-      phi[k, v, 1] <- 0.1  # Lower value otherwise
+    for (v in 1:V) {
+        # Assign higher probabilities to certain diseases for each topic
+        # Placeholder: Assigning higher weights to some diseases
+        if (v%in%topic_spec_disease[k,]) {
+            beta[v] <- (V-d)/V
+        } else {
+            beta[v] <- beta[v]
+        }
     }
-  }
+    phi[k,,1 ] <- rdirichlet(1, beta)
 }
 
 
@@ -270,20 +271,31 @@ print(all_normalized)  # Should print TRUE if all are normalized
 degree=3
 knots=0.5
 
+## in McVean they have a set of spline functions across time for each of the KxV diseases, so we choose each set of coefficients randomly for each disease
+
 # Apply spline transformation with positive coefficients
 for (k in 1:K) {
+     
     for (v in 1:V) {
-        # Generate a B-spline basis
-        bspline_basis <- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
-        
-        # Generate positive coefficients for the spline
+      # First, generate a disease specific B-spline basis
+    bspline_basis <- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
+   
+        # Generate positive coefficients for the spline, ensuring they are small enough
+        # to not dominate the topic-specific diseases
         coef <- runif(length(knots) + degree + 1, min = 0, max = 0.5)
-
+        
         # Calculate spline values ensuring they are non-negative
         spline_values <- bspline_basis %*% coef
 
-        # Scale the spline values based on initial phi value
-        scaled_spline_values <- spline_values * phi[k, v, 1] / max(spline_values)
+        # For topic-specific diseases, scale the spline values based on initial phi
+        # For non-topic-specific diseases, dampen the effect to keep them low
+        if (v %in% topic_spec_disease[k,]) {
+            scaled_spline_values <- spline_values * phi[k, v, 1] / max(spline_values)
+        } else {
+            # Apply a dampening factor to non-topic specific diseases
+            dampening_factor <- 0.01
+            scaled_spline_values <- spline_values * dampening_factor * phi[k, v, 1] / max(spline_values)
+        }
 
         # Store the scaled spline values
         phi[k, v, ] <- scaled_spline_values
@@ -384,12 +396,15 @@ ggplot(phi_topic1_long, aes(x = Time, y= Diagnosis, fill = Probability)) +
 
 Let's start by modeling an individual's transition to a new topic distribtuion as a funciton of genetics.
 
-Here, we will have the genetics influence change by a decau factor, and the updated theta be proportional to the likelihood of the new diagnosis:
+That is, $p(K=k|D)=p(D|K)*p(K)/p(D)$
+
+Here, we will have the genetics influence change by a decay factor, and the updated theta be proportional to the likelihood of the new diagnosis:
 
 $\theta_{t+1}=p(D|\theta_{t})*p(\tilde{\theta})$
 
 Here, $p(\tilde{\theta}$ represents the genetics-adapted prior distribtuion.
-
+ 
+Genetics keeps us in the prior distribtuion more at early ages than later, so the strength of genetics influence on the prior will decline over time
 
 ```{r}
 update_theta <- function(current_theta, new_diagnosis, phi_time_dependent, genetics_influence, current_time, max_time) {
@@ -414,6 +429,8 @@ update_theta <- function(current_theta, new_diagnosis, phi_time_dependent, genet
 
   # Adjusted prior and likelihood
   adjusted_prior <- current_theta * adjusted_genetics_influence
+  
+  
   likelihood <- phi_current_time[, new_diagnosis] / row_sums
 
   # Bayesian update
@@ -430,7 +447,7 @@ update_theta <- function(current_theta, new_diagnosis, phi_time_dependent, genet
 Simulate data:
 
 ```{r}
-M <- 100          # Number of patients
+M <- 400          # Number of patients
 K <- 5            # Number of topics
 V <- 300          # Number of diseases
 T <- 100          # Number of time steps
@@ -443,7 +460,7 @@ initial_theta <- rdirichlet(M, shape = rep(0.1, K))
 # Assuming phi is a 3D array (topics x diseases x time)
 # This needs to be defined based on your model
 
-# Genetics influence (for simplicity, assuming a constant vector for each patient)
+# Genetics influence (for simplicity, assuming a constant vector for each patient), how much they want to stay in a topic
 genetics_influence <- matrix(runif(M * K, 0.5, 1.5), nrow = M, ncol = K)
 
 # Structure to hold theta values over time for each patient
@@ -487,7 +504,7 @@ rowSums(theta_over_time[2,,])
 Now let's select for a sample patient and view his topic distribution over time. 
 
 ```{r,echo=F}
-# Select data for a specific patient, e.g., patient 1
+# Select data for a specific patient
 pt=sample(M,size = 1)
 theta_patient1 <- theta_over_time[,pt , ]
 
@@ -507,24 +524,145 @@ ggplot(theta_patient1_long, aes(x = Time, y = Proportion, fill = Topic)) +
 
 ## TODO: affect speed based through transitions based on genetics
 
-```{r,eval=F}
-# Pseudocode - Adjusting spline coefficients based on a regression model
 
-# Assume a regression model is built to predict coefficients from genetic data
-# coef_model <- lm(coef ~ genetic_factors, data = training_data)
+To estimate the speed through a topic for a given polygenic score in a large-scale simulation, and to predict at what age diseases might occur for an individual, you can integrate the concept of a polygenic score into your topic model. This requires a nuanced approach where the polygenic score influences the rate of progression through a topic. The idea is similar to genetic penetrance, where certain genetic factors might lead to earlier or later onset of diseases.
 
-# For each individual
-for (i in 1:N_individuals) {
-  # Get individual's genetic data
-  genetic_data_i <- get_genetic_data_for_individual(i)
+Steps to Integrate Polygenic Score:
+1. Incorporate Polygenic Score in the Model:
 
-  # Predict/adjust coefficients based on genetic data
-  predicted_coef <- predict(coef_model, newdata = genetic_data_i)
+Polygenic Score (PGS): Assume each individual has a polygenic score that quantifies their genetic predisposition towards certain diseases or disease progressions.
+Model Adjustment: Adjust the dynamics of your topic model based on the PGS. Higher scores might imply earlier onset or faster progression through disease stages within a topic.
+2. Modifying Spline Dynamics Based on PGS:
 
-  # Use these coefficients for the spline
-  bspline_basis <- bs(time_points, knots = knots, degree = degree, intercept = TRUE)
-  spline_values <- bspline_basis %*% predicted_coef
-  phi_individual[i, , ] <- spline_values
+Dynamic Splines: Use the PGS to alter the parameters of the spline functions governing the transition through topics. For example, individuals with a high PGS might have spline functions that shift the disease probabilities to earlier ages.
+
+Time Scaling: Consider scaling the time axis based on PGS. For instance, you can modify the time points at which the spline is evaluated, effectively 'compressing' or 'expanding' the time scale for individuals with higher or lower PGS, respectively.
+
+```{r timescale}
+
+# Function to scale PRS from a normal distribution to a [0, 1] range
+scale_prs <- function(prs) {
+  # Normalize PRS to be between 0 and 1
+  # This is a simple min-max scaling; you can also consider other scaling methods
+  scaled_prs <- (prs - min(prs)) / (max(prs) - min(prs))
+  return(scaled_prs)
 }
+
+# Generate PRS for each individual - normally distributed
+
+N_individuals <- 100  # Number of individuals
+prs_raw <- rnorm(N_individuals, mean = 0, sd = 1)
+prs_values <- scale_prs(prs_raw)
+
+# Simulate PGS values for individuals
+
+# Create an array to store individual-specific phi values, initialize with same for all 
+phi_base <- matrix(nrow = K, ncol = V)
+
+for (k in 1:K) {
+    beta <- rep(1/V, V)  # Start with low probabilities
+
+    # Set higher probabilities for topic-specific diseases
+    for (v in topic_spec_disease[k,]) {
+        beta[v] <- (V-d)/V
+    }
+    
+    # Initialize baseline phi for topic k using a Dirichlet distribution
+    phi_base[k, ] <- rdirichlet(1, beta)
+}
+
+## check to make sure mostly topic hits
+which(order(phi_base[1,],decreasing = T)%in%topic_spec_disease[1,])
+
+# Expand phi_base to create the initial phi array for all individuals
+phi <- array(dim = c(length(prs_values), V, K, length(time_points)))
+for (i in 1:length(prs_values)) {
+    phi[i, , , 1] <- t(phi_base)  # Set the baseline phi for each individual
+}
+
+## check to make sure mostly topic hits
+which(order(phi[i,,1,1],decreasing = T)%in%topic_spec_disease[1,])
+which(order(phi[i,,2,1],decreasing = T)%in%topic_spec_disease[2,])
+
+summary(rowSums(phi[,,,1]))
+
+all_normalized <- all(apply(phi[,, , 1], c(1,3), function(x) abs(sum(x) - 1) < .Machine$double.eps^0.5))
+print(all_normalized)  # Sh
+
+# Functions to calculate the effects of PRS on the spline coefficients and time scale
+# can't change coefficient if constained to proper probability distirbution
+
+
+time_scale_adjustment <- function(prs) {
+  # Define the relationship between PRS and time scale
+  # This is a placeholder; you need to define how PRS affects time scale
+  return(1 - prs)  # PRS compresses time scale
+}
+
+
+# Apply time scale adjustment based on PRS
+for (k in 1:K) {
+  for (v in 1:V) {
+    # Use base coefficients for the spline, should be same for every person
+    base_coef <- runif(length(knots) + degree + 1, min = 0, max = 5)
+    for (i in 1:length(prs_values)) {
+      # Adjust time points based on individual's PRS
+      prs_time <- time_scale_adjustment(prs_values[i])
+      adjusted_time_points <- time_points[-1] * prs_time
+      # Re-calculate the spline basis for the adjusted time points
+      adjusted_bspline_basis <-
+        bs(
+          adjusted_time_points,
+          knots = knots,
+          degree = degree,
+          intercept = TRUE
+        )
+      # Calculate spline values with base coefficients
+      spline_values <- adjusted_bspline_basis %*% base_coef
+      # Store the values in phi, normalized across diseases at each time point
+      phi[i, v , k ,-1] <- spline_values * phi[i, v, k, 1]
+      # Normalize the values across diseases
+    }
+  }
+}
+
+high=order(prs_values,decreasing = TRUE)[3]
+low=order(prs_values,decreasing = FALSE)[3]
+
+
+## check to make sure same at time 1
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})
+
+
+
+## normalize to a proper distribution
+for(i in 1:length(prs_values)){
+for(k in 1:K){
+  for(t in 1:T){
+    phi[i,,k,t]/sum(phi[i,,k,t])
+  }}}
+
+
+
+## check to make sure still same at time 1
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})
+
+ 
+all_normalized <- all(apply(phi[,, , 1], c(1,3), function(x) abs(sum(x) - 1) < .Machine$double.eps^0.5))
+print(all_normalized)  
 ```
+
+So now we can visualize someone with a high risk and low risk PRS loaded on same topic:
+
+```{r}
+high=order(prs_values,decreasing = TRUE)[3]
+low=order(prs_values,decreasing = FALSE)[3]
+
+## check to make sure initailization same
+sapply(seq(1:K),function(k){all.equal(phi[high,,k,1],phi[low,,k,1])})
+par(mfrow=c(1,2))
+matplot(t(phi[high,topic_spec_disease[1,],1,]))
+matplot(t(phi[low,topic_spec_disease[1,],1,]))
+```
+
 
