@@ -154,15 +154,19 @@ mean(g[g$CAD>0.85,"Cad_Any"]==2)
 mean(g[g$CAD<(-0.85),"Cad_Any"]==2)
 
 
-mean(na.omit(g[g$CAD>0.85,"Death_any"]==2))
-mean(na.omit(g[g$CAD<(-0.85),"Death_any"]==2))
+t.test(na.omit(g[g$CAD>0.85,"Death_any"]==2),na.omit(g[g$CAD<(-0.85),"Death_any"]==2))
 
-mean(na.omit(g[g$CAD>0.85,"Brca_Any"]==2))
-mean(na.omit(g[g$CAD<(-0.85),"Brca_Any"]==2))
+t.test(na.omit(g[g$CAD>0.85,"Brca_Any"]==2),na.omit(g[g$CAD<(-0.85),"Brca_Any"]==2))
 
-mean(na.omit(g[g$CAD>0.85,"Crc_Any"]==2))
-mean(na.omit(g[g$CAD<(-0.85),"Crc_Any"]==2))
+t.test(na.omit(g[g$CAD>0.85,"Crc_Any"]==2),na.omit(g[g$CAD<(-0.85),"Crc_Any"]==2))
 
-mean(na.omit(g[g$CAD>0.85,"Pca_Any"]==2))
-mean(na.omit(g[g$CAD<(-0.85),"Pca_Any"]==2))
+t.test(na.omit(g[g$CAD>0.85,"Pca_Any"]==2),na.omit(g[g$CAD<(-0.85),"Pca_Any"]==2))
+
+t.test(na.omit(g[g$CAD>0.85,"Lca_Any"]==2),na.omit(g[g$CAD<(-0.85),"Lca_Any"]==2))
+
+t.test(na.omit(g[g$CAD>0.85,"Alz_Any"]==2),na.omit(g[g$CAD<(-0.85),"Alz_Any"]==2))
+```
+
+So for Breast cancer we do see a bit of a competing risk. 
+
 ```
