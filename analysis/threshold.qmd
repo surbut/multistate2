@@ -1,0 +1,56 @@
+---
+title: "ThresholdVariant"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+set.seed(123)  # For reproducibility
+
+n <- 1000  # Number of individuals
+n_rare_variants <- 10  # Number of rare genetic variants
+n_common_variants <- 50  # Number of common genetic variants
+
+# Simulating rare variants (low frequency, high impact)
+freq_rare <- 0.01
+effect_rare <- 3
+rare_variants <- matrix(rbinom(n * n_rare_variants, 1, freq_rare), ncol = n_rare_variants) * effect_rare
+
+# Simulating common variants (high frequency, low impact)
+freq_common <- 0.5
+effect_common <- 0.5
+common_variants <- matrix(rbinom(n * n_common_variants, 1, freq_common), ncol = n_common_variants) * effect_common
+
+# Calculate genetic risk score
+genetic_risk_score <- rowSums(rare_variants) + rowSums(common_variants)
+head(genetic_risk_score)
+```
+
+We can then simulate the age at event according to an exponential function
+
+```{r}
+# Define a baseline rate for the exponential model
+baseline_rate <- 0.1
+
+# Calculate rate parameter as a function of genetic risk
+rate_parameter <- baseline_rate * exp(-0.5 * genetic_risk_score)  # Adjust the coefficient as needed
+
+# Simulate survival times (age at event)
+age_at_event <- rexp(n, rate = rate_parameter)
+
+# You can adjust the maximum age limit as required
+max_age_limit <- 100
+age_at_event[age_at_event > max_age_limit] <- max_age_limit
+
+hist(age_at_event, breaks = 30, main = "Simulated Distribution of Age at Event", xlab = "Age", ylab = "Frequency")
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
