@@ -6,6 +6,7 @@ date: "2023-12-18"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 
@@ -34,7 +35,7 @@ with the scales of loadings $\ell_{\cdot 1}, \ldots, \ell_{\cdot K}$ and factors
 
 Here we will examine the sparse factor analysis of individuals who receive a code at the age under each plot indicated
 
-```{r,eval=F}
+```{r,eval=F,echo=FALSE}
 remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 library(flashier)
 library(data.table)
@@ -70,7 +71,7 @@ saveRDS(f2,paste0("~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flas
 
 Now let's plot:
 
-```{r}
+```{r,echo=F}
 age_cutoffs <- seq(40, 90, by = 5)
 K = 10
 for (i in 1:length(age_cutoffs)) {
@@ -84,11 +85,13 @@ for (i in 1:length(age_cutoffs)) {
   )
   par(mfrow = c(3, 3))
   for (k in 2:f$n_factors) {
-    barplot(head(sort(f[["F_pm"]][, k], decreasing = T), n = 20),
+    barplot(head(sort(f[["F_pm"]][, k], decreasing = TRUE), n = 10),
             las = 2,
             main = paste("Age leq", age_threshold))
   }
 }
+
+
 
 ```
 
@@ -99,7 +102,7 @@ We can also do for all, but we'll need to first remove rows with 0s and binarize
 
 Recall we shall keep a non-negative prior on the factors and loadings,
 
-```{r,eval=F}
+```{r,eval=F,echo=F}
 library(Matrix)
 library(flashier)
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
@@ -137,12 +140,12 @@ rm(f2)
 
 Here we make no restriction and examine the top 20 variable loadings:
 
-```{r}
+```{r echo=F}
 ## this one was with the colSums must be >500 and no specification on S
 f = readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds")
 par(mfrow=c(3,3))
 for(k in 2:10){
-barplot(head(sort(f[["F_pm"]][,k],decreasing = T),n=20),las=2)
+barplot(head(sort(f[["F_pm"]][,k],decreasing = TRUE),n=10),las=2)
 }
 
 ```
@@ -151,7 +154,8 @@ barplot(head(sort(f[["F_pm"]][,k],decreasing = T),n=20),las=2)
 # Group by age
 ## looking at the codes that occur exactly at that age group
 
-```{r,eval=F}
+```{r,eval=F,echo=F}
+
 #remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
 #df.phecode.wide[is.na(df.phecode.wide)]=0
@@ -184,7 +188,7 @@ saveRDS(f2,paste0("~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flas
 
 Now let's plot:
 
-```{r}
+```{r echo=F}
 age_cutoffs <- seq(40, 90, by = 10)
 K = 10
 for (i in 1:length(age_cutoffs)) {
@@ -198,7 +202,7 @@ for (i in 1:length(age_cutoffs)) {
   )
   par(mfrow = c(3, 3))
   for (k in 2:f$n_factors) {
-    barplot(head(sort(f[["F_pm"]][, k], decreasing = T), n = 20),
+    barplot(head(sort(f[["F_pm"]][, k], decreasing = TRUE), n = 10),
             las = 2,
             main = paste0("Age", age_threshold))
   }
@@ -208,18 +212,22 @@ for (i in 1:length(age_cutoffs)) {
 
 # Wth fixed s0 and k=10 
 *  why does mean come out when K = 10 but not K=47
-```{r}
+* the mean has been removed?
+```{r echo=F}
 #f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
 #saveRDS(f2,file= "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
 f=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run47_s0.rds")
-plot(f2)
-f2=head(sort(f2$F_pm[,2],decreasing = T))
-
+plot(f)
+head(sort(f$F_pm[,1],decreasing = TRUE),n=10)
 ```
 
-For Jordan:
 
-```{r}
+
+```{r,echo=FALSE,eval=FALSE}
+## Show the pchiatric
+
+l=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run47_s0.rds")
+
 plot(l)
 
 barplot(sort(l$F_pm[,25],decreasing = TRUE)[1:20],las=2)
@@ -227,32 +235,84 @@ barplot(sort(l$F_pm[,25],decreasing = TRUE)[1:20],las=2)
 apply(df.phecode.wide[,..w],2,function(x){median(na.omit(x))})
 ```
 
-Let's try with a very small s
-```{r}
+Let's try with a very small s and show that ELBO worsens.
 
-df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
-dfw=df.phecode.wide[,-c(1:5)]
-dfw[!is.na(dfw)]=1
-dfw[is.na(dfw)]=0
-X=as.matrix(dfw)
 
-X=X[,which(colSums(X)>0)]
-X=X[which(rowSums(X)>0),]
-X=Matrix(X,sparse = T)
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+```{r echo=F}
+# df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
+# dfw=df.phecode.wide[,-c(1:5)]
+# dfw[!is.na(dfw)]=1
+# dfw[is.na(dfw)]=0
+# X=as.matrix(dfw)
+# 
+# X=X[,which(colSums(X)>0)]
+# X=X[which(rowSums(X)>0),]
+# X=Matrix(X,sparse = T)
 
 # smin=min(f$residuals_sd)
 # f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=smin)
 # saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run48_smin.rds")
-# ## but the elbo is worse here than not specifying s
+f2=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run48_smin.rds")
+f2$elbo
+```
 
+However, the elbo is worse here than not specifying s
 
+```{r}
 # f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1/sqrt(ncol(X)))
 # saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run50_sqrtncol.rds")
+f2=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_sqrtncol.rds")
+f2$elbo
 
 
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+#f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
 #saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_run50_nospec.rds")
+f2=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
+f2$elbo
+```
+
+
+
+Show that perhaps the point exponential forces cardiac away and weird removal of factors; here we usee point exponential. So now we will use normal mis (no restrictions)
+
+```{r}
+filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
+
+## with no positivity constraint
+fit=readRDS(paste0(filepath,"fit_default_all.rds"))
+
+fit$F_ghat[[1]]
+
+head(sort(fit$F_pm[,2],decreasing = TRUE,n=20))
+tail(sort(fit$F_pm[,2],decreasing = TRUE,n=20))
+
+head(sort(fit$F_pm[,3],decreasing = TRUE,n=20))
+tail(sort(fit$F_pm[,3],decreasing = TRUE,n=20))
+
+head(sort(fit$F_pm[,4],decreasing = TRUE,n=20))
+tail(sort(fit$F_pm[,4],decreasing = TRUE,n=20))
+
+## with positivity constraint
+# flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+# Nullchecking 50 factors...
+# Factor1set to zero, increasing objective by 1.045e+07.
+# Factor5set to zero, increasing objective by 9.593e+05.
+# Factor11set to zero, increasing objective by 5.946e+05.
+
+f=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
+lapply(seq(1:20),function(x){head(sort(f$F_pm[,x],decreasing = TRUE),n=10)})
+
+## problem here is that the cardiovascular effect is the mean effect (1) and i thought we should remove this?
+## but elbo is maximal
+f$elbo
+```
+
+## Here we do on the arrays
+
+
+We initialize a (tensor) of patients times traits x epochs (5 year intervals from 40-80). The advantage here is we can use rows with 0s as the code allows. There are some features in the tensors we might prefer, but constraining to be all positive has some odd results - esophageal diseases appear in several factors with high loadings, as does pregnancy.
+
+```{r}
 
 # array
 # dfw[is.na(dfw)]=0
@@ -266,49 +326,32 @@ f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_expone
 #saveRDS(f,file = "~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
 # f2=flashier::flash(data = tdat,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20)
 # saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
+
+f2=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
+lapply(seq(1:10),function(x){head(sort(f2$loadings_pm[[2]][,x],decreasing = TRUE),n=20)})
+
 ```
 
-Show that perhaps the point exponential forces cardiac away and weird removal of factors:
+We use  ebnm_point_exponential,ebnm_point_laplace,ebnm_point_exponential on total array
+
+Hwwever, now heart disease is 4 and 5 
+```{r}
+f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
+lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = TRUE),n=20)})
+```
+
+With  all positive array (all point_exponential)
 
 ```{r}
-filepath="~/Library/CloudStorage/Dropbox-Personal/pheno_dir/"
-
-## with no positivity constraint
-fit=readRDS(paste0(filepath,"fit_default_all.rds"))
-
-fit$F_ghat[[1]]
-
-head(sort(fit$F_pm[,2],decreasing = T,n=20))
-tail(sort(fit$F_pm[,2],decreasing = T,n=20))
-
-head(sort(fit$F_pm[,3],decreasing = T,n=20))
-tail(sort(fit$F_pm[,3],decreasing = T,n=20))
-
-head(sort(fit$F_pm[,4],decreasing = T,n=20))
-tail(sort(fit$F_pm[,4],decreasing = T,n=20))
-
-## with positivity constraint
-# flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
-# Nullchecking 50 factors...
-# Factor1set to zero, increasing objective by 1.045e+07.
-# Factor5set to zero, increasing objective by 9.593e+05.
-# Factor11set to zero, increasing objective by 5.946e+05.
-
-#f=readRDS("~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run50_nospec.rds")
-lapply(seq(1:10),function(x){head(sort(f$F_pm[,x],decreasing = T),n=20)})
-
-
-
-## with ebnm_point_exponential,ebnm_point_laplace,ebnm_point_exponential
-f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_10_exponential.rds")
-lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=20)})
-
-## with  all positive array
-
 f=readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_array_20_allpos.rds")
-lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = T),n=10)})
+lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = TRUE),n=10)})
+```
 
-#### redo without removing
+
+### Let's return to the matrix space
+
+We can redo  removing only 0 row, not remoivng null rows or look if we set S to something small.
+```{r echo=F,eval=F}
 remotes::install_github("willwerscheid/flashier", ref = "allow_zero_rows",force=T)
 library(flashier)
 library(Matrix)
@@ -328,32 +371,45 @@ saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit.
 f3=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
 #saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds")
 
-lapply(seq(1:10),function(x){head(sort(f3$F_pm[,x],decreasing = T),n=20)})
+
+```
+
+First we try with a normal loadings constraint so that we don't have this strange behavior of removal of the first factor, but it seems that then the first factor is the only that contains Htn and ischemic heart disease.
+
+```{}
+#f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T)
+f2=readRDS("~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit.rds")
+lapply(seq(1:20),function(x){head(sort(f2$F_pm[,x],decreasing = TRUE),n=10)})
+```
 
 
-f3=flashier::flash(data = X,var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
-saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz.rds")
+Let's do with null check =T and we see that heart disease appears again inthe 2nd,3rd and 4th with high loadings 
+```{r}
+#f3=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
+f3=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds")
+
+lapply(seq(1:20),function(x){head(sort(f3$F_pm[,x],decreasing = TRUE),n=10)})
+```
+
+It seems we got better results with no restrictions (default normal) so let's try with backfitting.
+
+```{r}
+#f3=flashier::flash(data = X,var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
+#saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz.rds")
 f3=readRDS("~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz.rds")
 lapply(seq(1:40),function(x){head(sort(f3$F_pm[,x],decreasing = TRUE),n=10)})
+```
 
-### make the loadings flexible but non negaitve
-## backfit
-### clone branch with s very samll so i don't have to (allow 0 rows)
-
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T,S=1/1500)
-
-saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz_allrows.rds")
+But now how do we interpret negative factors, and ischemic hear disease in 4,7,11...
 
 
+Ok what if we make the loadings flexible but non negaitve and allow for 0 rows (with new branch update) and backfit
 
-### make all non negaitve
-## backfit
-### clone branch with s very samll so i don't have to (allow 0 rows)
-
-f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = F,backfit = T,S=1/1500)
-
-saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/matrix_pn_pe_backfit_nonneg_allrows.rds")
+```{r}
+#f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = F,backfit = T,S=1/1500)
+#saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/matrix_pn_pe_backfit_nonneg_allrows.rds")
 
 f2=readRDS("~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_norestrictionz_allrows.rds")
 lapply(seq(1:20),function(x){head(sort(f2$F_pm[,x],decreasing = TRUE),n=10)})
 ```
+So is the ischemic factor 2 or 20? And why does GERD enter everywhere ...
