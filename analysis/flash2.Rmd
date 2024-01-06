@@ -35,7 +35,7 @@ with the scales of loadings $\ell_{\cdot 1}, \ldots, \ell_{\cdot K}$ and factors
 
 Here we will examine the sparse factor analysis of individuals who receive a code at the age under each plot indicated
 
-```{r,eval=F,echo=FALSE}
+```{r,eval=F,echo=TRUE}
 remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 library(flashier)
 library(data.table)
@@ -102,7 +102,7 @@ We can also do for all, but we'll need to first remove rows with 0s and binarize
 
 Recall we shall keep a non-negative prior on the factors and loadings,
 
-```{r,eval=F,echo=F}
+```{r,eval=F,echo=T}
 library(Matrix)
 library(flashier)
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
@@ -140,7 +140,7 @@ rm(f2)
 
 Here we make no restriction and examine the top 20 variable loadings:
 
-```{r echo=F}
+```{r echo=T}
 ## this one was with the colSums must be >500 and no specification on S
 f = readRDS("~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds")
 par(mfrow=c(3,3))
@@ -154,7 +154,7 @@ barplot(head(sort(f[["F_pm"]][,k],decreasing = TRUE),n=10),las=2)
 # Group by age
 ## looking at the codes that occur exactly at that age group
 
-```{r,eval=F,echo=F}
+```{r,eval=F,echo=T}
 
 #remotes::install_github("willwerscheid/flashier", ref = "sparse_tensors")
 df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds")
@@ -213,7 +213,7 @@ for (i in 1:length(age_cutoffs)) {
 # Wth fixed s0 and k=10 
 *  why does mean come out when K = 10 but not K=47
 * the mean has been removed?
-```{r echo=F}
+```{r echo=T}
 #f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
 #saveRDS(f2,file= "~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds")
 f=readRDS(file = "~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run47_s0.rds")
@@ -238,7 +238,7 @@ apply(df.phecode.wide[,..w],2,function(x){median(na.omit(x))})
 Let's try with a very small s and show that ELBO worsens.
 
 
-```{r echo=F}
+```{r echo=T}
 # df.phecode.wide=readRDS("~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds")
 # dfw=df.phecode.wide[,-c(1:5)]
 # dfw[!is.na(dfw)]=1
@@ -351,7 +351,7 @@ lapply(seq(1:10),function(x){head(sort(f$loadings_pm[[2]][,x],decreasing = TRUE)
 ### Let's return to the matrix space
 
 We can redo  removing only 0 row, not remoivng null rows or look if we set S to something small.
-```{r echo=F,eval=F}
+```{r echo=T,eval=F}
 remotes::install_github("willwerscheid/flashier", ref = "allow_zero_rows",force=T)
 library(flashier)
 library(Matrix)

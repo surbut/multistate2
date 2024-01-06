@@ -4,53 +4,67 @@ format: html
 editor: visual
 ---
 
-## Quarto
+# **Simulate a Continuous Genetic Risk Score**:
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+As before, we simulate the genetic risk score with a combination of rare and common variants.
 
-## Running Code
+```{r,echo=FALSE}
+#install.packages("survival")
+library(survival)
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+```
+
+-   The distributions from which the effect sizes for rare and common variants are drawn should be chosen based on real-world data or literature to reflect actual genetic risk profiles.
+
+-   The number of rare and common variants (**`n_rare_variants`** and **`n_common_variants`**) and their frequencies should be set to realistic values.
+
+-   This approach results in a more nuanced genetic risk score, which is more representative of actual genetic variability in a population.
 
 ```{r}
-set.seed(123)  # For reproducibility
-
 n <- 1000  # Number of individuals
-n_rare_variants <- 10  # Number of rare genetic variants
-n_common_variants <- 50  # Number of common genetic variants
+n_rare_variants <- 10  # Number of rare variants per individual
+n_common_variants <- 50  # Number of common variants per individual
 
-# Simulating rare variants (low frequency, high impact)
-freq_rare <- 0.01
-effect_rare <- 3
-rare_variants <- matrix(rbinom(n * n_rare_variants, 1, freq_rare), ncol = n_rare_variants) * effect_rare
+# Simulating the effect of rare variants
+rare_effect_size <- rnorm(n_rare_variants, mean = 1.5, sd = 0.5)  # Adjust mean and sd as needed
+rare_variants <- matrix(rbinom(n * n_rare_variants, 1, 0.01), ncol = n_rare_variants) * rare_effect_size
 
-# Simulating common variants (high frequency, low impact)
-freq_common <- 0.5
-effect_common <- 0.5
-common_variants <- matrix(rbinom(n * n_common_variants, 1, freq_common), ncol = n_common_variants) * effect_common
+# Simulating the effect of common variants
+common_effect_size <- rnorm(n_common_variants, mean = 0.1, sd = 0.05)  # Adjust mean and sd as needed
+common_variants <- matrix(rbinom(n * n_common_variants, 1, 0.5), ncol = n_common_variants) * common_effect_size
 
-# Calculate genetic risk score
+# Combined genetic risk score
 genetic_risk_score <- rowSums(rare_variants) + rowSums(common_variants)
-head(genetic_risk_score)
 ```
 
-We can then simulate the age at event according to an exponential function
+**Simulate Event Times Using the Weibull Distribution**:
+
+-   The choice of shape parameter (greater than 1) is crucial to ensure an increasing hazard rate over time, leading to a 'J'-shaped distribution.
+
+-   The scale parameter, influenced by the genetic risk score, will affect the distribution of event times but won't change the overall shape of the hazard function.
+
+-   The exact values for the shape and scale parameters, as well as the distributions for the genetic risk scores, should be based on the specific characteristics of the disease or trait you're studying.
 
 ```{r}
-# Define a baseline rate for the exponential model
-baseline_rate <- 0.1
 
-# Calculate rate parameter as a function of genetic risk
-rate_parameter <- baseline_rate * exp(-0.5 * genetic_risk_score)  # Adjust the coefficient as needed
+# Parameters for the Weibull distribution
+shape <- 3  # Shape parameter > 1 for increasing hazard
+scale_base <- 50  # Base scale parameter
 
-# Simulate survival times (age at event)
-age_at_event <- rexp(n, rate = rate_parameter)
+# Adjust scale parameter based on genetic risk score
+scale <- scale_base * exp(-0.03 * genetic_risk_score)
 
-# You can adjust the maximum age limit as required
-max_age_limit <- 100
-age_at_event[age_at_event > max_age_limit] <- max_age_limit
+# Simulate event times
+event_times <- rweibull(n, shape, scale)
 
-hist(age_at_event, breaks = 30, main = "Simulated Distribution of Age at Event", xlab = "Age", ylab = "Frequency")
+# Adjust event times to a realistic age range (e.g., 20 to 80 years)
+event_times <- 20 + (event_times / max(event_times)) * 60
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+**Analysis and Visualization**:
+
+Analyze or visualize the distribution of event times to understand the impact of the genetic risk.
+
+```{r}
+hist(event_times, breaks = 30, main = "Distribution of Simulated Event Ages", xlab = "Age", ylab = "Frequency")
+```

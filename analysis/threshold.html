@@ -94,58 +94,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<section id="quarto" class="level2">
-<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
-<p>Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <a href="https://quarto.org" class="uri">https://quarto.org</a>.</p>
-</section>
-<section id="running-code" class="level2">
-<h2 class="anchored" data-anchor-id="running-code">Running Code</h2>
-<p>When you click the <strong>Render</strong> button a document will be generated that includes both content and the output of embedded code. You can embed code like this:</p>
+<section id="simulate-a-continuous-genetic-risk-score" class="level1">
+<h1><strong>Simulate a Continuous Genetic Risk Score</strong>:</h1>
+<p>As before, we simulate the genetic risk score with a combination of rare and common variants.</p>
+<ul>
+<li><p>The distributions from which the effect sizes for rare and common variants are drawn should be chosen based on real-world data or literature to reflect actual genetic risk profiles.</p></li>
+<li><p>The number of rare and common variants (<strong><code>n_rare_variants</code></strong> and <strong><code>n_common_variants</code></strong>) and their frequencies should be set to realistic values.</p></li>
+<li><p>This approach results in a more nuanced genetic risk score, which is more representative of actual genetic variability in a population.</p></li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)  <span class="co"># For reproducibility</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span>  <span class="co"># Number of individuals</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>n_rare_variants <span class="ot">&lt;-</span> <span class="dv">10</span>  <span class="co"># Number of rare genetic variants</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>n_common_variants <span class="ot">&lt;-</span> <span class="dv">50</span>  <span class="co"># Number of common genetic variants</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulating rare variants (low frequency, high impact)</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>freq_rare <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>effect_rare <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>rare_variants <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(n <span class="sc">*</span> n_rare_variants, <span class="dv">1</span>, freq_rare), <span class="at">ncol =</span> n_rare_variants) <span class="sc">*</span> effect_rare</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulating common variants (high frequency, low impact)</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>freq_common <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>effect_common <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>common_variants <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(n <span class="sc">*</span> n_common_variants, <span class="dv">1</span>, freq_common), <span class="at">ncol =</span> n_common_variants) <span class="sc">*</span> effect_common</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate genetic risk score</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>genetic_risk_score <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(rare_variants) <span class="sc">+</span> <span class="fu">rowSums</span>(common_variants)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(genetic_risk_score)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1]  9.0  9.5 11.5 13.5 10.5 12.0</code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span>  <span class="co"># Number of individuals</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n_rare_variants <span class="ot">&lt;-</span> <span class="dv">10</span>  <span class="co"># Number of rare variants per individual</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>n_common_variants <span class="ot">&lt;-</span> <span class="dv">50</span>  <span class="co"># Number of common variants per individual</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulating the effect of rare variants</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>rare_effect_size <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n_rare_variants, <span class="at">mean =</span> <span class="fl">1.5</span>, <span class="at">sd =</span> <span class="fl">0.5</span>)  <span class="co"># Adjust mean and sd as needed</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>rare_variants <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(n <span class="sc">*</span> n_rare_variants, <span class="dv">1</span>, <span class="fl">0.01</span>), <span class="at">ncol =</span> n_rare_variants) <span class="sc">*</span> rare_effect_size</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulating the effect of common variants</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>common_effect_size <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n_common_variants, <span class="at">mean =</span> <span class="fl">0.1</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)  <span class="co"># Adjust mean and sd as needed</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>common_variants <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(n <span class="sc">*</span> n_common_variants, <span class="dv">1</span>, <span class="fl">0.5</span>), <span class="at">ncol =</span> n_common_variants) <span class="sc">*</span> common_effect_size</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Combined genetic risk score</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>genetic_risk_score <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(rare_variants) <span class="sc">+</span> <span class="fu">rowSums</span>(common_variants)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>We can then simulate the age at event according to an exponential function</p>
+<p><strong>Simulate Event Times Using the Weibull Distribution</strong>:</p>
+<ul>
+<li><p>The choice of shape parameter (greater than 1) is crucial to ensure an increasing hazard rate over time, leading to a ‘J’-shaped distribution.</p></li>
+<li><p>The scale parameter, influenced by the genetic risk score, will affect the distribution of event times but won’t change the overall shape of the hazard function.</p></li>
+<li><p>The exact values for the shape and scale parameters, as well as the distributions for the genetic risk scores, should be based on the specific characteristics of the disease or trait you’re studying.</p></li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a baseline rate for the exponential model</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>baseline_rate <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate rate parameter as a function of genetic risk</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>rate_parameter <span class="ot">&lt;-</span> baseline_rate <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> genetic_risk_score)  <span class="co"># Adjust the coefficient as needed</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate survival times (age at event)</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>age_at_event <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="at">rate =</span> rate_parameter)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># You can adjust the maximum age limit as required</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>max_age_limit <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>age_at_event[age_at_event <span class="sc">&gt;</span> max_age_limit] <span class="ot">&lt;-</span> max_age_limit</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(age_at_event, <span class="at">breaks =</span> <span class="dv">30</span>, <span class="at">main =</span> <span class="st">"Simulated Distribution of Age at Event"</span>, <span class="at">xlab =</span> <span class="st">"Age"</span>, <span class="at">ylab =</span> <span class="st">"Frequency"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parameters for the Weibull distribution</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>shape <span class="ot">&lt;-</span> <span class="dv">3</span>  <span class="co"># Shape parameter &gt; 1 for increasing hazard</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>scale_base <span class="ot">&lt;-</span> <span class="dv">50</span>  <span class="co"># Base scale parameter</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust scale parameter based on genetic risk score</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>scale <span class="ot">&lt;-</span> scale_base <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.03</span> <span class="sc">*</span> genetic_risk_score)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate event times</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>event_times <span class="ot">&lt;-</span> <span class="fu">rweibull</span>(n, shape, scale)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust event times to a realistic age range (e.g., 20 to 80 years)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>event_times <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="sc">+</span> (event_times <span class="sc">/</span> <span class="fu">max</span>(event_times)) <span class="sc">*</span> <span class="dv">60</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Analysis and Visualization</strong>:</p>
+<p>Analyze or visualize the distribution of event times to understand the impact of the genetic risk.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(event_times, <span class="at">breaks =</span> <span class="dv">30</span>, <span class="at">main =</span> <span class="st">"Distribution of Simulated Event Ages"</span>, <span class="at">xlab =</span> <span class="st">"Age"</span>, <span class="at">ylab =</span> <span class="st">"Frequency"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="threshold_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<p><img src="threshold_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>The <code>echo: false</code> option disables the printing of code (only output is displayed).</p>
 </section>
 
 </main>

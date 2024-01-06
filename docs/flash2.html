@@ -522,15 +522,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree01a7ce9ee9f29d67f57521bc40b7b708839cb855targetblank01a7ce9a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree94d7030c46f51b265fa6ee2078308782ca2c3af2targetblank94d7030a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/01a7ce9ee9f29d67f57521bc40b7b708839cb855" target="_blank">01a7ce9</a>
+<a href="https://github.com/surbut/multistate2/tree/94d7030c46f51b265fa6ee2078308782ca2c3af2" target="_blank">94d7030</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree01a7ce9ee9f29d67f57521bc40b7b708839cb855targetblank01a7ce9a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree94d7030c46f51b265fa6ee2078308782ca2c3af2targetblank94d7030a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +540,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/01a7ce9ee9f29d67f57521bc40b7b708839cb855" target="_blank">01a7ce9</a>.
+<a href="https://github.com/surbut/multistate2/tree/94d7030c46f51b265fa6ee2078308782ca2c3af2" target="_blank">94d7030</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -565,10 +565,13 @@ Ignored files:
     Ignored:    plots/.DS_Store
 
 Untracked files:
-    Untracked:  analysis/figure/
+    Untracked:  analysis/threshold_files/figure-html/unnamed-chunk-4-1.png
 
 Unstaged changes:
     Modified:   analysis/flash2.Rmd
+    Modified:   analysis/threshold.html
+    Modified:   analysis/threshold.qmd
+    Modified:   analysis/threshold_files/figure-html/unnamed-chunk-2-1.png
 
 </code></pre>
 <p>
@@ -613,6 +616,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/analysis/flash2.Rmd" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+<td>
+update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/12b372ab22e7f518729296ca376a58a573e81764/docs/flash2.html" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+<td>
+update
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -793,6 +830,37 @@ such a factorization as an <strong>LDF factorization</strong>.</p>
 <h1>Age up to and including</h1>
 <p>Here we will examine the sparse factor analysis of individuals who
 receive a code at the age under each plot indicated</p>
+<pre class="r"><code>remotes::install_github(&quot;willwerscheid/flashier&quot;, ref = &quot;sparse_tensors&quot;)
+library(flashier)
+library(data.table)
+library(Matrix)
+filepath=&quot;~/Library/CloudStorage/Dropbox-Personal/pheno_dir/&quot;
+df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds&quot;)
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+dfw=df.phecode.wide[,-c(1:5)]
+age_cutoffs &lt;- seq(40, 90, by = 5)
+## for age 40 we specify that 
+for(i in 1:length(age_cutoffs)){
+dat=df.phecode.wide[,-c(1:5)]
+age_threshold=age_cutoffs[i]
+print(age_threshold)
+dat[, (1:ncol(dat)) := lapply(.SD, function(x) ifelse(!is.na(x) &amp; x &lt; age_threshold, 1, 0))]
+#install.packages(&quot;flashier&quot;)
+
+X=as.matrix(dat)
+#install.packages(&quot;flashier&quot;)
+## remove individuals never phenotyped
+## for 40 and 45: 
+X=X[,which(colSums(X)&gt;0)]
+#X=X[,which(colSums(X)&gt;100)]
+X=X[which(rowSums(X)&gt;0),]
+X=Matrix(X,sparse = T)
+print(dim(X))
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10)
+rm(X)
+rm(dat)
+saveRDS(f2,paste0(&quot;~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age&quot;,age_threshold,&quot;.rds&quot;))
+}</code></pre>
 <p>Now let’s plot:</p>
 <p><img src="figure/flash2.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
@@ -817,6 +885,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-1.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-1.png" target="_blank">c9ba0ac</a>
@@ -868,6 +947,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-2.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-2.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -915,6 +1005,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-3.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-3.png" target="_blank">c9ba0ac</a>
@@ -966,6 +1067,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-4.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-4.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -1013,6 +1125,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-5.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-5.png" target="_blank">c9ba0ac</a>
@@ -1064,6 +1187,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-6.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-6.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -1111,6 +1245,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-7.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-7.png" target="_blank">c9ba0ac</a>
@@ -1162,6 +1307,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-8.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-8.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -1209,6 +1365,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-9.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-9.png" target="_blank">c9ba0ac</a>
@@ -1260,6 +1427,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-10.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-10.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -1309,6 +1487,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-2-11.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/c9ba0aca43a5b56a795ac07bb7a7e1e4e2a69524/docs/figure/flash2.Rmd/unnamed-chunk-2-11.png" target="_blank">c9ba0ac</a>
 </td>
 <td>
@@ -1341,8 +1530,46 @@ and binarize the matrix such as non-zero values are 1 and zero values
 are 0.</p>
 <p>Recall we shall keep a non-negative prior on the factors and
 loadings,</p>
+<pre class="r"><code>library(Matrix)
+library(flashier)
+df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds&quot;)
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+X=as.matrix(dfw)
+#install.packages(&quot;flashier&quot;)
+X=X[,which(colSums(X)&gt;0)]
+X=X[which(rowSums(X)&gt;0),]
+X=Matrix(X,sparse = T)
+#K=10
+# f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+# saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47_withoutfixingS_930.rds&quot;)
+# saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47_withoutfixingS.rds&quot;)
+
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50)
+saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47_norestrictions.rds&quot;)
+rm(f2)
+
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=0)
+saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47_s0.rds&quot;)
+rm(f2)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1)
+saveRDS(f2,&quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47_s1.rds&quot;)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
+saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run10_s0.rds&quot;)
+rm(f2)</code></pre>
 <p>Here we make no restriction and examine the top 20 variable
 loadings:</p>
+<pre class="r"><code>## this one was with the colSums must be &gt;500 and no specification on S
+f = readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/factor_run10.rds&quot;)
+par(mfrow=c(3,3))
+for(k in 2:10){
+barplot(head(sort(f[[&quot;F_pm&quot;]][,k],decreasing = TRUE),n=10),las=2)
+}</code></pre>
 <p><img src="figure/flash2.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
@@ -1368,6 +1595,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-4-1.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-4-1.png" target="_blank">a454652</a>
 </td>
 <td>
@@ -1387,6 +1625,34 @@ Sarah Urbut
 <div id="looking-at-the-codes-that-occur-exactly-at-that-age-group"
 class="section level2">
 <h2>looking at the codes that occur exactly at that age group</h2>
+<pre class="r"><code>#remotes::install_github(&quot;willwerscheid/flashier&quot;, ref = &quot;sparse_tensors&quot;)
+df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode/df.phecode.wide.rds&quot;)
+#df.phecode.wide[is.na(df.phecode.wide)]=0
+dfw=df.phecode.wide[,-c(1:5)]
+age_cutoffs &lt;- seq(40, 90, by = 10)
+## for age 40 we specify that 
+for(i in 1:length(age_cutoffs)){
+dat=df.phecode.wide[,-c(1:5)]
+age_threshold=age_cutoffs[i]
+min=ifelse(i==1,0,age_cutoffs[i-1])
+print(c(min,age_threshold))
+dat[, (1:ncol(dat)) := lapply(.SD, function(x) ifelse(!is.na(x) &amp; min &lt; x &amp; x &lt; age_threshold, 1, 0))]
+#install.packages(&quot;flashier&quot;)
+
+X=as.matrix(dat)
+#install.packages(&quot;flashier&quot;)
+## remove individuals never phenotyped
+## for 40 and 45: 
+X=X[,which(colSums(X)&gt;0)]
+#X=X[,which(colSums(X)&gt;100)]
+X=X[which(rowSums(X)&gt;0),]
+X=Matrix(X,sparse = T)
+print(dim(X))
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,s=1/1500)
+rm(X)
+rm(dat)
+saveRDS(f2,paste0(&quot;~/Library/CloudStorage/Dropbox-Personal/new_flash_by_age/flash_age_exact&quot;,age_threshold,&quot;.rds&quot;))
+}</code></pre>
 <p>Now let’s plot:</p>
 <p><img src="figure/flash2.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
@@ -1411,6 +1677,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-1.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-1.png" target="_blank">a454652</a>
@@ -1451,6 +1728,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-2.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-2.png" target="_blank">a454652</a>
 </td>
 <td>
@@ -1487,6 +1775,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-3.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-3.png" target="_blank">a454652</a>
@@ -1527,6 +1826,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-4.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-4.png" target="_blank">a454652</a>
 </td>
 <td>
@@ -1563,6 +1873,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-5.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-5.png" target="_blank">a454652</a>
@@ -1603,6 +1924,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-6-6.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/surbut/multistate2/blob/a454652b5eaeb7be607f6299a15dab8d0da3d4c8/docs/figure/flash2.Rmd/unnamed-chunk-6-6.png" target="_blank">a454652</a>
 </td>
 <td>
@@ -1624,9 +1956,89 @@ Sarah Urbut
 <li>why does mean come out when K = 10 but not K=47</li>
 <li>the mean has been removed?</li>
 </ul>
+<pre class="r"><code>#f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 10,S=0)
+#saveRDS(f2,file= &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run47.rds&quot;)
+f=readRDS(file = &quot;~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run47_s0.rds&quot;)
+plot(f)</code></pre>
 <pre><code>Warning in plot.flash(f): Consider setting argument pm_groups to produce a more
 readable plot.</code></pre>
-<p><img src="figure/flash2.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/flash2.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-7-1.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/flash2.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-2">
+Past versions of unnamed-chunk-7-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/12b372ab22e7f518729296ca376a58a573e81764/docs/figure/flash2.Rmd/unnamed-chunk-7-2.png" target="_blank">12b372a</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2024-01-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>head(sort(f$F_pm[,1],decreasing = TRUE),n=10)</code></pre>
 <pre><code>                                  Hyperlipidemia 
                                         9.827737 
                   Disorders_of_lipoid_metabolism 
@@ -1648,6 +2060,21 @@ Other_chronic_ischemic_heart_disease_unspecified
                           Nonspecific_chest_pain 
                                         1.045895 </code></pre>
 <p>Let’s try with a very small s and show that ELBO worsens.</p>
+<pre class="r"><code># df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds&quot;)
+# dfw=df.phecode.wide[,-c(1:5)]
+# dfw[!is.na(dfw)]=1
+# dfw[is.na(dfw)]=0
+# X=as.matrix(dfw)
+# 
+# X=X[,which(colSums(X)&gt;0)]
+# X=X[which(rowSums(X)&gt;0),]
+# X=Matrix(X,sparse = T)
+
+# smin=min(f$residuals_sd)
+# f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=smin)
+# saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/factor_run48_smin.rds&quot;)
+f2=readRDS(file = &quot;~/Library/CloudStorage/Dropbox-Personal/flash_allages/factor_run48_smin.rds&quot;)
+f2$elbo</code></pre>
 <pre><code>[1] 1217449566</code></pre>
 <p>However, the elbo is worse here than not specifying s</p>
 <pre class="r"><code># f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_exponential,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,S=1/sqrt(ncol(X)))
@@ -3117,6 +3544,24 @@ Cholelithiasis_with_acute_cholecystitis    Cholecystitis_without_cholelithiasis
 <h3>Let’s return to the matrix space</h3>
 <p>We can redo removing only 0 row, not remoivng null rows or look if we
 set S to something small.</p>
+<pre class="r"><code>remotes::install_github(&quot;willwerscheid/flashier&quot;, ref = &quot;allow_zero_rows&quot;,force=T)
+library(flashier)
+library(Matrix)
+df.phecode.wide=readRDS(&quot;~/Library/CloudStorage/Dropbox-Personal/phecode//df.phecode.wide.rds&quot;)
+dfw=df.phecode.wide[,-c(1:5)]
+dfw[!is.na(dfw)]=1
+dfw[is.na(dfw)]=0
+X=as.matrix(dfw)
+X=X[,which(colSums(X)&gt;0)]
+X=X[which(rowSums(X)&gt;0),]
+X=Matrix(X,sparse = T)
+
+f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T)
+saveRDS(f2,file = &quot;~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit.rds&quot;)
+
+
+f3=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
+#saveRDS(f3,file = &quot;~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds&quot;)</code></pre>
 <p>First we try with a normal loadings constraint so that we don’t have
 this strange behavior of removal of the first factor, but it seems that
 then the first factor is the only that contains Htn and ischemic heart
