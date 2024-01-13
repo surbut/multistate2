@@ -1,0 +1,945 @@
+---
+title: "rmse_analyses"
+output: html_document
+date: "2023-08-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = F,warning = F)
+```
+
+## R Markdown
+
+```{r}
+source("~/dynamichr/code/utils.R")
+source("~/multistate2//code/smoothtest.R")
+source("~/multistate2//code/newsmooth.R")
+source("~/multistate2/code/fitarray.R")
+load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
+dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
+dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
+# Relabel the levels of the interaction variable
+levels(dfh$int) <- c(1,2,3,4,5,6)
+
+diff.func.sd=function(empmat,prodmat){
+  diffmat=abs(prodmat-empmat)
+  sd=sd((diffmat))/sqrt(200)
+  return(sd)
+}
+train=dfh[1:(nrow(dfh)*0.80),]
+
+dfascvd=readRDS("~/multistate2//output/dfascvd_newbp.rds")
+test=dfh[!(dfh$identifier%in%train$identifier),]
+test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+test$ascvd_10y_accaha=test$as2
+test$phenos.enrollment=test$f.21003.0.0
+test=data.table(test)
+source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
+library(CVrisk)
+ages=c(40:80)
+nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&Dm","Ht&Dm","Ht&HyperLip&Dm")
+```
+
+Health
+
+```{r health}
+
+mod0=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod0,window_width = 20,span = 0.75,degree = 2)
+coefs_mod0=b$custom_smooth
+
+mod1=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod1,window_width = 20,span = 0.75,degree = 2)
+coefs_mod1=b$custom_smooth
+
+mod2=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now") 
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod2,window_width = 20,span = 0.75,degree = 2)
+coefs_mod2=b$custom_smooth
+
+mod3=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod3,window_width = 20,span = 0.75,degree = 2)
+coefs_mod3=b$custom_smooth
+
+mod4=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod4,window_width = 20,span = 0.75,degree = 2)
+coefs_mod4=b$custom_smooth
+
+
+
+
+
+agesint = seq(40, 70, by = 5)
+
+prs_quants = c(data.frame(test %>% group_by(int) %>% summarise(median(cad.prs), mean(cad.prs)))[c(2, 4, 6), 3])
+
+lifetime.new = ten.year.new = array(data = NA, dim = c(5,length(agesint), nlevels(test$int)))
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
+for (i in 1:length(agesint)) {
+  age = agesint[i]
+  #print(age)
+  for (j in 1:length(levels(test$int))) {
+    
+    cat = levels(test$int)[j]
+    #print(cat)
+    atrisk = test[age < Cad_0_censor_age &
+                    age < Ht_0_censor_age &
+                    age < HyperLip_0_censor_age &
+                    age < Dm_0_censor_age & int == cat,]
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                               atrisk = atrisk)
+    
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+    for (l in 1:dim(lifetime.new)[1]) {
+      a=l-1
+      #print(a)
+      coefs = get(paste0("coefs_mod", a))
+      #print(dim(coefs))
+      
+      
+      ar0 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0
+      )
+      ar1 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke
+      )
+      
+      ar2 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0)
+      )
+      
+      ar3 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar4 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0),
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar = get(paste0("ar", a))
+      #print(dim(atrisk))
+      #print(dim(ten.year.new))
+      ten.year.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk = ar,
+          agepredinterval = c(age:(age + 10)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+      lifetime.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk =  ar,
+          agepredinterval = c(age:(80)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+    }
+    
+    
+  }
+}
+
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+diff.func.sd(ascvd.ten.year,emp.ten.year*100)
+
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+diff.func.sd(pce.reverse.tenyear,emp.ten.year*100)
+
+print(c(pcten,pcten2))
+#  6.083 6.120
+
+
+pclife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year))
+diff.func.sd(ascvd.30.year,emp.ten.year*100)
+pclife2=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc))
+diff.func.sd(ascvd.30.year.rc,emp.ten.year*100)
+
+print(c(pclife,pclife2))
+
+## [1] 15.074  7.121
+for(i in 1:dim(lifetime.new)[1]){
+  
+
+tn=as.matrix(ten.year.new[i,,])
+ln=as.matrix(lifetime.new[i,,])
+
+
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(tn*100))
+print(diff.func.sd(tn*100,emp.ten.year*100))
+mslife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ln*100))
+print(diff.func.sd(ln*100,emp.lifetime*100))
+print(c(msten,mslife))
+
+
+}
+
+
+
+# [1] 0.592 2.117
+# [1] 0.611 2.233
+# [1] 0.679 0.593
+# [1] 0.744 0.656
+# [1] 0.866 0.981
+```
+
+
+Now do starting at Ht:
+
+```{r ht}
+t=proc.time()
+mod0=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = mod0,window_width = 20,span = 0.75,degree = 2)
+coefs_mod0=b$custom_smooth
+
+mod1=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = mod1,window_width = 20,span = 0.75,degree = 2)
+coefs_mod1=b$custom_smooth
+
+mod2=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now") 
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = mod2,window_width = 20,span = 0.75,degree = 2)
+coefs_mod2=b$custom_smooth
+
+mod3=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = mod3,window_width = 20,span = 0.75,degree = 2)
+coefs_mod3=b$custom_smooth
+
+mod4=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Ht",stop = "Cad",modelfit = mod4,window_width = 20,span = 0.75,degree = 2)
+coefs_mod4=b$custom_smooth
+
+
+
+
+
+agesint = seq(40, 70, by = 5)
+prs_quants = c(data.frame(test %>% group_by(int) %>% summarize(median(cad.prs), mean(cad.prs)))[c(2, 4, 6), 3])
+
+lifetime.new = ten.year.new = array(data = NA, dim = c(5,length(agesint), nlevels(test$int)))
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+health=matrix()
+
+for (i in 1:length(agesint)) {
+  age = agesint[i]
+  #print(age)
+  for (j in 1:length(levels(test$int))) {
+    
+    cat = levels(test$int)[j]
+    #print(cat)
+    atrisk = test[age < Cad_0_censor_age &
+                    age > Ht_0_censor_age & 
+                    Ht_0_Any==2&
+                    age < HyperLip_0_censor_age &
+                    age < Dm_0_censor_age & int == cat,]
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                               atrisk = atrisk)
+
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    # #
+    frs = fun.frs_30yn(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+    for (l in 1:dim(lifetime.new)[1]) {
+      a=l-1
+      #print(a)
+      coefs = get(paste0("coefs_mod", a))
+      #print(dim(coefs))
+      
+      
+      ar0 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0
+      )
+      ar1 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke
+      )
+      
+      ar2 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0)
+      )
+      
+      ar3 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar4 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0),
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar = get(paste0("ar", a))
+      #print(dim(atrisk))
+      #print(dim(ten.year.new))
+      ten.year.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk = ar,
+          agepredinterval = c(age:(age + 10)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+      lifetime.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk =  ar,
+          agepredinterval = c(age:(80)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+    }
+    
+    
+  }
+}
+
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+diff.func.sd(ascvd.ten.year,emp.ten.year*100)
+
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+diff.func.sd(pce.reverse.tenyear,emp.ten.year*100)
+
+print(c(pcten,pcten2))
+#  6.083 6.120
+
+
+pclife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year))
+diff.func.sd(ascvd.30.year,emp.ten.year*100)
+pclife2=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc))
+diff.func.sd(ascvd.30.year.rc,emp.ten.year*100)
+
+print(c(pclife,pclife2))
+
+for(i in 1:dim(lifetime.new)[1]){
+  
+
+tn=as.matrix(ten.year.new[i,,])
+ln=as.matrix(lifetime.new[i,,])
+
+
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(tn*100))
+print(diff.func.sd(tn*100,emp.ten.year*100))
+mslife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ln*100))
+print(diff.func.sd(ln*100,emp.lifetime*100))
+print(c(msten,mslife))
+
+
+}
+
+# [1] 1.474 7.878
+# [1] 1.482 7.958
+# [1] 1.468 7.421
+# [1] 1.363 5.757
+# [1] 1.367 6.373
+
+proc.time()-t
+
+
+```
+
+
+Now do starting at Dm:
+
+```{r dm}
+t=proc.time()
+mod0=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+b=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = mod0,window_width = 20,span = 0.75,degree = 2)
+coefs_mod0=b$custom_smooth
+
+mod1=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+b=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = mod1,window_width = 20,span = 0.75,degree = 2)
+coefs_mod1=b$custom_smooth
+
+mod2=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now") 
+b=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = mod2,window_width = 20,span = 0.75,degree = 2)
+coefs_mod2=b$custom_smooth
+
+mod3=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = mod3,window_width = 20,span = 0.75,degree = 2)
+coefs_mod3=b$custom_smooth
+
+mod4=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "Dm",stop = "Cad",modelfit = mod4,window_width = 20,span = 0.75,degree = 2)
+coefs_mod4=b$custom_smooth
+
+
+
+
+
+agesint = seq(40, 70, by = 5)
+prs_quants = c(data.frame(test %>% group_by(int) %>% summarize(median(cad.prs), mean(cad.prs)))[c(2, 4, 6), 3])
+
+lifetime.new = ten.year.new = array(data = NA, dim = c(5,length(agesint), nlevels(test$int)))
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
+for (i in 1:length(agesint)) {
+  age = agesint[i]
+  #print(age)
+  for (j in 1:length(levels(test$int))) {
+    
+    cat = levels(test$int)[j]
+    #print(cat)
+    atrisk = test[age < Cad_0_censor_age &
+                    age > Dm_0_censor_age & 
+                    Dm_0_Any==2&
+                    age < Ht_0_censor_age &
+                    age < HyperLip_0_censor_age & int == cat,]
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                               atrisk = atrisk)
+    
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+    for (l in 1:dim(lifetime.new)[1]) {
+      a=l-1
+      #print(a)
+      coefs = get(paste0("coefs_mod", a))
+      #print(dim(coefs))
+      
+      
+      ar0 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0
+      )
+      ar1 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke
+      )
+      
+      ar2 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0)
+      )
+      
+      ar3 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar4 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0),
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar = get(paste0("ar", a))
+      #print(dim(atrisk))
+      #print(dim(ten.year.new))
+      ten.year.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk = ar,
+          agepredinterval = c(age:(age + 10)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+      lifetime.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk =  ar,
+          agepredinterval = c(age:(80)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+    }
+    
+    
+  }
+}
+
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+diff.func.sd(ascvd.ten.year,emp.ten.year*100)
+
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+diff.func.sd(pce.reverse.tenyear,emp.ten.year*100)
+
+print(c(pcten,pcten2))
+#  6.083 6.120
+
+
+pclife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year))
+diff.func.sd(ascvd.30.year,emp.ten.year*100)
+pclife2=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc))
+diff.func.sd(ascvd.30.year.rc,emp.ten.year*100)
+
+print(c(pclife,pclife2))
+
+for(i in 1:dim(lifetime.new)[1]){
+  
+
+tn=as.matrix(ten.year.new[i,,])
+ln=as.matrix(lifetime.new[i,,])
+
+
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(tn*100))
+print(diff.func.sd(tn*100,emp.ten.year*100))
+mslife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ln*100))
+print(diff.func.sd(ln*100,emp.lifetime*100))
+print(c(msten,mslife))
+
+
+}
+# 
+# [1] 4.018 7.975
+# [1] 4.101 8.458
+# [1] 3.954 7.516
+# [1] 3.927 8.367
+# [1] 3.924 7.701
+proc.time()-t
+
+```
+
+
+HyperLip
+
+```{r Hl}
+t=proc.time()
+mod0=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0")
+b=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = mod0,window_width = 20,span = 0.75,degree = 2)
+coefs_mod0=b$custom_smooth
+
+mod1=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke")
+b=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = mod1,window_width = 20,span = 0.75,degree = 2)
+coefs_mod1=b$custom_smooth
+
+mod2=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now") 
+b=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = mod2,window_width = 20,span = 0.75,degree = 2)
+coefs_mod2=b$custom_smooth
+
+mod3=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = mod3,window_width = 20,span = 0.75,degree = 2)
+coefs_mod3=b$custom_smooth
+
+mod4=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
+b=coefplotsmooth2(ages = ages,start = "HyperLip",stop = "Cad",modelfit = mod4,window_width = 20,span = 0.75,degree = 2)
+coefs_mod4=b$custom_smooth
+
+
+
+
+
+agesint = seq(40, 70, by = 5)
+prs_quants = c(data.frame(test %>% group_by(int) %>% summarize(median(cad.prs), mean(cad.prs)))[c(2, 4, 6), 3])
+
+lifetime.new = ten.year.new = array(data = NA, dim = c(5,length(agesint), nlevels(test$int)))
+ascvd.ten.year=ascvd.30.year=emp.ten.year=emp.lifetime=pce.reverse.tenyear=ascvd.30.year.rc=data.frame()
+
+for (i in 1:length(agesint)) {
+  age = agesint[i]
+  #print(age)
+  for (j in 1:length(levels(test$int))) {
+    
+    cat = levels(test$int)[j]
+    #print(cat)
+    atrisk = test[age < Cad_0_censor_age &
+                    age > HyperLip_0_censor_age & 
+                    HyperLip_0_Any==2&
+                    age < Ht_0_censor_age &
+                    age < Dm_0_censor_age & int == cat,]
+    emp.ten.year[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = age + 10,
+                                               atrisk = atrisk)
+    emp.lifetime[i, j] = compute_empiricalrisk(age = age,
+                                               age2 = 80,
+                                               atrisk = atrisk)
+    
+    ascvd.ten.year[i, j] = compute_pce_predictedrisk(age = age, atrisk = atrisk)## wtih people who are that age at enrollement
+
+    dat = data.frame(
+      "id" = atrisk$identifier,
+      "mysex" = as.factor(atrisk$sex),
+      "myage" = rep(age, nrow(atrisk)),
+      "mysbp" = atrisk$sbp,
+      "mytreat" = ifelse(atrisk$antihtn == 1 &
+                           atrisk$htn_age < age, 1, 0),
+      "mysmoking" = atrisk$smoke,
+      "mydiabetes" = ifelse(atrisk$Dm_0_Any == 2 &
+                              atrisk$Dm_0_censor_age < age, 1, 0),
+      "mytotalchol" = atrisk$choladj,
+      "myhdl" = atrisk$hdladj,
+      "Race" = atrisk$Race,
+      "mystatnow" = ifelse(atrisk$statin == 1 & atrisk$statin_age < age, 1, 0)
+    )
+    #
+    frs = fun.frs_30yn(
+      dat,
+      id = "id",
+      sex = "mysex",
+      age = "myage",
+      sbp = "mysbp",
+      treat = "mytreat",
+      smoking = "mysmoking",
+      diabetes = "mydiabetes",
+      totalchol = "mytotalchol",
+      hdl = "myhdl"
+    )
+    ascvd.30.year[i, j] = median(frs$frs_orig)
+    ascvd.30.year.rc[i, j] = median(frs$frs_recali)
+    pce.reverse.tenyear[i, j] = mean(
+      compute_CVrisk2(
+        df = dat,
+        scores = "as2",
+        age = "myage",
+        gender = "mysex",
+        race = "Race",
+        totchol = "mytotalchol",
+        sbp = "mysbp",
+        hdl = "myhdl",
+        bp_med = "mytreat",
+        diabetes = "mydiabetes",
+        smoker = "mysmoking",
+        lipid_med = "mystatnow"
+      )$as2
+    )
+    for (l in 1:dim(lifetime.new)[1]) {
+      a=l-1
+      #print(a)
+      coefs = get(paste0("coefs_mod", a))
+      #print(dim(coefs))
+      
+      
+      ar0 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0
+      )
+      ar1 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke
+      )
+      
+      ar2 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0)
+      )
+      
+      ar3 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar4 = data.frame(
+        "intercept" = 1,
+        "cad.prs" = atrisk$cad.prs,
+        "sex" = atrisk$f.31.0.0,
+        "smoke" = atrisk$smoke,
+        "antihtn_now" = ifelse(atrisk$antihtn == 1 &
+                                 atrisk$htn_age < age, 1, 0),
+        "statin_now" = ifelse(atrisk$statin == 1 &
+                                atrisk$statin_age < age, 1, 0)
+      )
+      
+      ar = get(paste0("ar", a))
+      #print(dim(atrisk))
+      #print(dim(ten.year.new))
+      ten.year.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk = ar,
+          agepredinterval = c(age:(age + 10)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+      lifetime.new[l, i, j] = mean(
+        compute_prediction_product_matrix(
+          atrisk =  ar,
+          agepredinterval = c(age:(80)),
+          coefmat = coefs
+        )$PredictedIntervalrisk
+      )
+    }
+    
+    
+  }
+}
+
+
+library(ehaGoF)
+emp.ten.year=as.matrix(emp.ten.year)
+emp.lifetime=as.matrix(emp.lifetime)
+ascvd.ten.year=as.matrix(ascvd.ten.year)
+ascvd.30.year=as.matrix(ascvd.30.year)
+ascvd.30.year.rc=as.matrix(ascvd.30.year.rc)
+pce.reverse.tenyear=as.matrix(pce.reverse.tenyear)
+
+pcten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(ascvd.ten.year))
+diff.func.sd(ascvd.ten.year,emp.ten.year*100)
+
+pcten2=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(pce.reverse.tenyear))
+diff.func.sd(pce.reverse.tenyear,emp.ten.year*100)
+
+print(c(pcten,pcten2))
+#  6.083 6.120
+
+
+pclife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year))
+diff.func.sd(ascvd.30.year,emp.ten.year*100)
+pclife2=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ascvd.30.year.rc))
+diff.func.sd(ascvd.30.year.rc,emp.ten.year*100)
+
+print(c(pclife,pclife2))
+
+for(i in 1:dim(lifetime.new)[1]){
+  
+
+tn=as.matrix(ten.year.new[i,,])
+ln=as.matrix(lifetime.new[i,,])
+
+
+msten=gofRMSE(Obs = as.vector(emp.ten.year*100),Prd = as.vector(tn*100))
+print(diff.func.sd(tn*100,emp.ten.year*100))
+mslife=gofRMSE(Obs = as.vector(emp.lifetime*100),Prd = as.vector(ln*100))
+print(diff.func.sd(ln*100,emp.lifetime*100))
+print(c(msten,mslife))
+
+
+}
+ 
+proc.time()-t
+
+```
+
+
+```{r}
+tenyearlt=fread("~/Library/CloudStorage/Dropbox-Personal/tenyearlt.csv")
+tenyearlt$V1=rep(c("Sex+PRS","Sex+PRS+Smoke","Sex+PRS+Smoke+AH","Sex+PRS+Smoke+Statin","Sex+PRS+Smoke+AH/stat","FRS","FRS.recal"),4)
+tenyearlt$start=c(rep("Health",7),rep("Ht",7),rep("Dm",7),rep("HyperLip",7))
+m=melt(tenyearlt,id.vars = c("V1","start"))
+ggplotly(ggplot(m,aes(V1,value,fill=interaction(variable,as.factor(V1))))+geom_bar(stat="identity",position="dodge")+facet_wrap(~start,scales = "free")+theme_classic()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+```
+

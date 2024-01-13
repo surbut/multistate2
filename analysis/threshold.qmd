@@ -1,6 +1,20 @@
 ---
-title: "ThresholdVariant"
-format: html
+title: "Threshold Analysis"
+subtitle: "Weibull Exploration"
+format: 
+  html:
+    toc: true
+    toc-location: body
+date: 1-7-2024
+author:
+  - name: "Sarah Urbut"
+    affiliations: "MGH"
+embed-resources: true
+toc: true
+toc-expand: 2
+toc-title: Contents
+page-layout: full
+code-fold: true
 editor: visual
 ---
 
@@ -8,9 +22,13 @@ editor: visual
 
 As before, we simulate the genetic risk score with a combination of rare and common variants.
 
-```{r,echo=FALSE}
-#install.packages("survival")
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
 library(survival)
+library(survival)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
 
 ```
 
@@ -21,20 +39,28 @@ library(survival)
 -   This approach results in a more nuanced genetic risk score, which is more representative of actual genetic variability in a population.
 
 ```{r}
-n <- 1000  # Number of individuals
+# Summarize by age
+# Define the number of individuals
+n <- 10000
 n_rare_variants <- 10  # Number of rare variants per individual
-n_common_variants <- 50  # Number of common variants per individual
+n_common_variants <- 100  # Number of common variants per individual
 
-# Simulating the effect of rare variants
-rare_effect_size <- rnorm(n_rare_variants, mean = 1.5, sd = 0.5)  # Adjust mean and sd as needed
+# Simulate rare and common variant effects
+set.seed(123)  # For reproducibility
+
+# Sample rare and common effect sizes from a distribution for each individual
+# Simulating the effect of rare and common variants
+rare_effect_size <- rnorm(n_rare_variants, mean = 1.5, sd = 0.5)
 rare_variants <- matrix(rbinom(n * n_rare_variants, 1, 0.01), ncol = n_rare_variants) * rare_effect_size
-
-# Simulating the effect of common variants
-common_effect_size <- rnorm(n_common_variants, mean = 0.1, sd = 0.05)  # Adjust mean and sd as needed
+common_effect_size <- rnorm(n_common_variants, mean = 0.1, sd = 0.05)
 common_variants <- matrix(rbinom(n * n_common_variants, 1, 0.5), ncol = n_common_variants) * common_effect_size
 
-# Combined genetic risk score
+
+# Sum the rare and common load to get the total genetic risk score
 genetic_risk_score <- rowSums(rare_variants) + rowSums(common_variants)
+
+
+hist(genetic_risk_score)
 ```
 
 **Simulate Event Times Using the Weibull Distribution**:
@@ -47,18 +73,36 @@ genetic_risk_score <- rowSums(rare_variants) + rowSums(common_variants)
 
 ```{r}
 
-# Parameters for the Weibull distribution
-shape <- 3  # Shape parameter > 1 for increasing hazard
-scale_base <- 50  # Base scale parameter
+set.seed(123)
 
-# Adjust scale parameter based on genetic risk score
-scale <- scale_base * exp(-0.03 * genetic_risk_score)
+# Normalize the genetic risk score to a range [0, 1]
+genetic_risk_score_normalized <- (genetic_risk_score - min(genetic_risk_score)) / (max(genetic_risk_score) - min(genetic_risk_score))
 
-# Simulate event times
-event_times <- rweibull(n, shape, scale)
+set.seed(123)
+# Set seed for reproducibility
+set.seed(123)
+shape_parameter=5
+# Assuming genetic_risk_score_normalized and n are already defined
+baseline_scale <- 100  # Starting scale for someone with average risk
+max_reduction <- 80  # Max reduction of scale for someone with the highest risk
 
-# Adjust event times to a realistic age range (e.g., 20 to 80 years)
-event_times <- 20 + (event_times / max(event_times)) * 60
+# Calculate the scale parameter as a linear function of the genetic risk score
+scale_parameter <- baseline_scale - (genetic_risk_score_normalized * max_reduction)
+
+# Ensure all scale parameters are positive and within a reasonable range
+#scale_parameter <- pmax(scale_parameter, 20)  # Ensure scales don't go below 20
+
+# Simulate the event ages with the Weibull distribution
+event_ages <- rweibull(n, shape = shape_parameter, scale = scale_parameter)
+
+# Apply a realistic age range to the simulated event ages
+event_ages <- pmax(event_ages, 20)  # No events before age 20
+event_ages <- pmin(event_ages, 100)  # No events after age 100
+
+# Plot the relationship between genetic risk scores and event ages using transparency
+plot(genetic_risk_score_normalized, event_ages, col=rgb(0, 0, 0, 0.1), pch=16,
+     main="Scatter Plot of Event Ages vs Genetic Risk Score",
+     xlab="Genetic Risk Score Normalized", ylab="Event Ages")
 ```
 
 **Analysis and Visualization**:
@@ -66,5 +110,20 @@ event_times <- 20 + (event_times / max(event_times)) * 60
 Analyze or visualize the distribution of event times to understand the impact of the genetic risk.
 
 ```{r}
-hist(event_times, breaks = 30, main = "Distribution of Simulated Event Ages", xlab = "Age", ylab = "Frequency")
+# Creating a data frame
+data <- data.frame(genetic_risk_score_normalized, event_times=round(event_ages,0),rare_load= rowSums(rare_variants),common_load=rowSums(common_variants))
+
+# Summarizing the rare and common variants by age
+summary_by_age <- data %>%
+  group_by(event_times) %>%
+  summarise(
+    avg_risk_score = mean(genetic_risk_score_normalized),
+    total_events = length(event_times),
+    avg_rare_load = mean(rare_load),
+    avg_common_load = mean(common_load),
+      )
+
+m=melt(summary_by_age,id.vars = "event_times")
+
+ggplot(m,aes(event_times,value,fill=variable))+geom_bar(stat="identity")+facet_wrap(~variable,scales = "free")+theme_classic()
 ```

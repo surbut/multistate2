@@ -363,13 +363,14 @@ X=as.matrix(dfw)
 X=X[,which(colSums(X)>0)]
 X=X[which(rowSums(X)>0),]
 X=Matrix(X,sparse = T)
+X=X[,-1]
 
 f2=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 20,nullcheck = F,backfit = T)
 saveRDS(f2,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit.rds")
 
 
 f3=flashier::flash(data = X,ebnm_fn = c(ebnm_point_normal,ebnm_point_exponential),var_type = 2,greedy_Kmax = 50,nullcheck = T,backfit = T)
-#saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds")
+saveRDS(f3,file = "~/Library/CloudStorage/Dropbox-Personal/matrix_pn_pe_backfit_nc.rds")
 
 
 ```

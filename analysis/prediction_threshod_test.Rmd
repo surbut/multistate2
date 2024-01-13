@@ -198,6 +198,7 @@ list_dt <- lapply(1:nrow(df), function(i) {
 df_expanded <- rbindlist(unlist(list_dt, recursive = FALSE))
 
 
+## left censoring
 df_expanded=df_expanded[df_expanded$start>=df_expanded$enroll,]
 
 library(survival)
