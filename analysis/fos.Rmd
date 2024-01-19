@@ -17,7 +17,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r cars}
 
 #rm(list=ls())
-source("multistate2/code/utils.R")
+source("~/multistate2/code/utils.R")
 source("~/multistate2//code/smoothtest.R")
 source("~/multistate2//code/newsmooth.R")
 source("~/multistate2/code/fitarray.R")
@@ -50,6 +50,19 @@ nstates=c("Health", "Ht","HyperLip","Dm","Cad","death","Ht&HyperLip","HyperLip&D
 
 library(CVrisk)
 m=merge(fos[,c("shareid","AGE1","SBP1","HDL1","SEX","CURRSMK1","HRX1","LIPRX1","TC1","DMRX1")],surv,by = "shareid")
+
+## summarize ages
+table(round(fos$AGE1/5)*5)
+## so we see that after age 55 number of folks we have first measurement data on is limited, so maybe we should relax restriction
+
+l60=unlist(apply(round_any(fos[grep(pattern = "AGE",names(fos))],accuracy = 5),1,function(x){which(x==60)}))
+table(l60)
+l65=unlist(apply(round_any(fos[grep(pattern = "AGE",names(fos))],accuracy = 5),1,function(x){which(x==65)}))
+table(l65)
+l70=unlist(apply(round_any(fos[grep(pattern = "AGE",names(fos))],accuracy = 5),1,function(x){which(x==70)}))
+table(l70)
+m2=merge(fos[,c("shareid","AGE2","SBP2","HDL2","SEX","CURRSMK2","HRX2","LIPRX2","TC2","DMRX2")],surv,by = "shareid")
+
 prs=fread("~/Library/CloudStorage/Dropbox-Personal/Fram_allchr_CAD_c1.profile")
 prs$score=scale(prs$V2)
 
@@ -112,9 +125,11 @@ b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,
 coefs=b$custom_smooth
 
 ten.year.new=lifetime.new=ascvd.30.year=ascvd.10.year=emp.ten.year=emp.lifetime=vector()
-agesint=seq(40,55,by=5)
+agesint=seq(40,55,by=5)##
 aucmat=semat=matrix(NA,nrow=length(agesint),ncol=4)
 firstmeasure$round5=round_any(firstmeasure$AGE1,5,f = round)
+#10  15  20  25  30  35  40  45  50  55  60  65 
+#11  68 176 371 499 395 332 238 128  41   7   1 
 
 
 for(i in 1:length(agesint)){

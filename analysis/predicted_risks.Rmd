@@ -303,7 +303,7 @@ for(j in 1:length(coeflist)){
   
 }
 
-
+## also data_array on the app
 saveRDS(predicted_risks2,"~/output/predictedrisk_forfixedmatrix.rds")
 
 ipf2=function(i){

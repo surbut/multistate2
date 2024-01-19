@@ -14,7 +14,7 @@
 
 <title>RCA Analysis</title>
 
-<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -36,8 +36,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -327,7 +327,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">multistate</a>
+      <a class="navbar-brand" href="index.html">multistate2</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -343,7 +343,7 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/surbut/multistate">
+  <a href="https://github.com/surbut/multistate2">
     <span class="fab fa-github"></span>
      
     Source code
@@ -367,7 +367,7 @@ div.tocify {
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger"
+workflowr <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span>
 </button>
 </p>
@@ -378,8 +378,8 @@ aria-hidden="true"></span>
 </li>
 <li>
 <a data-toggle="tab" href="#checks"> Checks <span
-class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> </a>
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -388,16 +388,16 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-08-29
+<strong>Last updated:</strong> 2024-01-19
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 1
+aria-hidden="true"></span> 0
 </p>
 <p>
-<strong>Knit directory:</strong> <code>multistate2/</code> <span
+<strong>Knit directory:</strong> <code>~/multistate2/</code> <span
 class="glyphicon glyphicon-question-sign" aria-hidden="true"
 title="This is the local directory in which the code in this file was executed.">
 </span>
@@ -406,7 +406,7 @@ title="This is the local directory in which the code in this file was executed."
 This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
 analysis was created with <a
   href="https://github.com/workflowr/workflowr">workflowr</a> (version
-1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
 that were applied when the results were created. The <em>Past
 versions</em> tab lists the development history.
 </p>
@@ -417,21 +417,18 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges"
+<div id="strongRMarkdownfilestronguptodate"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
@@ -522,15 +519,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec707451fe5f751a3a5ec583fc16b6f99b2db5db2targetblankc707451a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree1c86ea1e8fcf7e4708cd8c8c0e540a886be53d8ftargetblank1c86ea1a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/surbut/multistate2/tree/c707451fe5f751a3a5ec583fc16b6f99b2db5db2" target="_blank">c707451</a>
+<a href="https://github.com/surbut/multistate2/tree/1c86ea1e8fcf7e4708cd8c8c0e540a886be53d8f" target="_blank">1c86ea1</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2treec707451fe5f751a3a5ec583fc16b6f99b2db5db2targetblankc707451a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsurbutmultistate2tree1c86ea1e8fcf7e4708cd8c8c0e540a886be53d8ftargetblank1c86ea1a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +537,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/surbut/multistate2/tree/c707451fe5f751a3a5ec583fc16b6f99b2db5db2" target="_blank">c707451</a>.
+<a href="https://github.com/surbut/multistate2/tree/1c86ea1e8fcf7e4708cd8c8c0e540a886be53d8f" target="_blank">1c86ea1</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -556,16 +553,23 @@ were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
     Ignored:    code/.DS_Store
     Ignored:    data/
+    Ignored:    lesliepics/.DS_Store
     Ignored:    output/
     Ignored:    plots/.DS_Store
 
 Untracked files:
     Untracked:  analysis/figure/
-    Untracked:  analysis/forada2.Rmd
-    Untracked:  casesvcontrols.pdf
+
+Unstaged changes:
+    Modified:   analysis/.Rhistory
+    Modified:   analysis/fos.Rmd
+    Modified:   analysis/predicted_risks.Rmd
+    Modified:   analysis/rmse2.Rmd
+    Modified:   analysis/rmseanalysis_C3Po.Rmd
 
 </code></pre>
 <p>
@@ -613,6 +617,40 @@ Message
 <tbody>
 <tr>
 <td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/659b004857a0428681631a0841f3c4ae2599814d/analysis/forada2.Rmd" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+<td>
+update
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/surbut/multistate2/659b004857a0428681631a0841f3c4ae2599814d/docs/forada2.html" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+<td>
+update
+</td>
+</tr>
+<tr>
+<td>
 html
 </td>
 <td>
@@ -658,6 +696,54 @@ vs. cath vs. no intervention.</p>
 intervention=0 132     32   85.0    81.9    92.9
 intervention=1  56     10   89.8    82.2      NA</code></pre>
 <p><img src="figure/forada2.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
+Past versions of unnamed-chunk-1-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-1-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/2e680f1ea11daa2d55127b6af3a55d1336f36c24/docs/figure/forada2.Rmd/unnamed-chunk-1-1.png" target="_blank">2e680f1</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/659b004857a0428681631a0841f3c4ae2599814d/docs/figure/forada2.Rmd/unnamed-chunk-1-1.png" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div
 id="now-lets-do-for-the-different-types-of-intervention-versus-none"
 class="section level3">
@@ -672,6 +758,54 @@ treat=bypass             17      7   89.8    73.2      NA
 treat=cath                5      2   84.0      NA      NA
 treat=none              132     32   85.0    81.9    92.9</code></pre>
 <p><img src="figure/forada2.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/2e680f1ea11daa2d55127b6af3a55d1336f36c24/docs/figure/forada2.Rmd/unnamed-chunk-2-1.png" target="_blank">2e680f1</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/659b004857a0428681631a0841f3c4ae2599814d/docs/figure/forada2.Rmd/unnamed-chunk-2-1.png" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>However, when we break by intervention, we see that there is a
 difference among the 4 categories of patients:</p>
 <pre><code># A tibble: 4 × 8
@@ -744,6 +878,54 @@ Matched       187     187
 Unmatched   63334       0
 Discarded       0       0</code></pre>
 <p><img src="figure/forada2.Rmd/pressure-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-pressure-1">
+Past versions of pressure-1.png
+</button>
+</p>
+<div id="fig-pressure-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/2e680f1ea11daa2d55127b6af3a55d1336f36c24/docs/figure/forada2.Rmd/pressure-1.png" target="_blank">2e680f1</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/659b004857a0428681631a0841f3c4ae2599814d/docs/figure/forada2.Rmd/pressure-1.png" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Now let’s generate the survival model:</p>
 <pre><code>Call: survfit(formula = Surv(time = censor.age, event = death) ~ intervention, 
     data = m)
@@ -753,6 +935,54 @@ intervention=untreated 132     32   85.0    81.9    92.9
 intervention=treated    55     10   89.8    82.2      NA
 intervention=control   187     22   90.7    87.7      NA</code></pre>
 <p><img src="figure/forada2.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/2e680f1ea11daa2d55127b6af3a55d1336f36c24/docs/figure/forada2.Rmd/unnamed-chunk-5-1.png" target="_blank">2e680f1</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/surbut/multistate2/blob/659b004857a0428681631a0841f3c4ae2599814d/docs/figure/forada2.Rmd/unnamed-chunk-5-1.png" target="_blank">659b004</a>
+</td>
+<td>
+Sarah Urbut
+</td>
+<td>
+2023-08-29
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -763,7 +993,7 @@ Session information
 <div id="workflowr-sessioninfo" class="collapse">
 <pre><code>R version 4.3.1 (2023-06-16)
 Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS Ventura 13.3
+Running under: macOS Sonoma 14.2.1
 
 Matrix products: default
 BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
@@ -779,27 +1009,27 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] dplyr_1.1.2       survminer_0.4.9   ggpubr_0.6.0      ggplot2_3.4.2    
-[5] survival_3.5-5    MatchIt_4.5.4     lubridate_1.9.2   data.table_1.14.8
+[1] dplyr_1.1.4        survminer_0.4.9    ggpubr_0.6.0       ggplot2_3.4.4     
+[5] survival_3.5-7     MatchIt_4.5.5      lubridate_1.9.3    data.table_1.14.10
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.3      xfun_0.39         bslib_0.5.0       rstatix_0.7.2    
- [5] lattice_0.21-8    vctrs_0.6.3       tools_4.3.1       generics_0.1.3   
- [9] tibble_3.2.1      fansi_1.0.4       highr_0.10        pkgconfig_2.0.3  
-[13] Matrix_1.6-0      lifecycle_1.0.3   farver_2.1.1      compiler_4.3.1   
-[17] stringr_1.5.0     git2r_0.32.0      munsell_0.5.0     carData_3.0-5    
-[21] httpuv_1.6.11     htmltools_0.5.5   sass_0.4.7        yaml_2.3.7       
+ [1] gtable_0.3.4      xfun_0.41         bslib_0.6.0       rstatix_0.7.2    
+ [5] lattice_0.22-5    vctrs_0.6.4       tools_4.3.1       generics_0.1.3   
+ [9] tibble_3.2.1      fansi_1.0.5       highr_0.10        pkgconfig_2.0.3  
+[13] Matrix_1.6-4      lifecycle_1.0.4   farver_2.1.1      compiler_4.3.1   
+[17] stringr_1.5.1     git2r_0.32.0      munsell_0.5.0     carData_3.0-5    
+[21] httpuv_1.6.12     htmltools_0.5.7   sass_0.4.7        yaml_2.3.7       
 [25] later_1.3.1       pillar_1.9.0      car_3.1-2         jquerylib_0.1.4  
 [29] whisker_0.4.1     tidyr_1.3.0       cachem_1.0.8      abind_1.4-5      
 [33] km.ci_0.5-6       commonmark_1.9.0  tidyselect_1.2.0  digest_0.6.33    
-[37] stringi_1.7.12    purrr_1.0.1       labeling_0.4.2    splines_4.3.1    
-[41] rprojroot_2.0.3   fastmap_1.1.1     grid_4.3.1        colorspace_2.1-0 
-[45] cli_3.6.1         magrittr_2.0.3    utf8_1.2.3        broom_1.0.5      
-[49] withr_2.5.0       scales_1.2.1      promises_1.2.0.1  backports_1.4.1  
-[53] timechange_0.2.0  rmarkdown_2.23    ggtext_0.1.2      gridExtra_2.3    
-[57] ggsignif_0.6.4    workflowr_1.7.0   chk_0.9.0         zoo_1.8-12       
-[61] evaluate_0.21     knitr_1.43        KMsurv_0.1-5      markdown_1.7     
-[65] survMisc_0.5.6    rlang_1.1.1       gridtext_0.1.5    Rcpp_1.0.11      
+[37] stringi_1.8.2     purrr_1.0.2       labeling_0.4.3    splines_4.3.1    
+[41] rprojroot_2.0.4   fastmap_1.1.1     grid_4.3.1        colorspace_2.1-0 
+[45] cli_3.6.1         magrittr_2.0.3    utf8_1.2.4        broom_1.0.5      
+[49] withr_2.5.2       scales_1.2.1      promises_1.2.1    backports_1.4.1  
+[53] timechange_0.2.0  rmarkdown_2.25    ggtext_0.1.2      gridExtra_2.3    
+[57] ggsignif_0.6.4    workflowr_1.7.1   chk_0.9.1         zoo_1.8-12       
+[61] evaluate_0.23     knitr_1.45        KMsurv_0.1-5      markdown_1.11    
+[65] survMisc_0.5.6    rlang_1.1.2       gridtext_0.1.5    Rcpp_1.0.11      
 [69] xtable_1.8-4      glue_1.6.2        xml2_1.3.5        rstudioapi_0.15.0
 [73] jsonlite_1.8.7    R6_2.5.1          fs_1.6.3         </code></pre>
 </div>

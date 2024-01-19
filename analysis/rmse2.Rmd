@@ -27,7 +27,7 @@ colnames(ascvd.30.year)=colnames(ascvd.30.year.rc)=colnames(pce.reverse.tenyear)
 agesint=seq(40,70,by=5)
 
 
-# modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
+#modelfit=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now")
 #                   
 
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = modelfit,window_width = 20,span = 0.75,degree = 2)

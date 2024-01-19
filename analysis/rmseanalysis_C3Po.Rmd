@@ -15,6 +15,8 @@ source("~/dynamichr/code/utils.R")
 source("~/multistate2//code/smoothtest.R")
 source("~/multistate2//code/newsmooth.R")
 source("~/multistate2/code/fitarray.R")
+
+df=fread("~/Library/CloudStorage/Dropbox-PartnersHealthCare/MGBB (1)/Individual Folders/Sarah U/multistate_c3po/c3po_covars_121123.csv")
 load("~/Library/CloudStorage/Dropbox-Personal///pheno_dir/output/merged_pheno_censor_final_withdrugs_smoke.rds")
 dfh$cad.prs.lec=cut(dfh$cad.prs,breaks = c(-5,-0.84,0.84,5),labels = c("low","mid","high"))
 dfh$int=interaction(dfh$f.31.0.0,dfh$cad.prs.lec)
