@@ -1,0 +1,54 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+biomarkers=readRDS("~/Library/CloudStorage/Dropbox-Personal/ukbb-ehr-data/data/biomarkers.rds")
+baseline=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/dfukb_baseline.rds")
+hdp=fread("~/Library/CloudStorage/Dropbox-Personal/Gestational_hypertension_preeclampsia.tab.tsv.gz")
+bmi=merge(biomarkers[biomarkers$variable%in%"bmi",],baseline,by.x="eid",by.y="identifier")
+bmi$age=as.numeric(difftime(bmi$date,bmi$Birthdate,units = "days")/365.25)
+bmi=merge(bmi,hdp[,c("sample_id","has_disease")],by.x="eid",by.y="sample_id")
+
+disease=hdp$sample_id[hdp$has_disease==1]
+healthy=hdp$sample_id[hdp$has_disease==0]
+bmi=bmi[bmi$age>18,]
+bmi_range=bmi%>%group_by(eid)%>%arrange(age)%>%summarise(n=length(value),mean=mean(value),med=median(value),range=value[length(value)]-value[1],treat=mean(has_disease))
+
+ggplot(bmi_range,aes(y=range,group=treat))+
+         geom_boxplot()
+```
+
+```{r}
+ggplot(bmi, aes(x = age, y = value)) +
+  geom_bin2d() +
+  theme_minimal()
+```
+
+```{r}
+ggplot(bmi, aes(x = age, y = value)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~has_disease) +
+  theme_minimal()
+```
+
+```{r}
+#| echo: false
+library(ggridges)
+ggplot(bmi, aes(x = value, y = as.factor(age), fill = as.factor(has_disease))) +
+  geom_density_ridges() +
+  theme_minimal()
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
