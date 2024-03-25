@@ -825,16 +825,16 @@ ggplot(mpce,aes(sbp,fill=as.factor(Ht_0_Any)))+geom_density()+labs(fill="SBP at 
 
 ### but all
 sbp=readRDS("~/Library/CloudStorage/Dropbox-Personal/denaxasvalues/sbp.rds")
-ldl=readRDS("~/Library/CloudStorage/Dropbox-Personal/ldl_gp.rds")
+ldl=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/ldl_gp.rds")
 
-hyperlips=mpce[mpce$HyperLip_0_Any=="case","identifier"]
-hts=mpce[mpce$Ht_0_Any=="case","identifier"]
+hyperlips=mpce[mpce$HyperLip_0_Any==2,"identifier"]
+hts=mpce[mpce$Ht_0_Any==2,"identifier"]
 
 ldl$case=ifelse(ldl$eid%in%hyperlips$identifier,1,0)
 sbp$case=ifelse(sbp$eid%in%hts$identifier,1,0)
 
 
-ggplot(g2,aes(event_dt))+geom_histogram(bins=80)+labs(x="First Encounter Year")
+#ggplot(g2,aes(event_dt))+geom_histogram(bins=80)+labs(x="First Encounter Year")
 
 ggplot(ldl,aes(value1,fill=as.factor(case)))+geom_density()+labs(x="LDL_All",fill="Case/Control")
 

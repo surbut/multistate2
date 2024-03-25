@@ -772,8 +772,8 @@ sum(m4$AGE1>40&m4$chd==1)
 sum(m3$AGE1>40&m3$chd==1)
 ### Now ask about SBP and LDL
 
-ldl_gp=readRDS("~/Dropbox (Personal)/pheno_dir/output/ldl_gp.rds")
-dfh=readRDS("~/Dropbox (Personal)/pheno_dir/output/merged_pheno_censor_final.rds")
+ldl_gp=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/ldl_gp.rds")
+dfh=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/merged_pheno_censor_final.rds")
 m=merge(ldl_gp,dfh[,c("identifier","Birthdate")],by.x = "eid",by.y = "identifier")
 
 m2=m[with(m, order(event_dt)), ]
@@ -790,8 +790,8 @@ hist(m3$followup[m3$followup>20],xlab="Years Follow up from first measurement in
 
 #### SBPP
 
-sbp_gp=readRDS("~/Dropbox (Personal)/pheno_dir/output/sbp_gp.rds")
-dfh=readRDS("~/Dropbox (Personal)/pheno_dir/output/merged_pheno_censor_final.rds")
+sbp_gp=readRDS("~/Library/CloudStorage/Dropbox-Personal/pheno_dir/output/sbp_gp.rds")
+dfh=readRDS("~/Library/CloudStorage/Dropbox (Personal)/pheno_dir/output/merged_pheno_censor_final.rds")
 m=merge(sbp_gp,dfh[,c("identifier","Birthdate")],by.x = "eid",by.y = "identifier")
 
 m2=m[with(m, order(event_dt)), ]

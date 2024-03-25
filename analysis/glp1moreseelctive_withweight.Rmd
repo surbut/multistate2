@@ -199,7 +199,7 @@ match_dat$delta=match_dat$post_drug_bmi-match_dat$pretreat_bmi
 match_dat$pretreat_weight=match_dat$pretreat_bmi
 
 
-model=lm(delta~treat+treat:bmi.prs+pretreat_weight+sex+birth_year,match_dat)
+model=lm(delta~treat+treat:bmi.prs+pretreat_weight+sex+birth_year+bmi.prs,match_dat)
 
 #model=lm(delta~treat+treat:bmi.prs,match_dat)
 

@@ -1,0 +1,612 @@
+---
+title: "CalibrationPlot"
+format: 
+  html:
+    toc: true
+    toc-location: body
+date: 2-17-2024
+author:
+  - name: "Sarah Urbut"
+embed-resources: true
+toc: true
+toc-expand: 2
+toc-title: Contents
+page-layout: full
+code-fold: true
+editor: visual
+---
+
+## **Step 1: Preparing the Data**
+
+1.  **Merge Predicted Risks with Actual Outcomes**: For each model's predictions (PCE, ASCVD, states), you'll need to ensure that you have a way to align each prediction with the actual outcome for the same individual at the same age. This may require reshaping or merging data frames.
+
+2.  **Handling Censored Data in `states` Predictions**: For individuals who have been censored at certain ages in the **`states`** data, you'll need to decide on an approach. One common method is to exclude these individuals from the analysis for ages where they are censored since you don't have predictions for them.
+
+### **Step 2: Calculating Observed and Predicted Risks**
+
+For each age from 40 to 70, and for each model:
+
+-   Calculate the mean predicted risk for that age.
+
+-   Calculate the observed rate of **`Cad_Any == 2`** within the individuals not censored at that age.
+
+### **Step 3: Creating Calibration Plots**
+
+You can create calibration plots by following these steps for each model:
+
+1.  **Bin Predicted Risks**: If your predictions span a continuous range, consider binning them into deciles or another suitable grouping. This step might be slightly different for the **`states`** data, depending on how risk is represented.
+
+2.  **Calculate Observed Rates by Bin**: For each bin, calculate the observed frequency of the outcome (**`Cad_Any == 2`**).
+
+3.  **Plotting**: Plot the mean predicted risk against the observed frequency for each bin. Repeat this for each age group or consider aggregating across age groups if appropriate.We have all of our predictions stored in a list
+
+```{r}
+states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+
+library("ggsci")
+library(dplyr)
+library(tidyr)
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+
+test=readRDS("~/multistate2/output/test.rds")
+pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+#states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+states=readRDS("~/multistate2/output/state_occupancy_risk_oneyear.rds")
+df=test
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+df$agecensor=as.numeric(difftime(df$censordateHES,df$Birthdate,units = "days")/365.25)
+
+bad_indices=which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1)
+
+
+
+expanded_df <- data.frame()
+
+score1_list=states
+names(score1_list)=df$identifier
+score2=ascvd.30.year.rc
+rownames(score2)=df$identifier
+
+score3=pce.reverse.tenyear
+rownames(score3)=df$identifier
+
+# # Removing the bad IDs from score1_list
+score1_list <- score1_list[-bad_indices]
+# 
+# # Removing the bad IDs from score2 dataframe
+score2 <- score2[-bad_indices, ]
+# 
+# # Removing the bad IDs from score2 dataframe
+score3 <- score3[-bad_indices, ]
+
+
+# exclude those with events after 
+
+df=df[-which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1),]
+dim(df)
+
+
+all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score3)),as.numeric(df$identifier))
+# Initialize a list to store the results
+expanded_list <- vector("list", length = nrow(df))
+
+for(i in 1:nrow(df)) {
+  #print(i)
+  id <- df$id[i]
+  max_age <- df$Cad_0_censor_age[i]
+  event <- df$Cad_0_Any[i]
+   enroll = df$phenos.enrollment[i]
+  
+  # When max_age is less than 40 or length of score1_list[i] is 0
+  if (max_age < 40 || length(score1_list[[i]]) == 0) {
+    next  # Skip this iteration and proceed to the next
+  }
+  
+  age_range <- 40:(40 + length(score1_list[[i]]) - 1)
+  score1_values <- score1_list[[i]]
+  score2_values <- score2[i, age_range - 39]
+  score3_values <- score3[i, age_range - 39]
+  
+  # If there's an event and score1 is shorter than expected
+  if (event == 1 && max(age_range) < max_age) {
+    extended_age_range <- (max(age_range) + 1):max_age  
+    score1_last_value <- rep(tail(score1_list[[i]], 1), times = length(extended_age_range))
+    score1_values <- c(score1_list[[i]], score1_last_value)
+    score2_last_value <- score2[i,(extended_age_range-39)]
+    score2_values <- c(score2_values, score2_last_value)
+    score3_last_value <- score3[i,(extended_age_range-39)]
+    score3_values <- c(score3_values, score3_last_value)
+    age_range <- c(age_range, extended_age_range)
+  }
+  
+  # Store the resulting dataframe as a list element
+  expanded_list[[i]] <- data.frame(id = id,
+                                   age = age_range,
+                                   score1 = score1_values,
+                                   score2 = score2_values,
+                                   score3 = score3_values,
+                                   enroll=enroll,
+                                   event = ifelse(age_range == max_age, event, 0))
+}
+
+
+
+expanded_df <- do.call(rbind, expanded_list)
+expanded_df$score1=expanded_df$score1*100
+expanded_df$start <- expanded_df$age
+expanded_df$stop <- expanded_df$age + 1
+
+
+print(dim(expanded_df))
+
+
+calibration_plots_data <- expanded_df %>%
+  group_by(age) %>%
+  mutate(score1_bin = ntile(score1, 5)) %>%
+  group_by(age, score1_bin) %>%
+  summarise(mean_predicted = mean(score1),
+            observed_rate = 100 * mean(event),
+            error = sqrt(1 / length(score1) * (mean(score1) / 100) * (1 - mean(score1) / 100))) %>%
+  ungroup() %>%
+  mutate(ymin = observed_rate - 1.96 * error, ymax = observed_rate + 1.96 * error) # Calculate ymin and ymax for error bars
+
+
+
+
+# Determine if an event ever occurs for each individual
+event_occurrence <- expanded_df %>%
+  group_by(id) %>%
+  summarise(event_ever = max(event)) # Assuming 'event' is 1 if it occurs, 0 otherwise
+
+
+event_occurrence <- expanded_df %>%
+  group_by(id) %>%
+  summarise(event_ever = max(event))
+
+
+df_with_event <- expanded_df %>%
+  left_join(event_occurrence, by = "id")
+
+
+
+calibration_plots_data <- df_with_event %>%
+  group_by(age) %>%
+  mutate(score1_bin = ntile(score2, 5)) %>%
+  group_by(age, score2_bin) %>%
+  summarise(mean_predicted = mean(score1),
+            observed_rate = 100 * mean(event_ever),
+            error = sqrt(1 / length(score1) * (mean(score1) / 100) * (1 - mean(score1) / 100))) %>%ungroup() %>%
+  mutate(ymin = observed_rate - 1.96 * error, ymax = observed_rate + 1.96 * error) # Calculate ymin and ymax for error bars
+
+# Plot with error bars
+ggplot(calibration_plots_data, aes(x = mean_predicted, y = observed_rate)) +
+  geom_point() + # Add points
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.2) + # Add error bars
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") + # Add a reference line
+  geom_line() + # Connect points with lines
+  facet_wrap(~age )+ # Facet by age
+  labs(title = "Calibration Plot by Age, 1 year", x = "Mean Predicted Risk (MSGene RLR)", y = "Observed Event Rate") +
+  theme_minimal() # Use minimal theme
+
+
+### for FRS30
+
+# Determine if an event ever occurs for each individual
+
+calibration_plots_data <- df_with_event %>%
+group_by(age) %>%
+mutate(score2_bin = ntile(score2, 10)) %>%
+group_by(age, score2_bin) %>%
+summarise(mean_predicted = mean(score2),
+          observed_rate = 100*mean(event_ever)) %>%ungroup()
+
+ggplot(calibration_plots_data, aes(x = mean_predicted, y = observed_rate)) +
+geom_point() +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+
+geom_line() +
+facet_wrap(~age) +
+labs(title = "Calibration Plot by Age for FRS 30 year predicted risk", x = "Mean Predicted Risk (FRS30)", y = "Observed Event Rate") +
+theme_minimal()
+
+
+```
+
+Here we do it restricting MSGene to individuals who had the ability to be followed to 80:
+
+```{r}
+
+goodms=df$identifier[df$agecensor>79]
+
+# # Determine if an event ever occurs for each individual
+ed=expanded_df[expanded_df$id%in%goodms,]
+
+event_occurrence <- ed %>%
+group_by(id) %>%
+summarise(event_ever = max(event)) # Assuming 'event' is 1 if it occurs, 0 otherwise
+#
+df_with_event <- ed %>%
+left_join(event_occurrence, by = "id")
+
+
+calibration_plots_data <- df_with_event %>%
+group_by(age) %>%
+mutate(score1_bin = ntile(score1, 5)) %>%
+group_by(age, score1_bin) %>%
+summarise(mean_predicted = mean(score1),
+          observed_rate = 100*mean(event_ever),error=sqrt(1/length(score1)*(mean(score1)/100)*(1-mean(score1)/100))) %>%ungroup()
+
+ggplot(calibration_plots_data, aes(x = mean_predicted, y = observed_rate)) +
+geom_point() +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+
+geom_line() +
+facet_wrap(~age) +
+labs(title = "Calibration Plot by Age", x = "Mean Predicted Risk (MSGene RLR)", y = "Observed Event Rate") +
+theme_minimal()
+
+
+```
+
+Let's try it with the 30 year score only for ages 40-50:
+
+```{r}
+test=readRDS("~/multistate2/output/test.rds")
+pce.reverse.tenyear=readRDS("~/multistate2/output/pce.reverse.tenyear.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+states=readRDS("~/multistate2/output/state_occupancy_risk_30.rds")
+df=test
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+df$agecensor=as.numeric(difftime(df$censordateHES,df$Birthdate,units = "days")/365.25)
+
+goodms=df$identifier[df$agecensor>79]
+bad_indices=which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1)
+
+
+
+expanded_df <- data.frame()
+
+score1_list=states
+names(score1_list)=df$identifier
+score2=ascvd.30.year.rc
+rownames(score2)=df$identifier
+
+score3=pce.reverse.tenyear
+rownames(score3)=df$identifier
+
+# # Removing the bad IDs from score1_list
+score1_list <- score1_list[-bad_indices]
+# 
+# # Removing the bad IDs from score2 dataframe
+score2 <- score2[-bad_indices, ]
+# 
+# # Removing the bad IDs from score2 dataframe
+score3 <- score3[-bad_indices, ]
+
+
+# exclude those with events after 
+
+df=df[-which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1),]
+dim(df)
+
+
+all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score3)),as.numeric(df$identifier))
+# Initialize a list to store the results
+expanded_list <- vector("list", length = nrow(df))
+
+for(i in 1:nrow(df)) {
+  #print(i)
+  id <- df$id[i]
+  max_age <- df$Cad_0_censor_age[i]
+  event <- df$Cad_0_Any[i]
+   enroll = df$phenos.enrollment[i]
+  
+  # When max_age is less than 40 or length of score1_list[i] is 0
+  if (max_age < 40 || length(score1_list[[i]]) == 0) {
+    next  # Skip this iteration and proceed to the next
+  }
+  
+  age_range <- 40:(40 + length(score1_list[[i]]) - 1)
+  score1_values <- score1_list[[i]]
+  score2_values <- score2[i, age_range - 39]
+  score3_values <- score3[i, age_range - 39]
+  
+  # If there's an event and score1 is shorter than expected
+  if (event == 1 && max(age_range) < max_age) {
+    extended_age_range <- (max(age_range) + 1):max_age  
+    score1_last_value <- rep(tail(score1_list[[i]], 1), times = length(extended_age_range))
+    score1_values <- c(score1_list[[i]], score1_last_value)
+    score2_last_value <- score2[i,(extended_age_range-39)]
+    score2_values <- c(score2_values, score2_last_value)
+    score3_last_value <- score3[i,(extended_age_range-39)]
+    score3_values <- c(score3_values, score3_last_value)
+    age_range <- c(age_range, extended_age_range)
+  }
+  
+  # Store the resulting dataframe as a list element
+  expanded_list[[i]] <- data.frame(id = id,
+                                   age = age_range,
+                                   score1 = score1_values,
+                                   score2 = score2_values,
+                                   score3 = score3_values,
+                                   enroll=enroll,
+                                   event = ifelse(age_range == max_age, event, 0))
+}
+
+
+
+expanded_df <- do.call(rbind, expanded_list)
+expanded_df$score1=expanded_df$score1*100
+expanded_df$start <- expanded_df$age
+expanded_df$stop <- expanded_df$age + 1
+
+
+print(dim(expanded_df))
+
+
+# Determine if an event ever occurs for each individual
+event_occurrence <- expanded_df %>%
+  group_by(id) %>%
+  summarise(event_ever = max(event)) # Assuming 'event' is 1 if it occurs, 0 otherwise
+
+
+
+
+
+df_with_event <- expanded_df %>%
+  left_join(event_occurrence, by = "id")
+
+# # Determine if an event ever occurs for each individual
+# ed=expanded_df[expanded_df$id%in%goodms,]
+
+#event_occurrence <- ed %>%
+#   group_by(id) %>%
+#   summarise(event_ever = max(event)) # Assuming 'event' is 1 if it occurs, 0 otherwise
+# 
+# df_with_event <- ed %>%
+#   left_join(event_occurrence, by = "id")
+
+
+calibration_plots_data <- df_with_event %>%
+group_by(age) %>%
+mutate(score1_bin = ntile(score2, 5)) %>%
+group_by(age, score1_bin) %>%
+summarise(
+observed_rate = 100 * mean(event_ever),mean_predicted = mean(score2),
+error = sqrt(1 / length(score2) * mean_predicted/100 * (1 - mean_predicted/100)),
+length=length(score2))%>%
+ungroup() %>%
+mutate(ymin = mean_predicted - 1.96 * error, ymax = mean_predicted + 1.96 * error) # Calculate ymin and ymax for 
+
+frs=ggplot(calibration_plots_data, aes(x = observed_rate,y=mean_predicted)) +
+geom_errorbar(aes(ymin = ymin, ymax = ymax), height = 0.5)+
+geom_point() +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+
+geom_line() +
+  
+facet_wrap(~age) +
+labs(title = "Calibration Plot by Age for 30 year risk", y = "Predicted FRS 30 year risk ", x = "Observed Event Rate") +
+theme_minimal()
+
+
+
+
+ggsave(plot=frs,filename = "~/Library/CloudStorage/Dropbox-Personal/calibration_plots_FRS.png",width=15)
+
+
+```
+
+## here for means?
+
+```{r}
+
+meanex=expanded_df%>%group_by(id)%>%summarize(m1=mean(score1),m2=mean(score2),e=sum(event))
+
+
+calibration_plots_data_ms <- meanex %>%
+mutate(score1_bin = ntile(m1,10)) %>%
+group_by(score1_bin) %>%summarise(mean_predicted = mean(m1),
+observed_rate = 100*mean(e),l=length(m1))
+
+
+ggplot(calibration_plots_data_ms, aes(x = mean_predicted, y = observed_rate)) +
+geom_point() +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+labs(title = "Calibration Plot by Age", x = "Mean Predicted Risk (MSGene)", y = "Observed Event Rate") +theme_minimal()
+
+###
+
+
+calibration_plots_data_frs <- meanex %>%
+mutate(score1_bin = ntile(m2,10)) %>%
+group_by(score1_bin) %>%summarise(mean_predicted = mean(m2),
+observed_rate = 100*mean(e),l=length(m2))
+
+ggplot(calibration_plots_data_frs, aes(x = mean_predicted, y = observed_rate)) +
+geom_point() +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+labs(title = "Calibration Plot by Age", x = "Mean Predicted Risk (FRS30)", y = "Observed Event Rate") +theme_minimal()
+
+```
+
+```{r,eval=F}
+
+library(survival)
+
+# Create the survival object
+surv_obj <- with(df_with_event, Surv(time = start, time2 = stop, event = event))
+
+# Fit Cox models for each score
+cox_model_score1 <- coxph(surv_obj ~ score1, data = df_with_event)
+cox_model_score2 <- coxph(surv_obj ~ score2, data = df_with_event)
+
+
+library(survival)
+
+# Create the survival object
+surv_obj <- with(df_with_event, Surv(time = start, time2 = stop, event = event))
+
+# Fit Cox models for each score
+cox_model_score1 <- coxph(surv_obj ~ score1, data = df_with_event)
+cox_model_score2 <- coxph(surv_obj ~ score2, data = df_with_event)
+
+# This is a conceptual approach; actual implementation will vary based on data and goals
+# Assuming you have predicted probabilities and observed outcomes at 10 years
+
+# Create deciles of predicted probabilities
+df_with_event$score1_decile <- cut(df_with_event$predicted_prob_score1, breaks = quantile(df_with_event$predicted_prob_score1, probs = 0:10/10), include.lowest = TRUE)
+df_with_event$score2_decile <- cut(df_with_event$predicted_prob_score2, breaks = quantile(df_with_event$predicted_prob_score2, probs = 0:10/10), include.lowest = TRUE)
+
+# Calculate observed event rates by decile
+observed_events_score1 <- aggregate(event ~ score1_decile, data = df_with_event, FUN = mean)
+observed_events_score2 <- aggregate(event ~ score2_decile, data = df_with_event, FUN = mean)
+
+# Plot observed vs. predicted for Score 1 and Score 2
+library(ggplot2)
+
+ggplot(observed_events_score1, aes(x = score1_decile, y = event)) +
+  geom_point(aes(color = 'Score 1')) +
+  geom_line(aes(color = 'Score 1')) +
+  geom_point(data = observed_events_score2, aes(x = score2_decile, y = event, color = 'Score 2')) +
+  geom_line(data = observed_events_score2, aes(x = score2_decile, y = event, color = 'Score 2')) +
+  labs(x = 'Predicted Probability Decile', y = 'Observed Event Rate', title = 'Calibration Plot')
+
+
+```
+
+Let's try this two year stuff:
+
+```{r}
+
+test=readRDS("~/multistate2/output/test.rds")
+ascvd.30.year.rc=readRDS("~/multistate2/output/ascvd.30year.rcnew.rds")
+#states=readRDS("~/multistate2/output/state_occupancy_risk.rds")
+states=readRDS("~/multistate2/output/state_occupancy_risk_oneyear.rds")
+df=test
+df$Cad_0_censor_age=round(df$Cad_0_censor_age,0)
+df$Cad_0_Any=ifelse(df$Cad_0_Any==2,1,0)
+df$agecensor=as.numeric(difftime(df$censordateHES,df$Birthdate,units = "days")/365.25)
+
+bad_indices=which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1)
+
+
+expanded_df <- data.frame()
+
+score1_list=states
+names(score1_list)=df$identifier
+score2=ascvd.30.year.rc
+rownames(score2)=df$identifier
+
+
+# # Removing the bad IDs from score1_list
+score1_list <- score1_list[-bad_indices]
+# 
+# # Removing the bad IDs from score2 dataframe
+score2 <- score2[-bad_indices, ]
+# 
+
+# exclude those with events after 
+
+df=df[-which(df$Cad_0_censor_age>=80&df$Cad_0_Any==1),]
+dim(df)
+
+
+all.equal(as.numeric(names(score1_list)),as.numeric(df$identifier))
+
+all.equal(as.numeric(rownames(score2)),as.numeric(df$identifier))
+
+# Initialize a list to store the results
+expanded_list <- vector("list", length = nrow(df))
+
+for(i in 1:nrow(df)) {
+  #print(i)
+  id <- df$id[i]
+  max_age <- df$Cad_0_censor_age[i]
+  event <- df$Cad_0_Any[i]
+   enroll = df$phenos.enrollment[i]
+  
+  # When max_age is less than 40 or length of score1_list[i] is 0
+  if (max_age < 40 || length(score1_list[[i]]) == 0) {
+    next  # Skip this iteration and proceed to the next
+  }
+  
+  age_range <- 40:(40 + length(score1_list[[i]]) - 1)
+  score1_values <- score1_list[[i]]
+  score2_values <- score2[i, age_range - 39]
+  #score3_values <- score3[i, age_range - 39]
+  
+  # If there's an event and score1 is shorter than expected
+  if (event == 1 && max(age_range) < max_age) {
+    extended_age_range <- (max(age_range) + 1):max_age  
+    score1_last_value <- rep(tail(score1_list[[i]], 1), times = length(extended_age_range))
+    score1_values <- c(score1_list[[i]], score1_last_value)
+    score2_last_value <- score2[i,(extended_age_range-39)]
+    score2_values <- c(score2_values, score2_last_value)
+    #score3_last_value <- score3[i,(extended_age_range-39)]
+    #score3_values <- c(score3_values, score3_last_value)
+    age_range <- c(age_range, extended_age_range)
+  }
+  
+  # Store the resulting dataframe as a list element
+  expanded_list[[i]] <- data.frame(id = id,
+                                   age = age_range,
+                                   score1 = score1_values,
+                                   score2 = score2_values,
+                                   #score3 = score3_values,
+                                   enroll=enroll,
+                                   event = ifelse(age_range == max_age, event, 0))
+}
+
+
+
+expanded_df <- do.call(rbind, expanded_list)
+expanded_df$score1=expanded_df$score1*100
+expanded_df$start <- expanded_df$age
+expanded_df$stop <- expanded_df$age + 1
+
+
+print(dim(expanded_df))
+
+
+expanded_df <- expanded_df %>%
+    group_by(id) %>%
+    mutate(next_year_event = lead(event, 1, order_by = age),
+           two_year_event = event | coalesce(next_year_event, 0),
+           two_year_follow_up_available = age <= (max(age) - 1)) %>%
+    ungroup()
+
+
+# Adding a lead column to identify events in the next year
+# Adding a lead column to identify events in the next year
+calibration_plots_data <- expanded_df %>%
+group_by(age) %>%
+mutate(score1_bin = ntile(score1, 5)) %>%
+group_by(age, score1_bin) %>%
+summarise(
+observed_rate = 100 * mean(two_year_event),mean_predicted = mean(score1),
+error = sqrt(1 / length(score1) * mean_predicted/100 * (1 - mean_predicted/100)),
+length=length(score1))%>%
+ungroup() %>%
+mutate(ymin = mean_predicted - 1.96 * error, ymax = mean_predicted + 1.96 * error) # Calculate ymin and ymax for error bars
+
+g=ggplot(calibration_plots_data, aes(x = observed_rate,y=mean_predicted)) +
+geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.1)+
+geom_point(size=0.1) +geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red")+lims(x=c(0,5),y=c(0,5))+
+geom_line() +
+facet_wrap(~age) +
+labs(title = "Calibration Plot by Age for 1 year risk", y = "Predicted MSGene 1 year Risk ", x = "Observed Event Rate") +
+theme_classic()
+
+ggsave(plot=g,filename = "~/Library/CloudStorage/Dropbox-Personal/calibration_plots_msgene.png",height = 15,width=7)
+
+### play with aspect 
+### N=large
+
+
+```
+
+\

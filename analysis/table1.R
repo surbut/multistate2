@@ -128,6 +128,7 @@ e %>%
 
 length(intersect(dfh$identifier,dfascvd$sample_id))
 #400552 
+
 design <- tibble::tribble(
   ~left,~n_left, ~right,~n_right,
   "Study base with Outcome Data", 502461 ,"Lack QC Genotype, Sex, Birthdate or Smoking information", 20534,

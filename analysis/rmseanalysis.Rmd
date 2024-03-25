@@ -34,6 +34,7 @@ test=merge(test,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med
 test$ascvd_10y_accaha=test$as2
 test$phenos.enrollment=test$f.21003.0.0
 test=data.table(test)
+test$bmi=test$f.21001.0.0
 source("~/multistate2/code/frs30_URBUT/fun.frs_30ynew.R")
 library(CVrisk)
 ages=c(40:80)
@@ -60,8 +61,19 @@ mod3=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod3,window_width = 20,span = 0.75,degree = 2)
 coefs_mod3=b$custom_smooth
 
+
+
+
 mod4=fitfunc2(data.table(train),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now") 
 b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod4,window_width = 20,span = 0.75,degree = 2)
+coefs_mod4=b$custom_smooth
+
+train2=merge(dfh,dfascvd[,-which(names(dfascvd)%in%c("age","anylipidmed0","bp_med2","smoke"))],by.x="identifier",by.y="sample_id")
+train2$phenos.enrollment=train2$f.21003.0.0
+train2$bmi=train2$f.21001.0.0
+
+mod_bmi=fitfunc2(data.table(train2),ages = ages,nstates = nstates,mode = "binomial",covariates ="cad.prs+f.31.0.0+smoke+antihtn_now+statin_now+bmi+choladj+hdladj")
+b=coefplotsmooth2(ages = ages,start = "Health",stop = "Cad",modelfit = mod_bmi,window_width = 20,span = 0.75,degree = 2)
 coefs_mod4=b$custom_smooth
 
 
