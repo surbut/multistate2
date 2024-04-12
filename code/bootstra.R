@@ -573,6 +573,21 @@ get_summary <- function(person_df) {
   return(summary_df)
 }
 
+# Function to get the summary statistics for one person
+get_summary_3 <- function(person_df) {
+  summary_df <- person_df %>%
+    group_by(Age, State) %>%
+    summarise(
+      mean_risk = mean(Risk),
+      #lower_ci = quantile(Risk, 0.025),
+      #upper_ci = quantile(Risk, 0.975),
+      lower_ci = mean(Risk)-1.96*sd(Risk),
+      upper_ci = mean(Risk)+1.96*sd(Risk),
+      .groups = "drop"
+    )
+  return(summary_df)
+}
+
 get_summary2 <- function(person_df) {
   summary_df <- person_df %>%
     group_by(Age, State) %>%
@@ -603,6 +618,18 @@ plot_risk_for_person <- function(pm, person_idx) {
 plot_risk2_for_person <- function(pm, person_idx) {
   person_df <- person_to_df(pm, person_idx)
   summary_df <- get_summary2(person_df)
+  
+  ggplot(summary_df, aes(x = Age, y = mean_risk, color = State, group = State)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = State), alpha = 0.2) +
+    labs(title = paste("Predicted Risks for Person", person_idx), y = "Risk", x = "Age", color = "State") +
+    theme_classic()
+}
+
+
+plot_risk3_for_person <- function(pm, person_idx) {
+  person_df <- person_to_df(pm, person_idx)
+  summary_df <- get_summary_3(person_df)
   
   ggplot(summary_df, aes(x = Age, y = mean_risk, color = State, group = State)) +
     geom_line() +
