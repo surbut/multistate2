@@ -1,0 +1,609 @@
+---
+title: "Spyro"
+format: html
+editor: visual
+---
+
+## Bayesian Analysis of Blood Pressure Change Using Conjugate Priors
+
+Bayesian design and prespecified interim analyses
+
+A Bayesian trial design was proposed that allows for prespecified interim analyses to take place in addition to leveraging pilot study data. For SPYRAL HTN-OFF MED Pivotal, assuming 15% attrition, interim analyses are expected to occur first term at approximately 210 and second-term when approximately 240 subjects have evaluable data, with a maximum sample size of 300 evaluable subjects if the trial does not stop at either the first or second interim look.
+
+The time from randomization of the first cohort to the second cohort and final cohort, if applicable, is lengthy due to stringent eligibility criteria and subsequent slow randomization rates.
+
+For SPYRAL HTN-ON MED Expansion, the expected sample sizes are 149 and 187 evaluable subjects, with a maximum sample size of 221 evaluable subjects. Actual numbers of evaluable subjects will be determined by the actual attrition, which is currently expected to be 15%. At each prespecified interim analysis, enrollment may be stopped for efficacy or expected futility.
+
+For SPYRAL HTN-OFF MED Pivotal, the primary and secondary efficacy endpoints will be evaluated during these prespecified interim looks, and enrollment will only stop at an interim analysis if both endpoints meet the following stopping criteria. For SPYRAL HTN-ON MED Expansion, the primary efficacy endpoint will be evaluated at prespecified interim looks. A distinction between the stopping for efficacy and futility is that the former is based solely on the observed/evaluable data, whereas the latter involves the observed/evaluable data, as well as imputation for subjects without evaluable data or not yet randomized.
+
+The underlying model is a Bayesian analogue of the analysis of covariance (ANCOVA) model for SBP change from baseline, 𝑦𝑖, adjusted for baseline blood pressure and treatment arm. Due to a Bayesian power prior approach being used, a non-standard parameterization for the ANCOVA model is used to allow for informative prior distributions to be placed separately on the RDN and control arm effects:
+
+## Model Assumptions
+
+Here's a breakdown of the Bayesian clinical trial methodology described in the article, along with guidance on how to build an R simulation to demonstrate it.
+
+**Model**
+
+-   **Bayesian ANCOVA:** The core model is a Bayesian version of Analysis of Covariance (ANCOVA). It's expressed in a slightly different form to facilitate the use of informative prior distributions: `y_i = mu_t * I(i, ∈, t) + mu_c * I(i, ∈, c) + x_i * beta + epsilon_i`
+    -   `y_i`: Change from baseline in blood pressure at follow-up for subject 'i'.
+    -   `I(i, ∈, t)`: Indicator whether subject 'i' belongs to the treatment group (1 if yes, 0 if no).
+    -   `I(i, ∈, c)`: Indicator whether subject 'i' belongs to the control group.
+    -   `mu_t`: Baseline-adjusted treatment effect for the renal denervation group.
+    -   `mu_c`: Baseline-adjusted treatment effect for the sham control group.
+    -   `x_i`: Mean-centered baseline blood pressure for subject 'i'.
+    -   `beta`: Regression coefficient adjusting for baseline blood pressure.
+    -   `epsilon_i`: Error term, assumed to be normally distributed.
+-   **Priors:**
+    -   **Pilot Study Data:** Data from previous, similar trials are integrated using Bayesian power priors.
+    -   **Power Parameters:** `alpha_t` and `alpha_c` control how heavily the pilot data is weighted. These can be fixed or estimated dynamically.
+    -   **Other Priors:** Diffuse Normal for `beta`, flat prior for `log(sigma)`.
+
+## Bayesian ANCOVA Model Simulation
+
+This simulation will reflect the Bayesian ANCOVA model structure you provided. We'll simulate treatment effect analysis incorporating both baseline and treatment effects, reflecting your method of adjusting for mean-centered baseline blood pressure.
+
+# Example usage with hypothetical p-values for treatment and control groups
+
+```{r}
+# Treatment differences and sample sizes
+library(reshape)
+library(ggplot2)
+
+weibull_discount <- function(p, shape=1, scale=1) {
+  1 - exp(-(p / scale) ^ shape)
+}
+
+difference_pilot_sbp <- -4.9
+n_pilot_sbp <- 70
+se_pilot_sbp <- (-9.6- -0.3)/(1.96*2)# Approximated from the CI width
+
+difference_pivotal_sbp <- -3.6
+n_pivotal_sbp <- 204
+se_pivotal_sbp <- (5.2)/(1.96*2)#  # Approximated from the CI width
+
+# Pooled standard error
+se_pooled_sbp <- sqrt((se_pilot_sbp^2 + se_pivotal_sbp^2))
+# Z-score
+z_sbp <- (difference_pilot_sbp - difference_pivotal_sbp) / se_pooled_sbp
+
+# P-value
+p_value_sbp <- 2 * pnorm(-abs(z_sbp))
+
+p_value_sbp
+wp=weibull_discount(p_value_sbp,shape = 3,scale = 0.5)
+```
+
+## understanding discount function
+
+```{r}
+
+df=data.frame(p=seq(0,1,by=0.01),
+              W_3_50=weibull_discount(seq(0,1,by=0.01),shape = 3,scale = 0.50),
+              W_3_75=weibull_discount(seq(0,1,by=0.01),shape = 3,scale = 0.75),
+              W_1_60=weibull_discount(seq(0,1,by=0.01),shape = 1,scale = 0.60)
+              )
+
+m=melt(df,id.vars="p")
+ ggplot(m,aes(p,value,color=variable))+geom_point()+labs(y="Mixture Parameter",x="P-value",color="Weibull Parameters",title = "Discounting Function") +theme_classic(base_size = 20)+
+geom_vline(xintercept = wp, linetype = "dashed")
+```
+
+**Type I Error Assessment**
+
+-   **Extensive Simulation:** The described methodology relies heavily on simulation studies to assess Type I error rates (false positives) under various scenarios.
+
+**Discount Function**
+
+-   **Purpose:** The discount function downweights the influence of pilot data if there's evidence of dissimilarity between the pilot and the current trial.
+-   **Weibull Function:** A Weibull function is used for discounting, with shape and scale parameters carefully chosen through simulations.
+
+**R Simulation: Key Steps**
+
+1.  **Data Generation:**
+    -   Create a function to simulate realistic blood pressure change data, including baseline, treatment allocation, and potential covariate effects.
+    -   Set parameters for the true treatment effect, variability, and other relevant factors.
+2.  **Prior Specification:**
+    -   Obtain pilot study data (if available).
+    -   Define functions to create prior distributions for `mu_t`, `mu_c`, `beta`, and `log(sigma)`.
+    -   Implement methods for calculating or setting power parameters.
+3.  **Bayesian Model Fitting:**
+    -   Choose a Bayesian modeling package in R (such as `rstanarm` or `brms`).
+    -   Define the ANCOVA model using the specified parameterization.
+    -   Set up the model to include prior distributions and handle discount parameters.
+4.  **Interim Analyses:**
+    -   Specify points at which interim analyses will occur based on subject numbers.
+    -   Implement Bayesian decision rules:
+        -   Calculate the posterior probability of `mu < 0`.
+        -   Stop for efficacy if the probability exceeds a threshold.
+        -   Stop for futility if the probability falls below a threshold.
+5.  **Simulations:**
+    -   Create a loop to run the simulation multiple times under varying conditions:
+        -   Different true treatment effects
+        -   Variations in pilot data similarity
+    -   Calculate Type I error, power, and other operating characteristics.
+
+**Let me know if you'd like specific R code examples for any of these steps. Building this simulation can be quite involved, so it's best to break it down into parts.**
+
+1.  **Likelihood (Data Model)**: The change in blood pressure, denoted as $(\Delta BP)$, is assumed to be normally distributed with an unknown mean $(\mu\)$ and known variance $(\sigma^2)$.
+2.  **Prior**: The prior for $(\mu)$ is normal, expressed as $(N(\mu_0, \tau^2)\)$ where $(\mu_0\)$ is the prior mean (based on previous studies) and (\tau\^2) is the prior variance.
+
+## Bayesian Updating
+
+The posterior distribution for $\mu)$, after observing data with a sample mean $(\bar{x}\)$ and sample variance $(s^2)$ from $(n)$ observations, remains normal: $$
+\mu \mid \text{data} \sim N\left(\frac{\frac{\bar{x}}{s^2/n} + \frac{\mu_0}{\tau^2}}{\frac{1}{s^2/n} + \frac{1}{\tau^2}}, \frac{1}{\frac{1}{s^2/n} + \frac{1}{\tau^2}}\right)$$
+
+## Simulation
+
+```{r}
+library(bayesDP)
+library(reshape)
+library(ggplot2)
+se_pilot_sbp <- (-9.6- -0.3)/(1.96*2)# Approximated from the CI width
+
+difference_pivotal_sbp <- -3.6
+n_pivotal_sbp <- 204
+se_pivotal_sbp <- (5.2)/(1.96*2)#
+
+fit1 <- bdpnormal(mu_t      = -3.6,
+                  sigma_t   = se_pivotal_sbp*sqrt(204),
+                  N_t       = 204, 
+                  mu0_t     = -4.9,
+                  sigma0_t  = se_pilot_sbp*sqrt(71),
+                  N0_t      = 70,
+                 fix_alpha = FALSE,discount_function = "weibull",weibull_scale = 0.5,weibull_shape = 3)
+
+summary(fit1)
+
+plot(fit1, type="posteriors")
+
+
+```
+
+## Two sample
+
+```{r}
+
+library(bayesDP)
+
+# Assuming the pilot data as your MAP prior, data from the pilot study, not the same because 5.3-0.74 = 4.5, not 4.9
+## real data has to use those not in the pulot
+mu_t=-4.60
+
+### from figure 1,, numbers don't quite match (204 isn't 140+134, because that includes pulot data, so we need to include appendix p 23/24 which subtracts the treated and untreated and exlucded in pivotla
+
+sigma_t=(1.8/1.96)*sqrt(107)
+#sigma_t=10.4*(107/142)
+
+mu_c=-0.80
+sigma_c=(1.5/1.96)*sqrt(97)
+#sigma_c=8.6*(98/134)
+
+
+mu0_t=-5.3
+mu0_c=-0.74
+
+sigma0_t=1.65*sqrt(35)
+sigma0_c=1.62*sqrt(36)
+
+N_t=128-16
+N0_t=35
+N_c=123-28
+N0_c=36
+
+set.seed(42)
+fit2 <- bdpnormal(mu_t      = mu_t, sigma_t  = sigma_t,N_t = N_t,
+                  mu0_t = mu0_t,sigma0_t = sigma0_t,N0_t = N0_t,
+                  mu_c = mu_c,sigma_c=sigma_c,N_c=N_c,
+                  
+                  mu0_c     = mu0_c, sigma0_c = sigma0_c, N0_c = N0_c,
+                  fix_alpha = FALSE,discount_function = "weibull",weibull_scale = 0.5,weibull_shape = 3)
+summary(fit2)
+```
+
+```{r}
+library(bayesDP)
+
+# Assuming the pilot data as your MAP prior, data from the pilot study, not the same because 5.3-0.74 = 4.5, not 4.9
+## real data has to use those not in the pulot
+## mu_t from intention to treat appendix and from figure 1
+mu_t=-4.60 
+
+### from figure 1,, numbers don't quite match (204 isn't 140+134, because that includes pulot data, so we need to include appendix p 23/24 which subtracts the treated and untreated and exlucded in pivotla
+
+sigma_t=(1.8/1.96)*sqrt(107)
+#sigma_t=10.4*(107/142)
+
+mu_c=-0.80
+sigma_c=(1.5/1.96)*sqrt(98) 
+## CI/SS from figure 1 with barplot, and then subtract 36 from the treateed patients in appendix 14 for sample size
+#sigma_c=8.6*(98/134)
+
+
+mu0_t=-5.3
+mu0_c=-0.74
+
+sigma0_t=1.65*sqrt(35)
+sigma0_c=1.62*sqrt(36)
+
+N_t=107
+N0_t=35
+N_c=98
+N0_c=36
+
+set.seed(42)
+fit2 <- bdpnormal(mu_t      = mu_t, sigma_t  = sigma_t,N_t = N_t,
+                  mu0_t = mu0_t,sigma0_t = sigma0_t,N0_t = N0_t,
+                  mu_c = mu_c,sigma_c=sigma_c,N_c=N_c,
+                  
+                  mu0_c     = mu0_c, sigma0_c = sigma0_c, N0_c = N0_c,
+                  fix_alpha = FALSE,discount_function = "weibull",weibull_scale = 0.5,weibull_shape = 3)
+summary(fit2)
+```
+
+## Two sample
+
+```{r}
+plot(fit2, type="posteriors")
+```
+
+## Discount
+
+```{r}
+plot(fit2, type="discount")
+```
+
+## Power Analysis
+
+In a Bayesian adaptive trial, the "power parameter" is not related to statistical power. Instead, it's a term used to describe how much the data from a prior study (like a pilot study) should influence the analysis of the current trial. It's a measure of "borrowing strength" from the prior data.
+
+-   If the pilot and current pivotal data are very similar, you would use more of the pilot data in your analysis (power parameter closer to 1).
+
+-   If they are quite different, you would use less of the pilot data (power parameter closer to 0).
+
+-   Adaptive allocation rule---change in the randomization procedure to modify the allocation proportion.
+
+-   \(2\)
+
+    Adaptive sampling rule---change in the number of study subjects (sample size) or change in study population: entry criteria for the patients change.
+
+-   \(3\)
+
+    Adaptive stopping rule---during the course of the trial, a data-dependent rule dictates whether and when to stop for harm/futility/efficacy.
+
+-   \(4\)
+
+    Adaptive enrichment: during the trial, treatments are added or dropped.
+
+-   The significance level in a clinical trial is the threshold at which the results of the trial are deemed statistically significant. It represents the probability of rejecting the null hypothesis when it is actually true (a Type I error, or false positive). In conventional frequentist statistics, common significance levels are 0.05 or 0.01. For the SPYRAL HTN-OFF MED Pivotal trial, a one-sided Type I error rate of 2.9% is specified, which means they use a significance level of 0.029 for their primary efficacy endpoint.
+
+    In the Bayesian context, the significance level can be used to determine the decision thresholds for interim analyses. For instance, a posterior probability below a certain significance level may indicate futility, or if it is sufficiently high above 1 minus the significance level, it may indicate efficacy.
+
+## Similatiry
+
+```         
+1.  **Power Prior**: In a Bayesian framework, prior information (like results from pilot studies) is typically incorporated into the analysis through the prior distribution. A power prior is a method to adjust the influence of this prior information on the current analysis.
+
+2.  **Similarity Statistic**: Before the pilot data is fully incorporated into the pivotal trial analysis, a measure of similarity between the pilot and pivotal data is calculated. This helps to understand how comparable the two datasets are.
+
+3.  **Power Parameter**: The power parameter (denoted typically by α in Bayesian statistics) adjusts how much weight is given to the pilot data in the analysis. If the pilot and pivotal data are very similar, the power parameter is closer to 1, meaning that more information from the pilot study is retained. If the data are dissimilar, the power parameter is closer to 0, meaning the pilot data is down-weighted.
+
+4.  **Transformation using Weibull Function**: The similarity statistic is transformed into a power parameter using a Weibull function. The shape and scale of this function determine how the similarity statistic is translated into the power parameter. This transformation is based on predefined parameters that are determined through simulations to optimize the trial's design.
+
+The purpose of this is to dynamically borrow information from the pilot study based on the level of consistency with the ongoing pivotal trial data. This process allows the analysis to be adaptive and more informative by integrating the amount of evidence that is considered appropriate from the prior study into the current analysis.
+
+In summary, the significance level in the context of the SPYRAL trials is used as a decision-making threshold during interim analyses, while the similarity statistic and its transformation into a power parameter determine the degree to which prior data informs the current analysis.
+```
+
+```{r}
+# Define the simulation parameters
+pilot_treatment_mean <- -5.30
+pilot_treatment_se <- 1.65
+N_0t=36
+pilot_control_mean <- -0.74
+pilot_control_se <- 1.62
+N_0c=35
+pivotal_expected_difference <- -4.0
+pivotal_treatment_sd <- 12
+pivotal_control_sd <- 12
+max_pilot_subjects <- 71  # Combined from treatment and control arms in the pilot study
+weibull_shape <- 3
+
+# Function to estimate the power parameter based on the similarity measure
+estimate_power_parameter <- function(similarity_statistic, weibull_scale) {
+  # Convert similarity statistic to power parameter
+  power_param <- 1 - weibull(similarity_statistic, shape = weibull_shape, scale = weibull_scale)
+  return(power_param)
+}
+
+# Function to simulate one interim look
+simulate_interim_look <- function(sample_size, expected_difference, treatment_sd, control_sd) {
+  # Simulate data based on expected differences and standard deviations
+  treatment_data <- rnorm(sample_size / 2, expected_difference, treatment_sd)
+  control_data <- rnorm(sample_size / 2, 0, control_sd)
+
+        # Fit the Bayesian model
+        fit <-
+          bdpnormal(
+            mu_t = mean(treatment_data),
+            sigma_t = sd(treatment_data),
+            N_t = sample_size / 2,
+            mu0_t = -5.30,
+            sigma0_t = 1.65 * sqrt(36),
+            N0_t = 36,
+            mu_c = mean(control_data),
+            sigma_c = sd(control_data),
+            N_c = sample_size / 2,
+            mu0_c = -0.74,
+            sigma0_c = 1.62 * sqrt(35),
+            N0_c = 35,
+            fix_alpha = FALSE,
+            discount_function = "weibull",
+            weibull_scale = 0.5,
+            weibull_shape = 3,
+            number_mcmc = 8000
+          )
+
+  p_val=sum(fit$final$posterior<0)/length(fit$final$posterior)
+  test_result=ifelse(p_val<0.05,"reject","accept")
+  return(list(p_value = p_val, test_result = test_result))
+}
+
+# Function to simulate the trial with interim looks
+simulate_trial <-
+  function(n_simulations,
+           weibull_scale,
+           significance_level = 0.025) {
+    interim_results <-
+      replicate(
+        n_simulations,
+        simulate_interim_look(
+          210,
+          pivotal_expected_difference,
+          pivotal_treatment_sd,
+          pivotal_control_sd
+        )
+      )
+    futility_results <-
+      interim_results[1,] < 0.05  # Futility if p-value is less than 0.05
+    efficacy_results <-
+      interim_results[1,] > (1 - significance_level)  # Efficacy if p-value is greater than threshold
+    
+    return(
+      list(
+        futility_rate = mean(futility_results),
+        efficacy_rate = mean(efficacy_results),
+        interim_results = interim_results
+      )
+    )
+  }
+
+# Perform the simulation
+simulation_results <-
+  simulate_trial(8000, 0.5)  # Use 8000 for power simulations
+
+```
+
+```{r}
+pilot_treatment_mean <- -5.30
+pilot_treatment_se <- 1.65
+N0_t=36
+pilot_control_mean <- -0.74
+pilot_control_se <- 1.62
+N0_c=35
+pivotal_expected_difference <- -4.0
+pivotal_treatment_sd <- 12
+pivotal_control_sd <- 12
+max_pilot_subjects <- 71  # Combined from treatment and control arms in the pilot study
+weibull_shape <- 3
+
+
+simulate_interim_look <- function(sample_size, expected_difference, treatment_sd, control_sd) {
+  # Simulate data based on expected differences and standard deviations
+  treatment_data <- rnorm(sample_size / 2, expected_difference, treatment_sd)
+  control_data <- rnorm(sample_size / 2, 0, control_sd)
+  n_t=n_c=sample_size / 2
+  
+ fit=bdpnormal(mu_t= mean(treatment_data), sigma_t  = sd(treatment_data),N_t = n_t,
+                  mu0_t =pilot_treatment_mean ,sigma0_t = pilot_treatment_se*N0_t,N0_t = N0_t,
+                  mu_c = mean(control_data),sigma_c=sd(control_data),N_c=n_c,
+                  
+                  mu0_c     = pilot_control_mean, sigma0_c = pilot_control_se, N0_c = N0_c,
+                  fix_alpha = FALSE,discount_function = "weibull",weibull_scale = 0.5,weibull_shape = 3,number_mcmc = 8000)
+
+ p_val=sum(fit$final$posterior<0)/length(fit$final$posterior)
+test_result=ifelse(p_val<0.05,"reject","accept")
+
+  
+  return(list(p_value = p_val, test_result = test_result))
+}
+
+simulate_trial <-
+  function(n_simulations,
+           weibull_scale=0.50,
+           significance_level = 0.025,futility_value=0.05,
+           interim_size = 330)
+  {
+    interim_results = NULL
+    test_results = NULL
+    for (i in 1:n_simulations) {
+      sil = simulate_interim_look(
+        interim_size,
+        pivotal_expected_difference,
+        pivotal_treatment_sd,
+        pivotal_control_sd
+      )
+      interim_results[i] = sil$p_value
+      test_results[i] = sil$test_result
+    }
+    
+    futility_results <-
+      interim_results < futility_value  # Futility if p-value is less than 0.05
+    efficacy_results <-
+      interim_results > (1 - significance_level)  # Efficacy if p-value is greater than threshold
+    return(
+      list(
+        futility_rate = mean(futility_results),
+        efficacy_rate = mean(efficacy_results),
+        interim_results = interim_results
+      )
+    )
+  }
+
+
+
+simulation_results <-
+simulate_trial(8000, 0.5)  # Use 8000 for power simulations
+
+hist(as.numeric(simulation_results$interim_results),main="Posterior Probability mu < 0",xlab="Efficacy:Posterior Probability mu_t-c < 0, Nsim",nclass = 100)
+
+## in this proportion of simulations, there was greater than ((1 - significance_level)) chance that mu was less than 0 (i.e., could stop)
+simulation_results$efficacy_rate 
+
+## in this proportion of simulations, there was less than significance level chance that mu was less than 0 (i.e., should stop)
+
+simulation_results$futility_rate
+
+```
+
+## Power simluation
+
+Power Estimation (94% to detect -4.0 mm Hg difference): This means that when they simulated 8,000 trials assuming the true effect is -4.0 mm Hg, in 94% of those simulations, they were able to reject the null hypothesis of no effect (or an effect of 0 mm Hg) at the 2.9% significance level. Type I Error Estimation (2.9% for the primary endpoint): This is the probability of rejecting the null hypothesis when it is true, and it was estimated using 15,000 simulations under the null hypothesis of no effect. Only in 2.9% of those simulations should they have rejected the null hypothesis, given that there was actually no difference.
+
+They assumed a true treatment effect and simulated data accordingly.
+
+## Here's what's happening in their methodology:
+
+They used a statistical method (likely a Bayesian approach, given the context) to analyze the simulated data. They checked against a significance level (2.9% one-sided Type I error rate) to see if the null hypothesis could be rejected. They repeated this process across many simulations and calculated what percentage of those simulations resulted in rejecting the null hypothesis. If it's around 94%, that's the power estimate.
+
+In both cases, each simulation is binary in outcome: either the null is rejected (counted as a success for power, or as a false positive for Type I error) or it is not. The final reported percentages (power of 94%, Type I error of 2.9%) are the proportions of these binary outcomes across all simulations.
+
+## Simulation
+
+```{r}
+library(bayesDP)
+
+# Simulation parameters
+num_simulations <-8000
+sample_size <- 210
+true_effect <- -4.0
+treatment_sd <- 12
+control_sd <- 12
+
+# Power simulation function
+simulate_power <- function(n_sim, true_effect, sample_size, treatment_sd, control_sd) {
+    significant_results <- 0
+    quantile_971 = 0
+    power_per_analysis =0 
+    
+    for (i in 1:n_sim) {
+        # Simulate treatment and control data
+        treatment_data <- rnorm(sample_size / 2, true_effect, treatment_sd)
+        control_data <- rnorm(sample_size / 2, 0, control_sd)
+        
+        # Fit the Bayesian model
+        fit <- bdpnormal(mu_t = mean(treatment_data), sigma_t = sd(treatment_data), N_t = sample_size / 2,
+                         mu0_t = -5.30, sigma0_t = 1.65 * sqrt(36), N0_t = 36,
+                         mu_c = mean(control_data), sigma_c = sd(control_data), N_c = sample_size / 2,
+                         mu0_c = -0.74, sigma0_c = 1.62 * sqrt(35), N0_c = 35,
+                         fix_alpha = FALSE, discount_function = "weibull", 
+                         weibull_scale = 0.5, weibull_shape = 3, number_mcmc = 8000)
+        
+        power_new=sum(fit$final$posterior<0)/length(fit$final$posterior)
+        qnew=quantile(fit$final$posterior, probs = 0.971)
+        quantile_971=c(quantile_971,qnew)
+        power_per_analysis=c(power_per_analysis,power_new)
+
+        # Determine if the effect is significant
+       # Use the 97.1 percentile of the posterior distribution to decide on significance
+        if (quantile(fit$final$posterior, probs = 0.971) < 0) {
+            significant_results <- significant_results + 1
+        }
+    }
+    
+    return(list(power=significant_results  / n_sim,qs=quantile_971, power_per_analysis=power_per_analysis))
+}
+
+
+sample_size <- c(210,240,300)
+power <- sapply(sample_size, function(x){simulate_power(n_sim=8000,true_effect = true_effect,sample_size = x,treatment_sd = treatment_sd,control_sd = control_sd)$power})
+  
+data.frame(sample_size, power)
+
+
+# Calculate power
+power_estimate <- simulate_power(num_simulations, true_effect, sample_size, treatment_sd, control_sd)
+
+
+power_estimate$power
+power_estimate <- simulate_power(num_simulations, true_effect, sample_size=330, treatment_sd, control_sd)
+
+data=data.frame(power_estimate$qs)
+ggplot(data.frame(power_estimate$qs),aes(x=power_estimate.qs))+geom_histogram()+labs(title="Histogram of 97.1% over 8000 Simulations with delta = 4",x="97.1 percentile",ylab="Frequency")+scale_fill_gradient()+theme_classic()+geom_vline(xintercept = 0)
+
+
+
+ggplot(data, aes(x = power_estimate.qs, fill = power_estimate.qs < 0)) +
+  geom_histogram(binwidth = 0.1) +
+  scale_fill_manual(values = c("TRUE" = "blue", "FALSE" = "red")) +
+  geom_vline(xintercept = 0, color = "blue", linetype = "dashed") +
+  labs(x = "97.1% Quantile when True Effect is -4, 8000 Simulations", fill = "Significance") +
+  theme_minimal()
+```
+
+## ,Type 1 error:
+
+```{r}
+
+# Type I error simulation function
+simulate_type_I_error <- function(n_sim, sample_size, treatment_sd, control_sd) {
+    false_positives <- 0
+    
+    quantile_971 = 0
+    
+    for (i in 1:n_sim) {
+        # Simulate treatment and control data with no effect
+        treatment_data <- rnorm(sample_size / 2, 0, treatment_sd)
+        control_data <- rnorm(sample_size / 2, 0, control_sd)
+        
+        # Fit the Bayesian model
+        fit <- bdpnormal(mu_t = mean(treatment_data), sigma_t = sd(treatment_data), N_t = sample_size / 2,
+                         mu0_t = -5.30, sigma0_t = 1.65 * sqrt(36), N0_t = 36,
+                         mu_c = mean(control_data), sigma_c = sd(control_data), N_c = sample_size / 2,
+                         mu0_c = -0.74, sigma0_c = 1.62 * sqrt(35), N0_c = 35,
+                         fix_alpha = FALSE, discount_function = "weibull", 
+                         weibull_scale = 0.5, weibull_shape = 3, number_mcmc = 8000)
+
+        qnew=quantile(fit$final$posterior, probs = 0.971)
+        quantile_971=c(quantile_971,qnew)
+
+        # Determine if the effect is significant
+       # Use the 97.1 percentile of the posterior distribution to decide on significance
+        if (quantile(fit$final$posterior, probs = 0.971) < 0) {
+            false_positives <- false_positives + 1
+        }
+    }
+    
+   
+    
+    return(list(fp=false_positives  / n_sim,qs=quantile_971))
+}
+
+
+fpsim <- simulate_type_I_error(n_sim =15000, sample_size=210, treatment_sd=12, control_sd=12)
+
+library(ggplot2)
+
+# Assume 'fpsim$qs' is a vector of your 97.1% quantile values from the simulations
+data <- data.frame(qs = fpsim$qs)
+
+# Plot histogram with shaded area
+data <- data.frame(qs = fpsim$qs)
+
+# Plot histogram with shaded area to the left of 0
+ggplot(data, aes(x = qs, fill = qs < 0)) +
+  geom_histogram(binwidth = 0.1) +
+  scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "grey")) +
+  geom_vline(xintercept = 0, color = "blue", linetype = "dashed") +
+  labs(x = "97.1% Quantile when True Effect is 0, 15000 Simulations", fill = "Significance") +
+  theme_minimal()
+```
